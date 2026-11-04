@@ -82,7 +82,7 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0
 <script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
 <script>
 (function(){
-var h=React.createElement,html=htm.bind(h),useState=React.useState;
+var h=React.createElement,html=htm.bind(h),useState=React.useState,useEffect=React.useEffect;
 
 var I18N={
 en:{
@@ -777,7 +777,53 @@ var adminNewSeriesState=useState(""),adminNewSeries=adminNewSeriesState[0],setAd
 var adminNewModelState=useState(""),adminNewModel=adminNewModelState[0],setAdminNewModel=adminNewModelState[1];
 var adminNewHpState=useState("1.0"),adminNewHp=adminNewHpState[0],setAdminNewHp=adminNewHpState[1];
 var modelsState=useState(M),modelsData=modelsState[0],setModelsData=modelsState[1];
+var adminNoticeState=useState(""),adminNotice=adminNoticeState[0],setAdminNotice=adminNoticeState[1];
+var dataReadyState=useState(false),dataReady=dataReadyState[0],setDataReady=dataReadyState[1];
 var showSellingState=useState(false),showSelling=showSellingState[0],setShowSelling=showSellingState[1];
+useEffect(function(){
+  var cancelled=false;
+  fetch("/api/data").then(function(res){
+    if(!res.ok) throw new Error("Cloudflare data request failed ("+res.status+")");
+    return res.json();
+  }).then(function(data){
+    if(cancelled) return;
+    if(data){
+      if(!data.models||typeof data.models!=="object"||!data.specData||typeof data.specData!=="object"){
+        throw new Error("Cloudflare returned invalid comparison data");
+      }
+      M=data.models;
+      SPECDATA=data.specData;
+      setModelsData(data.models);
+    }
+    setAdminNotice("");
+    setDataReady(true);
+  }).catch(function(err){
+    console.error("Could not load saved comparison data:",err);
+    if(!cancelled) setAdminNotice("Saved Cloudflare data could not be loaded. The built-in catalog is shown. "+err.message);
+  });
+  return function(){cancelled=true;};
+},[]);
+function commitModels(next){
+  M=next;
+  setModelsData(next);
+}
+async function persistAdminData(nextModels,nextSpecs){
+  if(!dataReady) throw new Error("Saved Cloudflare data is not ready; reload the page before editing.");
+  var response=await fetch("/api/admin/data",{
+    method:"PUT",
+    headers:{"content-type":"application/json"},
+    body:JSON.stringify({models:nextModels,specData:nextSpecs})
+  });
+  var result={};
+  var responseText=await response.text();
+  try{
+    result=responseText?JSON.parse(responseText):{};
+  }catch(_err){
+    throw new Error("Cloudflare returned an invalid save response ("+response.status+")");
+  }
+  if(!response.ok) throw new Error(result.error||"Cloudflare save failed ("+response.status+")");
+  setAdminNotice("");
+}
 function setPickedFor(brand,sIdx,mIdx){
   setPicked(function(prev){
     var n=Object.assign({},prev);
@@ -1073,10 +1119,26 @@ ${view==="all"?allView:cmpView}
 <button type="button" class="admin-btn" onClick=${function(){setShowAdmin(true)}} title="Admin">⚙</button>
 ${showAdmin?html`<div class="admin-overlay" onClick=${function(){setShowAdmin(false)}}>
 <div class="admin-modal" onClick=${function(e){e.stopPropagation()}}>
+${adminNotice?html`<div role="status" style=${{marginBottom:"12px",padding:"10px",borderRadius:"8px",background:"var(--accent-soft)",color:"var(--fg)"}}>${adminNotice}</div>`:null}
 ${!adminAuth?html`<h2>Admin Login</h2>
 <input type="password" placeholder="Password" value=${adminPw} onInput=${function(e){setAdminPw(e.target.value)}} />
 <div class="row" style=${{marginTop:"8px"}}>
-<button type="button" class="primary" onClick=${function(){if(adminPw==="TSS1048")setAdminAuth(true);else alert("Wrong password");}}>Login</button>
+<button type="button" class="primary" onClick=${async function(){
+  try{
+    var response=await fetch("/api/admin/login",{
+      method:"POST",
+      headers:{"content-type":"application/json"},
+      body:JSON.stringify({password:adminPw})
+    });
+    var result=await response.json();
+    if(!response.ok) throw new Error(result.error||"Login failed ("+response.status+")");
+    setAdminAuth(true);
+    setAdminPw("");
+    setAdminNotice("");
+  }catch(err){
+    alert("Admin login failed: "+err.message);
+  }
+}}>Login</button>
 <button type="button" onClick=${function(){setShowAdmin(false)}}>Cancel</button>
 </div>
 `:html`<h2>Manage Models</h2>
@@ -1102,10 +1164,14 @@ ${(modelsData[adminBrand]&&modelsData[adminBrand].series||[]).map(function(s){re
   if(!next[adminBrand].series) next[adminBrand].series=[];
   if(next[adminBrand].series.some(function(s){return s.nEn===name})){alert("Series exists");return;}
   next[adminBrand].series.push({nEn:name,nCn:name,inv:true,models:[]});
-  setModelsData(next);
+  commitModels(next);
   setAdminSeries(name);
   setAdminNewSeries("");
-  alert("Series added: "+name);
+  persistAdminData(next,SPECDATA).then(function(){
+    alert("Series added and saved: "+name);
+  }).catch(function(err){
+    alert("Series was added in this page but could not be saved to Cloudflare: "+err.message);
+  });
 }}>Add Series</button>
 </div>
 </div>`:null}
@@ -1128,12 +1194,15 @@ ${["1.0","1.5","2.0","2.5","3.0","4.0"].map(function(h){return html`<option key=
   if(!series) return;
   if(series.models.some(function(m){return m.in===code})){alert("Model exists");return;}
   series.models.push({in:code,out:"",hp:parseFloat(adminNewHp),c:"v"});
-  setModelsData(next);
+  commitModels(next);
   setAdminNewModel("");
   setAdminEdit(code);
   setAdminForm({code:code});
-  
-  alert("Model added: "+code);
+  persistAdminData(next,SPECDATA).then(function(){
+    alert("Model added and saved: "+code);
+  }).catch(function(err){
+    alert("Model was added in this page but could not be saved to Cloudflare: "+err.message);
+  });
 }}>Add Model</button>
 </div>
 </div>`:null}
@@ -1164,39 +1233,65 @@ ${["1.0","1.5","2.0","2.5","3.0","4.0"].map(function(h){return html`<option key=
 <button type="button" class="primary" onClick=${function(){
   var code=(adminForm.code||"").trim();
   if(!code){alert("Model code required");return;}
-  SPECDATA[code]=Object.assign({},adminForm);
-  delete SPECDATA[code].code;
+  var nextSpecs=Object.assign({},SPECDATA);
+  nextSpecs[code]=Object.assign({},adminForm);
+  delete nextSpecs[code].code;
+  SPECDATA=nextSpecs;
   setAdminForm({});
   setAdminEdit("");
-  alert("Saved: "+code);
+  persistAdminData(modelsData,nextSpecs).then(function(){
+    alert("Saved to Cloudflare: "+code);
+  }).catch(function(err){
+    alert("Changes are only in this page and could not be saved to Cloudflare: "+err.message);
+  });
 }}>Save Model</button>
 ${adminEdit?html`<button type="button" onClick=${function(){
   if(confirm("Delete "+adminEdit+" from series and specs?")){
-    delete SPECDATA[adminEdit];
+    var nextSpecs=Object.assign({},SPECDATA);
+    delete nextSpecs[adminEdit];
     var next=JSON.parse(JSON.stringify(modelsData));
     if(adminBrand&&adminSeries&&next[adminBrand]){
       var series=next[adminBrand].series.find(function(s){return s.nEn===adminSeries});
       if(series) series.models=series.models.filter(function(m){return m.in!==adminEdit});
     }
-    setModelsData(next);
+    SPECDATA=nextSpecs;
+    commitModels(next);
     setAdminForm({});setAdminEdit("");setAdminSeries("");setAdminBrand("");
-    alert("Deleted");
+    persistAdminData(next,nextSpecs).then(function(){
+      alert("Deleted and saved to Cloudflare");
+    }).catch(function(err){
+      alert("Deleted in this page but could not save to Cloudflare: "+err.message);
+    });
   }
 }}>Delete Model</button>`:null}
 ${adminSeries?html`<button type="button" onClick=${function(){
   if(confirm("Delete series "+adminSeries+" and all its models?")){
     var next=JSON.parse(JSON.stringify(modelsData));
+    var nextSpecs=Object.assign({},SPECDATA);
     if(adminBrand&&next[adminBrand]){
       var series=next[adminBrand].series.find(function(s){return s.nEn===adminSeries});
-      if(series) series.models.forEach(function(m){if(m.in) delete SPECDATA[m.in];});
+      if(series) series.models.forEach(function(m){if(m.in) delete nextSpecs[m.in];});
       next[adminBrand].series=next[adminBrand].series.filter(function(s){return s.nEn!==adminSeries});
     }
-    setModelsData(next);
+    SPECDATA=nextSpecs;
+    commitModels(next);
     setAdminSeries("");setAdminEdit("");setAdminForm({});setAdminBrand("");
-    alert("Series deleted");
+    persistAdminData(next,nextSpecs).then(function(){
+      alert("Series deleted and saved to Cloudflare");
+    }).catch(function(err){
+      alert("Series deleted in this page but could not save to Cloudflare: "+err.message);
+    });
   }
 }}>Delete Series</button>`:null}
-<button type="button" onClick=${function(){setAdminAuth(false);setShowAdmin(false);}}>Logout</button>
+<button type="button" onClick=${async function(){
+  try{
+    var response=await fetch("/api/admin/logout",{method:"POST"});
+    if(!response.ok) throw new Error("Logout failed ("+response.status+")");
+    setAdminAuth(false);setShowAdmin(false);
+  }catch(err){
+    alert("Could not log out: "+err.message);
+  }
+}}>Logout</button>
 </div>
 `}
 </div>
