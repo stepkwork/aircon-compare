@@ -1,0 +1,1201 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Aircon Brand Comparison</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#f5f7f9;--surface:#fff;--fg:#14202b;--muted:#5b6b7a;--line:#dde3e9;--accent:#0f6e8c;--accent-soft:#e0f0f5;--hdr:#eef2f5;
+--font:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e151c;--surface:#16202a;--fg:#e8eef3;--muted:#93a3b2;--line:#263441;--accent:#4fb6d6;--accent-soft:#15333f;--hdr:#1b2733;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e151c;--surface:#16202a;--fg:#e8eef3;--muted:#93a3b2;--line:#263441;--accent:#4fb6d6;--accent-soft:#15333f;--hdr:#1b2733;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 var(--font);padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.header-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.header-text{flex:1;min-width:200px}
+h1{font-size:1.75rem;line-height:1.15;margin:0;font-weight:700;text-wrap:balance}.sub{color:var(--muted);margin:4px 0 0}
+.header-controls{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
+.lang-toggle,.hp-toggle{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.lang-toggle button,.hp-toggle button{border:0;background:none;padding:7px 12px;font:inherit;font-size:.85rem;color:var(--fg);cursor:pointer}
+.lang-toggle button[aria-pressed=true],.hp-toggle button[aria-pressed=true]{background:var(--accent);color:var(--surface);font-weight:600}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:inherit;color:var(--fg);cursor:pointer}
+input{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:0}
+.bar input{flex:1 1 180px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:.85rem}
+.chip:disabled{opacity:.45;cursor:not-allowed}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.scroll{overflow:auto;max-width:100%;max-height:78vh}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:640px;font-size:.9rem}
+th,td{padding:11px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+thead th{position:sticky;top:0;z-index:3;background:var(--hdr);font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;white-space:nowrap}
+tbody tr:hover td,tbody tr:hover th{background:var(--accent-soft)}
+.sticky{position:sticky;left:0;z-index:2;background:var(--surface);border-right:1px solid var(--line)}thead .sticky{z-index:4;background:var(--hdr)}
+tbody th{font-weight:700}
+.or{display:block;color:var(--muted);font-size:.78rem;font-weight:500}
+.sp b{font-weight:600}.sp span{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
+.cmp th.rl{background:var(--hdr);font-size:.68rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);white-space:normal;width:120px;min-width:120px;max-width:140px;word-break:break-word;line-height:1.25;padding:8px 10px}
+.cmp td{width:180px;min-width:180px;max-width:180px;word-break:break-word}.cmp thead th.bh{text-transform:none;letter-spacing:0;font-size:1rem;color:var(--fg);width:180px;min-width:180px;max-width:180px}
+.x{border:0;background:none;color:var(--muted);font-size:1.1rem;padding:0 4px}
+.empty{padding:36px 16px;text-align:center;color:var(--muted)}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0}
+.bottom-bar{display:flex;justify-content:center;padding:8px 0 4px}
+.btn-compare{border:1px solid var(--accent);background:var(--accent);color:var(--surface);border-radius:999px;padding:12px 28px;font-size:1rem;font-weight:600;cursor:pointer}
+.btn-compare:disabled{opacity:.45;cursor:not-allowed;background:var(--surface);color:var(--muted);border-color:var(--line)}
+.brand-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle;flex-shrink:0;background-size:cover}
+.model-select{font:inherit;font-size:.82rem;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;min-width:180px;max-width:280px;cursor:pointer}
+.model-select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.series-note{display:block;color:var(--muted);font-size:.72rem;margin-top:4px}
+.mc{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem;font-weight:600}
+.mc.u{font-weight:400;font-style:italic;color:var(--muted)}
+.no-model{color:var(--muted);font-size:.85rem}
+.desc-drop{font:inherit;font-size:.82rem;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;min-width:180px;max-width:280px;cursor:pointer;width:100%}
+.desc-panel{margin-top:6px;padding:10px 12px;background:var(--hdr);border:1px solid var(--line);border-radius:8px;font-size:.82rem;line-height:1.45;color:var(--fg);max-width:280px}
+.desc-panel b{display:block;margin-bottom:4px}
+.desc-panel span{color:var(--muted);display:block}
+.flag{width:20px;height:14px;object-fit:cover;border-radius:2px;vertical-align:-1px;margin-right:5px;display:inline-block;border:1px solid rgba(0,0,0,.15);box-shadow:0 0 0 0.5px rgba(0,0,0,.05)}
+.opt-btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;font:inherit;cursor:pointer}
+.opt-btn:hover{border-color:var(--accent)}
+.filter-panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.filter-sec-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;margin:0 0 3px}
+.filter-chips{display:flex;flex-wrap:wrap;gap:8px}
+.fchip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font:inherit;font-size:.85rem;color:var(--fg);cursor:pointer}
+.fchip.on{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
+.fchip.dim{opacity:.4}
+.admin-btn{position:fixed;bottom:16px;right:16px;width:40px;height:40px;border-radius:50%;border:none;background:var(--muted);color:#fff;font-size:1.1rem;cursor:pointer;opacity:.4;z-index:50}
+.admin-btn:hover{opacity:1}
+.admin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center}
+.admin-modal{background:var(--surface);border-radius:14px;padding:24px;max-width:480px;width:90%;max-height:80vh;overflow:auto}
+.admin-modal h2{margin:0 0 16px}
+.admin-modal input,.admin-modal select,.admin-modal textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:10px;font:inherit}
+.admin-modal .row{display:flex;gap:8px;margin-bottom:10px}
+.admin-modal .row>*{flex:1}
+.admin-modal button{padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
+.admin-modal button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+</style></head><body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script>
+(function(){
+var h=React.createElement,html=htm.bind(h),useState=React.useState;
+
+var I18N={
+en:{
+  title:"Air Conditioner Brand Comparison",
+  sub:"Tick up to 4 brands to compare side by side.",
+  search:"Search brand or feature",
+  compare:"Compare",
+  brand:"Brand",
+  selling:"Main selling point",
+  models:"Models",
+  viewModels:"View models…",
+  notConfirmed:"Not confirmed",
+  notFound:"not found",
+  compareSelected:function(n){return "Compare selected ("+n+")"},
+  back:"← Back to all brands",
+  empty:"No brands match.",
+  pickBrands:"No brands selected. Use Add brands above to add.",
+  origin:"Origin",
+  series:"Series",
+  hp:["1.0 HP","1.5 HP","2.0 HP","2.5 HP","3.0 HP","4.0 HP"],
+  hpAll:"All HP",
+  countries:{Japan:"Japan",Korea:"Korea",China:"China",Malaysia:"Malaysia",Germany:"Germany"},
+  options:"Options",
+  regions:"Region",
+  brands:"Brands",
+  clearFilters:"Clear filters",
+  clearCompare:"Clear",
+  showModels:"Models",
+  showSelling:"Selling point",
+  addBrands:"Add brands",
+  admin:"Admin",
+  product:"Product",
+  indoorUnit:"Indoor Unit",
+  outdoorUnit:"Outdoor Unit",
+  capacity:"Capacity",
+  input:"Input",
+  cspf:"CSPF",
+  energyRating:"Energy Rating",
+  runningCurrent:"Running Current",
+  powerSupply:"Power supply",
+  refrigerant:"Refrigerant",
+  pipeLiquid:"Refrigerant Pipe (Liquid)",
+  pipeGas:"Refrigerant Pipe (Gas)",
+  indoorAirflow:"Indoor air flow (Hi/Mi/Lo)",
+  indoorNoise:"Indoor noise level (Hi/Mi/Lo/Si)",
+  dimension:"Dimension (WDH)",
+  grossWeight:"Gross weight",
+  pipingSize:"Piping Connecting size",
+  louverSwing:"Louver Swing",
+  outdoorAirflow:"Outdoor air flow",
+  outdoorNoise:"Outdoor sound pressure level",
+  maxPipeLength:"Max Pipe Length",
+  maxPipeHeight:"Max Pipe Height",
+  amountOfGas:"Amount of Gas",
+  clearAll:"Clear all",
+  inverter:"Inverter",
+  invYes:"Yes",
+  invNo:"No",
+  description:"Description",
+  showDesc:"Brand info…"
+},
+cn:{
+  title:"空调品牌对比",
+  sub:"最多勾选 4 个品牌进行并排对比。",
+  search:"搜索品牌或特点",
+  compare:"对比",
+  brand:"品牌",
+  selling:"主要卖点",
+  models:"机型",
+  viewModels:"查看机型…",
+  notConfirmed:"暂未确认",
+  notFound:"未找到",
+  compareSelected:function(n){return "对比已选 ("+n+")"},
+  back:"← 返回全部品牌",
+  empty:"没有匹配的品牌。",
+  pickBrands:"未选择品牌。请使用上方“添加品牌”。",
+  origin:"产地",
+  series:"系列",
+  hp:["1.0 匹","1.5 匹","2.0 匹","2.5 匹","3.0 匹","4.0 匹"],
+  hpAll:"全部匹数",
+  countries:{Japan:"日本",Korea:"韩国",China:"中国",Malaysia:"马来西亚",Germany:"德国"},
+  options:"筛选",
+  regions:"地区",
+  brands:"品牌",
+  clearFilters:"清除筛选",
+  clearCompare:"清除",
+  showModels:"机型",
+  showSelling:"卖点",
+  addBrands:"添加品牌",
+  admin:"管理",
+  product:"产品",
+  indoorUnit:"室内机",
+  outdoorUnit:"室外机",
+  capacity:"制冷量",
+  input:"输入功率",
+  cspf:"CSPF",
+  energyRating:"能效等级",
+  runningCurrent:"运行电流",
+  powerSupply:"电源",
+  refrigerant:"冷媒",
+  pipeLiquid:"冷媒管（液）",
+  pipeGas:"冷媒管（气）",
+  indoorAirflow:"室内风量（高/中/低）",
+  indoorNoise:"室内噪音（高/中/低/静）",
+  dimension:"尺寸（宽深高）",
+  grossWeight:"毛重",
+  pipingSize:"配管连接尺寸",
+  louverSwing:"摆风",
+  outdoorAirflow:"室外风量",
+  outdoorNoise:"室外噪音",
+  maxPipeLength:"最大管长",
+  maxPipeHeight:"最大管高",
+  amountOfGas:"充注量",
+  clearAll:"全部清除",
+  inverter:"变频",
+  invYes:"是",
+  invNo:"否",
+  description:"简介",
+  showDesc:"品牌简介…"
+}
+};
+
+// brand, origin, sEn, sCn, kEn, kCn, color, hpLo, hpHi
+var FLAGS={Japan:"https://flagcdn.com/w80/jp.png",Korea:"https://flagcdn.com/w80/kr.png",China:"https://flagcdn.com/w80/cn.png",Malaysia:"https://flagcdn.com/w80/my.png",Germany:"https://flagcdn.com/w80/de.png"};
+function flagImg(o){var src=FLAGS[o];return src?html`<img class="flag" src=${src} alt="" width="20" height="14"/>`:null;}
+
+function brandDotStyle(c){
+  if(!c) return {};
+  if(c.indexOf("|")>-1){
+    var parts=c.split("|");
+    var style={background:"linear-gradient(135deg, "+parts[0]+" 50%, "+parts[1]+" 50%)"};
+    if(parts[0].toLowerCase()==="#ffffff"||parts[1].toLowerCase()==="#ffffff"){
+      style.boxShadow="inset 0 0 0 1px rgba(0,0,0,.18)";
+    }
+    return style;
+  }
+  return {background:c};
+}
+
+var D=[
+["Daikin","Japan","Quiet & reliable — technician favourite","安静可靠，技师首选","Coanda airflow on higher models","高阶机型康达气流","#0090D0",1,4,true],
+["Panasonic","Japan","Energy saving + clean air (nanoe X)","节能 + 净化空气（nanoe X）","nanoe X air purification","nanoe X 空气净化","#0041C0",1,3,true],
+["Mitsubishi","Japan","Ultra-quiet, precise control","超静音、精准控温","i-see sensor on higher models","高阶机型 i-see 传感器","#E60012|#1a1a1a",1,3,true],
+["Hitachi","Japan","airHome series — Frost Wash self-clean","airHome 系列 — Frost Wash 自清洁","Frost Wash keeps coil clean","Frost Wash 保持盘管清洁","#E60027|#1a1a1a",1,2.5,true],
+["Arçelik Hitachi","Japan","Inverter & Standard R32 lines","变频与标准 R32 系列","RAK-QH / RAK-AH models","RAK-QH / RAK-AH 机型","#E60027|#1a1a1a",1,2.5,true],
+["LG","Korea","Fast Dual Inverter + smart app","双变频快速制冷 + 智能操控","Dual Inverter, ThinQ app","双变频，ThinQ 应用","#A50034",1,2.5,true],
+["Samsung","Korea","Draft-free WindFree cooling","无风感 WindFree 制冷","WindFree, SmartThings app","WindFree，SmartThings","#1428A0",1,2.5,true],
+["Toshiba","Japan","Trusted Japanese brand, fair price","可靠日本品牌，价格亲民","Easy to find and service","容易购买与维修","#CC0000|#ffffff",1,2.5,true],
+["Sharp","Japan","Plasmacluster air cleaning","等离子簇离子净化","Plasmacluster ions","等离子簇离子","#E6000D|#ffffff",1,2.5,true],
+["Midea","China","Best value inverter","高性价比变频","Popular budget inverter lines","热门平价变频","#00A0E3",1,3,true],
+["Gree","China","Strong cooling, great price","制冷强劲，价格实惠","Inverter range at low cost","低价位变频","#24308B|#E53935",1,3,true],
+["Haier","China","Affordable + self-clean","实惠 + 自清洁","Self-clean function","自清洁功能","#0055A5",1,2.5,true],
+["Hisense","China","Budget-friendly inverter","经济实惠变频","Entry-level inverter","入门级变频","#009A9D",1,2.5,true],
+["Acson","Malaysia","Local favourite, easy service","本地热门，维修方便","Widely available in Malaysia","马来西亚容易购买与维修","#E31837",1,2.5,true],
+["TCL","China","Smart features, good value","智能功能，高性价比","App control on higher models","高阶机型支持应用控制","#E60012",1,2.5,true],
+["Teka","Germany","European design, reliable cooling","欧洲设计，可靠制冷","Inverter models with clean design","变频机型，设计简洁","#C8102E",1,2.5,true]
+].map(function(r){return{b:r[0],o:r[1],sEn:r[2],sCn:r[3],kEn:r[4],kCn:r[5],c:r[6],lo:r[7],hi:r[8],inv:r[9]}});
+
+// c index: 0=1.0, 1=1.5, 2=2.0, 3=2.5
+var M={
+"Daikin":{series:[
+  {nEn:"Air Creator AC Series",nCn:"Air Creator AC 系列",inv:true,models:[
+    {in:"MTKC25AVMMW",out:"MRKC25AVMM",hp:1.0,c:"v"},
+    {in:"MTKC35AVMM",out:"MRKC35AVMM",hp:1.5,c:"v"},
+    {in:"MTKC50AVMM",out:"MRKC50AVMM",hp:2.0,c:"v"},
+    {in:"MTKC60AVMM",out:"MRKC60AVMM",hp:2.5,c:"v"}
+  ]},
+  {nEn:"FTKM Series",nCn:"FTKM 系列",inv:true,models:[
+    {in:"FTKM25T",out:"RKM25T",hp:1.0,c:"v"},
+    {in:"FTKM35T",out:"RKM35T",hp:1.5,c:"v"},
+    {in:"FTKM50T",out:"RKM50T",hp:2.0,c:"v"},
+    {in:"FTKM60T",out:"RKM60T",hp:2.5,c:"v"},
+    {in:"FTKM71T",out:"RKM71T",hp:3.0,c:"v"}
+  ]},
+  {nEn:"FTKU-C Series",nCn:"FTKU-C 系列",inv:true,models:[
+    {in:"FTKU28AV1L",out:"RKU28F",hp:1.0,c:"v"},
+    {in:"FTKU35AV1L",out:"RKU35F",hp:1.5,c:"v"},
+    {in:"FTKU50AV1L",out:"RKU50F",hp:2.0,c:"v"},
+    {in:"FTKU60AV1L",out:"RKU60F",hp:2.5,c:"v"},
+    {in:"FTKU71AV1L",out:"RKU71F",hp:3.0,c:"v"}
+  ]},
+  {nEn:"FTKP Series",nCn:"FTKP 系列",inv:true,models:[
+    {in:"FTKP25AV1M",out:"RKP25AV1M",hp:1.0,c:"v"},
+    {in:"FTKP35AV1M",out:"RKP35AV1M",hp:1.5,c:"v"},
+    {in:"FTKP50AV1M",out:"RKP50AV1M",hp:2.0,c:"v"},
+    {in:"FTKP60AV1M",out:"RKP60AV1M",hp:2.5,c:"v"}
+  ]},
+  {nEn:"FTKF Series",nCn:"FTKF 系列",inv:true,models:[
+    {in:"FTKF25AV1M",out:"RKF25AV1M",hp:1.0,c:"v"},
+    {in:"FTKF35AV1M",out:"RKF35AV1M",hp:1.5,c:"v"},
+    {in:"FTKF50AV1M",out:"RKF50AV1M",hp:2.0,c:"v"},
+    {in:"FTKF71AV1M",out:"RKF71AV1M",hp:2.5,c:"v"}
+  ]},
+  {nEn:"FTKB Series",nCn:"FTKB 系列",inv:true,models:[
+    {in:"FTKB25AV1M",out:"RKB25AV1M",hp:1.0,c:"v"},
+    {in:"FTKB35AV1M",out:"RKB35AV1M",hp:1.5,c:"v"},
+    {in:"FTKB50AV1M",out:"RKB50AV1M",hp:2.0,c:"v"},
+    {in:"FTKB71AV1M",out:"RKB71AV1M",hp:2.5,c:"v"},
+    {in:"FTKB75AV1M",out:"RKB75AV1M",hp:3.0,c:"v"}
+  ]},
+  {nEn:"FAA-B Series",nCn:"FAA-B 系列",inv:true,models:[
+    {in:"FAA100BVMA",out:"RZF100CVM",hp:4.0,c:"v"}
+  ]},
+  {nEn:"FTV-P Series (Non-Inverter)",nCn:"FTV-P 系列（非变频）",inv:false,models:[
+    {in:"FTV25PBV1MF",out:"RV25PCV1M",hp:1.0,c:"v"},
+    {in:"FTV35PBV1MF",out:"RV35PCV1M",hp:1.5,c:"v"},
+    {in:"FTV50PBV1MF",out:"RV50PCV1M",hp:2.0,c:"v"},
+    {in:"FTV60PBV1MF",out:"RV60PCV1M",hp:2.5,c:"v"},
+    {in:"FTV71PBV1MF",out:"RV71PCV1M",hp:3.0,c:"v"}
+  ]}
+]},
+"Panasonic":{series:[
+  {nEn:"X-Premium Inverter",nCn:"X-Premium 变频",inv:true,models:[
+    {in:"CS-XU10BKH-1",out:"CU-XU10BKH",hp:1.0,c:"v"},
+    {in:"CS-XU13BKH-1",out:"CU-XU13BKH",hp:1.5,c:"v"},
+    {in:"CS-XU18BKH-1",out:"CU-XU18BKH",hp:2.0,c:"v"},
+    {in:"CS-XU24BKH-1",out:"CU-XU24BKH",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Premium Inverter",nCn:"Premium 变频",inv:true,models:[
+    {in:"CS-PU9AKH-1",out:"CU-PU9AKH",hp:1.0,c:"v"},
+    {in:"CS-PU12AKH-1",out:"CU-PU12AKH",hp:1.5,c:"v"},
+    {in:"CS-PU18AKH-1",out:"CU-PU18AKH",hp:2.0,c:"v"},
+    {in:"CS-PU24AKH-1",out:"CU-PU24AKH",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Standard Inverter",nCn:"Standard 变频",inv:true,models:[
+    {in:"CS-YP9AKH-1",out:"CU-YP9AKH",hp:1.0,c:"v"},
+    {in:"CS-YP12AKH-1",out:"CU-YP12AKH",hp:1.5,c:"v"},
+    {in:"CS-YP18AKH-1",out:"CU-YP18AKH",hp:2.0,c:"v"},
+    {in:"CS-YP24AKH-1",out:"CU-YP24AKH",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Deluxe Non-Inverter",nCn:"Deluxe 非变频",inv:false,models:[
+    {in:"CS-XN9WK-1",out:"CU-XN9WK-1",hp:1.0,c:"v"},
+    {in:"CS-XN12WK-1",out:"CU-XN12WK-1",hp:1.5,c:"v"},
+    {in:"CS-XN18WK-1",out:"CU-XN18WK-1",hp:2.0,c:"v"}
+  ]},
+  {nEn:"Standard Non-Inverter",nCn:"Standard 非变频",inv:false,models:[
+    {in:"CS-PN9WKH-1",out:"CU-PN9WKH-1",hp:1.0,c:"v"},
+    {in:"CS-PN12WKH-1",out:"CU-PN12WKH-1",hp:1.5,c:"v"},
+    {in:"CS-PN18WKH-1",out:"CU-PN18WKH-1",hp:2.0,c:"v"},
+    {in:"CS-PN24WKH-1",out:"CU-PN24WKH-1",hp:2.5,c:"v"}
+  ]}
+]},
+"Mitsubishi":{series:[
+  {nEn:"Mr. Slim LN Series",nCn:"Mr. Slim LN 系列",inv:true,models:[
+    {in:"MSZ-LN10VF",out:"MUZ-LN10VF",hp:1.0,c:"v"},
+    {in:"MSZ-LN13VF",out:"MUZ-LN13VF",hp:1.5,c:"v"}
+  ]},
+  {nEn:"Mr. Slim GR Series",nCn:"Mr. Slim GR 系列",inv:true,models:[
+    {in:"MSZ-GR10VF",out:"MUZ-GR10VF",hp:1.0,c:"v"},
+    {in:"MSZ-GR13VF",out:"MUZ-GR13VF",hp:1.5,c:"v"},
+    {in:"MSZ-GR18VF",out:"MUZ-GR18VF",hp:2.0,c:"v"},
+    {in:"MSZ-GR24VF",out:"MUZ-GR24VF",hp:2.5,c:"v"},
+    {in:"MSZ-GR30VF",out:"MUZ-GR30VF",hp:3.0,c:"v"}
+  ]},
+  {nEn:"Mr. Slim JS Series",nCn:"Mr. Slim JS 系列",inv:true,models:[
+    {in:"MSY-JS10VF",out:"MUY-JS10VF",hp:1.0,c:"v"},
+    {in:"MSY-JS13VF",out:"MUY-JS13VF",hp:1.5,c:"v"},
+    {in:"MSY-JS18VF",out:"MUY-JS18VF",hp:2.0,c:"v"},
+    {in:"MSY-JS24VF",out:"MUY-JS24VF",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Mr. Slim JR Series",nCn:"Mr. Slim JR 系列",inv:false,models:[
+    {in:"MS-JR10VF",out:"MU-JR10VF",hp:1.0,c:"v"},
+    {in:"MS-JR13VF",out:"MU-JR13VF",hp:1.5,c:"v"},
+    {in:"MS-JR18VF",out:"MU-JR18VF",hp:2.0,c:"v"},
+    {in:"MS-JR24VF",out:"MU-JR24VF",hp:2.5,c:"v"}
+  ]}
+]},
+"Hitachi":{series:[
+  {nEn:"airHome 100",nCn:"airHome 100",inv:false,models:[
+    {in:"RAK-AJ10PCASM",out:"RAC-AJ10PCASM",hp:1.0,c:"v"},
+    {in:"RAK-AJ13PCASM",out:"RAC-AJ13PCASM",hp:1.5,c:"v"},
+    {in:"RAK-AJ18PCASM",out:"RAC-AJ18PCASM",hp:2.0,c:"v"},
+    {in:"RAK-AJ24PCASM",out:"RAC-AJ24PCASM",hp:2.5,c:"v"}
+  ]},
+  {nEn:"airHome 300",nCn:"airHome 300",inv:true,models:[
+    {in:"RAK-CJ10PCASM",out:"RAC-CJ10PCASM",hp:1.0,c:"v"},
+    {in:"RAK-CJ13PCASM",out:"RAC-CJ13PCASM",hp:1.5,c:"v"},
+    {in:"RAK-CJ18PCASM",out:"RAC-CJ18PCASM",hp:2.0,c:"v"},
+    {in:"RAK-CJ24PCASM",out:"RAC-CJ24PCASM",hp:2.5,c:"v"}
+  ]}
+]},
+"Arçelik Hitachi":{series:[
+  {nEn:"Inverter Series (R32)",nCn:"变频系列 (R32)",inv:true,models:[
+    {in:"RAK-QH10PCASM",out:"RAC-QH10PCASM",hp:1.0,c:"v"},
+    {in:"RAK-QH13PCASM",out:"RAC-QH13PCASM",hp:1.5,c:"v"},
+    {in:"RAK-QH18PCASM",out:"RAC-QH18PCASM",hp:2.0,c:"v"},
+    {in:"RAK-QH24PCASM",out:"RAC-QH24PCASM",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Standard Series (R32)",nCn:"标准系列 (R32)",inv:false,models:[
+    {in:"RAK-AH10PCASM",out:"RAC-AH10PCASM",hp:1.0,c:"v"},
+    {in:"RAK-AH13PCASM",out:"RAC-AH13PCASM",hp:1.5,c:"v"},
+    {in:"RAK-AH18PCASM",out:"RAC-AH18PCASM",hp:2.0,c:"v"},
+    {in:"RAK-AH24PCASM",out:"RAC-AH24PCASM",hp:2.5,c:"v"}
+  ]}
+]},
+"LG":{series:[
+  {nEn:"DUALCOOL AI Series",nCn:"DUALCOOL AI 系列",inv:true,models:[
+    {in:"S3-Q090A1DA",out:"",hp:1.0,c:"v"},
+    {in:"S3-Q121A1DA",out:"",hp:1.5,c:"v"},
+    {in:"S3-Q18111DA",out:"",hp:2.0,c:"v"},
+    {in:"S3-Q24121DA",out:"",hp:2.5,c:"v"}
+  ]},
+  {nEn:"ARTCOOL Mirror Series",nCn:"ARTCOOL Mirror 系列",inv:true,models:[
+    {in:"S3-Q09JARPA",out:"",hp:1.0,c:"v"},
+    {in:"S3-Q12JARPA",out:"",hp:1.5,c:"v"},
+    {in:"S3-Q18KLRPA",out:"",hp:2.0,c:"v"},
+    {in:"S3-Q24K2RPA",out:"",hp:2.5,c:"v"}
+  ]},
+  {nEn:"DUALCOOL Premium Inverter",nCn:"DUALCOOL Premium 变频",inv:true,models:[
+    {in:"S3-Q09JAYPP",out:"",hp:1.0,c:"v"},
+    {in:"S3-Q12JAYPP",out:"",hp:1.5,c:"v"},
+    {in:"S3-Q18KLYPP",out:"",hp:2.0,c:"v"},
+    {in:"S3-Q24K2YPP",out:"",hp:2.5,c:"v"}
+  ]},
+  {nEn:"DUALCOOL Deluxe Inverter",nCn:"DUALCOOL Deluxe 变频",inv:true,models:[
+    {in:"S3-Q09JAB3P",out:"",hp:1.0,c:"v"},
+    {in:"S3-Q12JAB3P",out:"",hp:1.5,c:"v"},
+    {in:"S3-Q18KLB3P",out:"",hp:2.0,c:"v"},
+    {in:"S3-Q24K2B3P",out:"",hp:2.5,c:"v"}
+  ]},
+  {nEn:"DUALCOOL Classic Inverter",nCn:"DUALCOOL Classic 变频",inv:true,models:[
+    {in:"S3-Q09WAPWL",out:"",hp:1.0,c:"v"},
+    {in:"S3-Q12JAPWL",out:"",hp:1.5,c:"v"},
+    {in:"S3-Q18JLPWL",out:"",hp:2.0,c:"v"},
+    {in:"S3-Q24K2PWL",out:"",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Standard Inverter Series",nCn:"标准变频系列",inv:true,models:[
+    {in:"S3-Q09TZXAA",out:"",hp:1.0,c:"v"},
+    {in:"S3-Q12TZXAA",out:"",hp:1.5,c:"v"}
+  ]}
+]},
+"Samsung":{series:[
+  {nEn:"Bespoke AI WindFree Deluxe",nCn:"Bespoke AI WindFree Deluxe",inv:true,models:[
+    {in:"AR10BYFAMWKNME",out:"AR10BYFAMWKXME",hp:1.0,c:"v"},
+    {in:"AR13BYFAMWKNME",out:"AR13BYFAMWKXME",hp:1.5,c:"v"},
+    {in:"AR18BYFAMWKNME",out:"AR18BYFAMWKXME",hp:2.0,c:"v"},
+    {in:"AR24BYFAMWKNME",out:"AR24BYFAMWKXME",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Bespoke AI WindFree Pro",nCn:"Bespoke AI WindFree Pro",inv:true,models:[
+    {in:"AR10CXFCAWKNSSE",out:"",hp:1.0,c:"v"},
+    {in:"AR13CXFCAWKNSSE",out:"",hp:1.5,c:"v"},
+    {in:"AR18CXFCAWKNSSE",out:"",hp:2.0,c:"v"},
+    {in:"AR24CXFCAWKNSSE",out:"",hp:2.5,c:"v"}
+  ]},
+  {nEn:"S-Inverter AR50H Series",nCn:"S-Inverter AR50H 系列",inv:true,models:[
+    {in:"AR50H09D1ATNME",out:"AR50H09D1ATXME",hp:1.0,c:"v"},
+    {in:"AR50H12D1ATNME",out:"AR50H12D1ATXME",hp:1.5,c:"v"},
+    {in:"AR50H18D1ATNME",out:"AR50H18D1ATXME",hp:2.0,c:"v"},
+    {in:"AR50H24D1ATNME",out:"AR50H24D1ATXME",hp:2.5,c:"v"}
+  ]},
+  {nEn:"E-Inverter Series",nCn:"E-Inverter 系列",inv:true,models:[
+    {in:"AR40F09D0AMNME",out:"AR40F09D0AMXME",hp:1.0,c:"v"},
+    {in:"AR40F12D0AMNME",out:"AR40F12D0AMXME",hp:1.5,c:"v"},
+    {in:"AR40F18D0AMNME",out:"AR40F18D0AMXME",hp:2.0,c:"v"}
+  ]},
+  {nEn:"E-Inverter Wall-mount Series",nCn:"E-Inverter 壁挂系列",inv:true,models:[
+    {in:"AR40H09D1ATNME",out:"AR40H09D1ATXME",hp:1.0,c:"v"},
+    {in:"AR40H12D1ATNME",out:"AR40H12D1ATXME",hp:1.5,c:"v"},
+    {in:"AR40H18D1ATNME",out:"AR40H18D1ATXME",hp:2.0,c:"v"},
+    {in:"AR40H24D1ATNME",out:"AR40H24D1ATXME",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Bespoke AI WindFree Deluxe (Rev)",nCn:"Bespoke AI WindFree Deluxe (改)",inv:true,models:[
+    {in:"AR10DYFAMWKNME",out:"AR10DYFAMWKXME",hp:1.0,c:"v"},
+    {in:"AR13DYFAMWKNME",out:"AR13DYFAMWKXME",hp:1.5,c:"v"},
+    {in:"AR18DYFAMWKNME",out:"AR18DYFAMWKXME",hp:2.0,c:"v"},
+    {in:"AR24DYFAMWKNME",out:"AR24DYFAMWKXME",hp:2.5,c:"v"}
+  ]},
+  {nEn:"WindFree Premium Plus",nCn:"WindFree Premium Plus",inv:true,models:[
+    {in:"AR10BYEAAWKNSSE",out:"",hp:1.0,c:"v"},
+    {in:"AR13BYEAAWKNSSE",out:"",hp:1.5,c:"v"},
+    {in:"AR18BYEAAWKNSSE",out:"",hp:2.0,c:"v"},
+    {in:"AR24BYEAAWKNSSE",out:"",hp:2.5,c:"v"}
+  ]},
+  {nEn:"WindFree Deluxe SmartThings",nCn:"WindFree Deluxe SmartThings",inv:true,models:[
+    {in:"AR10TYAACWKNME",out:"AR10TYAACWKXME",hp:1.0,c:"v"},
+    {in:"AR13TYAACWKNME",out:"AR13TYAACWKXME",hp:1.5,c:"v"},
+    {in:"AR18TYAACWKNME",out:"AR18TYAACWKXME",hp:2.0,c:"v"},
+    {in:"AR24TYAACWKNME",out:"AR24TYAACWKXME",hp:2.5,c:"v"}
+  ]},
+  {nEn:"S-Inverter Fast Cooling",nCn:"S-Inverter 快速制冷",inv:true,models:[
+    {in:"AR09TYHYCWKNME",out:"AR09TYHYCWKXME",hp:1.0,c:"v"},
+    {in:"AR12TYHYCWKNME",out:"AR12TYHYCWKXME",hp:1.5,c:"v"}
+  ]}
+]},
+"Toshiba":{series:[
+  {nEn:"B2KCV2G-M Series",nCn:"B2KCV2G-M 系列",inv:true,models:[
+    {in:"RAS-H10B2KCV2G-M",out:"RAS-H10B2ACV2G-M",hp:1.0,c:"v"},
+    {in:"RAS-H13B2KCV2G-M",out:"RAS-H13B2ACV2G-M",hp:1.5,c:"v"},
+    {in:"RAS-H18B2KCV2G-M",out:"RAS-H18B2ACV2G-M",hp:2.0,c:"v"},
+    {in:"RAS-H24B2KCV2G-M",out:"RAS-H24B2ACV2G-M",hp:2.5,c:"v"}
+  ]}
+]},
+"Sharp":{series:[
+  {nEn:"AIoT J-Tech Inverter Plasmacluster",nCn:"AIoT J-Tech 变频等离子簇",inv:true,models:[
+    {in:"AHXP10YHD",out:"AUX10YHD",hp:1.0,c:"v"},
+    {in:"AHXP13YHD",out:"AUX13YHD",hp:1.5,c:"v"},
+    {in:"AHXP18YHD",out:"AUX18YHD",hp:2.0,c:"v"},
+    {in:"AHXP24YHD",out:"AUX24YHD",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Deluxe J-Tech Inverter Plasmacluster",nCn:"Deluxe J-Tech 变频等离子簇",inv:true,models:[
+    {in:"AHXP10YMD",out:"AUX10YMD",hp:1.0,c:"v"},
+    {in:"AHXP13YMD",out:"AUX13YMD",hp:1.5,c:"v"},
+    {in:"AHXP18YMD",out:"AUX18YMD",hp:2.0,c:"v"},
+    {in:"AHXP24YMD",out:"AUX24YMD",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Standard J-Tech Inverter Plasmacluster",nCn:"Standard J-Tech 变频等离子簇",inv:true,models:[
+    {in:"AHXP10DSD",out:"AUX10DSD",hp:1.0,c:"v"},
+    {in:"AHXP13DSD",out:"AUX13DSD",hp:1.5,c:"v"},
+    {in:"AHXP18DSD",out:"AUX18DSD",hp:2.0,c:"v"},
+    {in:"AHXP24DSD",out:"AUX24DSD",hp:2.5,c:"v"}
+  ]},
+  {nEn:"J-Tech / BlissCool Inverter",nCn:"J-Tech / BlissCool 变频",inv:true,models:[
+    {in:"AHX10BED",out:"AUX10BED",hp:1.0,c:"v"},
+    {in:"AHX13BED",out:"AUX13BED",hp:1.5,c:"v"},
+    {in:"AHX18BED",out:"AUX18BED",hp:2.0,c:"v"},
+    {in:"AHX24BED",out:"AUX24BED",hp:2.5,c:"v"}
+  ]},
+  {nEn:"R32 Non-Inverter Series",nCn:"R32 非变频系列",inv:false,models:[
+    {in:"AHA9WCD2",out:"AUA9WCD2",hp:1.0,c:"v"},
+    {in:"AHA12WCD2",out:"AUA12WCD2",hp:1.5,c:"v"},
+    {in:"AHA18WCD2",out:"AUA18WCD2",hp:2.0,c:"v"},
+    {in:"AHA24WCD2",out:"AUA24WCD2",hp:2.5,c:"v"}
+  ]}
+]},
+"Midea":{series:[
+  {nEn:"Breezeless+ Inverter Series",nCn:"Breezeless+ 变频系列",inv:true,models:[
+    {in:"MSFA-09CRDN8",out:"MOX130-09KDN8",hp:1.0,c:"v"},
+    {in:"MSFA-12CRDN8",out:"MOX130-12KDN8",hp:1.5,c:"v"}
+  ]},
+  {nEn:"Solstice AI EcoMaster Inverter",nCn:"Solstice AI EcoMaster 变频",inv:true,models:[
+    {in:"MSAI-10CRFN8",out:"MOAI-10CRFN8",hp:1.0,c:"v"},
+    {in:"MSAI-13CRFN8",out:"MOAI-13CRFN8",hp:1.5,c:"v"},
+    {in:"MSAI-19CRFN8",out:"MOAI-19CRFN8",hp:2.0,c:"v"},
+    {in:"MSAI-25CRFN8",out:"MOAI-25CRFN8",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Xtreme Save Inverter Series",nCn:"Xtreme Save 变频系列",inv:true,models:[
+    {in:"MSXS-10CRDN8",out:"MOX130-10CRDN8",hp:1.0,c:"v"},
+    {in:"MSXS-13CRDN8",out:"MOX130-13CRDN8",hp:1.5,c:"v"},
+    {in:"MSXS-19CRDN8",out:"MOX230-19CRDN8",hp:2.0,c:"v"},
+    {in:"MSXS-25CRDN8",out:"MOX330-25CRDN8",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Xtreme Cool Inverter Series",nCn:"Xtreme Cool 变频系列",inv:true,models:[
+    {in:"MSXD-09CRDN8",out:"MOX130-09CRDN8",hp:1.0,c:"v"},
+    {in:"MSXD-12CRDN8",out:"MOX130-12CRDN8",hp:1.5,c:"v"},
+    {in:"MSXD-18CRDN8",out:"MOX230-18CRDN8",hp:2.0,c:"v"}
+  ]},
+  {nEn:"Xtreme Cool Non-Inverter Series",nCn:"Xtreme Cool 非变频系列",inv:false,models:[
+    {in:"MSMF-10CRN8",out:"MOMF-10CRN8",hp:1.0,c:"v"},
+    {in:"MSMF-13CRN8",out:"MOMF-13CRN8",hp:1.5,c:"v"},
+    {in:"MSMF-19CRN8",out:"MOMF-19CRN8",hp:2.0,c:"v"},
+    {in:"MSMF-25CRN8",out:"MOMF-25CRN8",hp:2.5,c:"v"}
+  ]}
+]},
+"Gree":{series:[
+  {nEn:"Nova X Series",nCn:"Nova X 系列",inv:true,models:[
+    {in:"GWC09AWBXA-K6DNA4A/I",out:"GWC09ATBXA-K6DNA1A/O",hp:1.0,c:"v"},
+    {in:"GWC12AWBXB-K6DNA4G/I",out:"GWC12ATBXB-K6DNA1G/O",hp:1.5,c:"v"},
+    {in:"GWC18AWDXB-K6DNA4A/I",out:"GWC18ATDXB-K6DNA1A/O",hp:2.0,c:"v"}
+  ]},
+  {nEn:"Nova Series",nCn:"Nova 系列",inv:false,models:[
+    {in:"GWC09AWBXA-K6NNA1A/I",out:"GWC09ATBXA-K6NNA1A/O",hp:1.0,c:"v"},
+    {in:"GWC12AWBXB-K6NNA1A/I",out:"GWC12ATBXB-K6NNA1A/O",hp:1.5,c:"v"},
+    {in:"GWC18AWDXB-K6NNA1A/I",out:"GWC18ATDXB-K6NNA1A/O",hp:2.0,c:"v"},
+    {in:"GWC24AWDXF-K6NNA1A/I",out:"GWC24ATDXF-K6NNA1A/O",hp:2.5,c:"v"}
+  ]}
+]},
+"Haier":{series:[
+  {nEn:"UV Cool AI ECO Series",nCn:"UV Cool AI ECO 系列",inv:true,models:[
+    {in:"HS-10VSA06",out:"HSU-10VSA06",hp:1.0,c:"v"},
+    {in:"HS-13VSA03",out:"HSU-13VSA03",hp:1.5,c:"v"},
+    {in:"HS-19VSA03",out:"HSU-19VSA03",hp:2.0,c:"v"},
+    {in:"HS-25VSA03",out:"HSU-25VSA03",hp:2.5,c:"v"}
+  ]},
+  {nEn:"UV Cool Smart Series",nCn:"UV Cool Smart 系列",inv:true,models:[
+    {in:"HSU-10VRB06",out:"HSU-10VRB06-O",hp:1.0,c:"v"},
+    {in:"HSU-13VRB06",out:"HSU-13VRB06-O",hp:1.5,c:"v"},
+    {in:"HSU-19VRB06",out:"HSU-19VRB06-O",hp:2.0,c:"v"},
+    {in:"HSU-25VRB06",out:"HSU-25VRB06-O",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Clean Cool Inverter Series",nCn:"Clean Cool 变频系列",inv:true,models:[
+    {in:"HSU-10VFA22",out:"HSU-10VFA22-O",hp:1.0,c:"v"},
+    {in:"HSU-13VFA22",out:"HSU-13VFA22-O",hp:1.5,c:"v"},
+    {in:"HSU-19VFA22",out:"HSU-19VFA22-O",hp:2.0,c:"v"},
+    {in:"HSU-25VFA22",out:"HSU-25VFA22-O",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Turbo Cool+ Inverter Series",nCn:"Turbo Cool+ 变频系列",inv:true,models:[
+    {in:"HSU-10VT32",out:"HSU-10VT32-O",hp:1.0,c:"v"},
+    {in:"HSU-13VT32",out:"HSU-13VT32-O",hp:1.5,c:"v"},
+    {in:"HSU-19VT32",out:"HSU-19VT32-O",hp:2.0,c:"v"},
+    {in:"HSU-25VT32",out:"HSU-25VT32-O",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Turbo Cool Non-Inverter Series",nCn:"Turbo Cool 非变频系列",inv:false,models:[
+    {in:"HSU-10LPA21",out:"HSU-10LPA21-O",hp:1.0,c:"v"},
+    {in:"HSU-13LPA21",out:"HSU-13LPA21-O",hp:1.5,c:"v"},
+    {in:"HSU-19LPA21",out:"HSU-19LPA21-O",hp:2.0,c:"v"},
+    {in:"HSU-25LPA21",out:"HSU-25LPA21-O",hp:2.5,c:"v"}
+  ]}
+]},
+"Hisense":{series:[
+  {nEn:"HI-NANO Prime / Fresh Air Series",nCn:"HI-NANO Prime / Fresh Air 系列",inv:true,models:[
+    {in:"AS10X5TUA",out:"AS10X5TUA-O",hp:1.0,c:"v"},
+    {in:"AS13X5TUA",out:"AS13X5TUA-O",hp:1.5,c:"v"},
+    {in:"AS20X5TUA",out:"AS20X5TUA-O",hp:2.0,c:"v"},
+    {in:"AS25X5TUA",out:"AS25X5TUA-O",hp:2.5,c:"v"}
+  ]},
+  {nEn:"TUGS / TUH Smart AI Inverter",nCn:"TUGS / TUH 智能 AI 变频",inv:true,models:[
+    {in:"AI10TUGS",out:"AI10TUGS-O",hp:1.0,c:"v"},
+    {in:"AI13TUGS",out:"AI13TUGS-O",hp:1.5,c:"v"},
+    {in:"AI20TUGS",out:"AI20TUGS-O",hp:2.0,c:"v"},
+    {in:"AI25TUGS",out:"AI25TUGS-O",hp:2.5,c:"v"}
+  ]},
+  {nEn:"KAA / KAGS Inverter Series",nCn:"KAA / KAGS 变频系列",inv:true,models:[
+    {in:"AS10E4KAA",out:"AS10E4KAA-O",hp:1.0,c:"v"},
+    {in:"AS13E4KAA",out:"AS13E4KAA-O",hp:1.5,c:"v"},
+    {in:"AS20E4KAA",out:"AS20E4KAA-O",hp:2.0,c:"v"},
+    {in:"AS25E4KAA",out:"AS25E4KAA-O",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Standard R32 Non-Inverter Series",nCn:"标准 R32 非变频系列",inv:false,models:[
+    {in:"AS09E2CLA",out:"AS09E2CLA-O",hp:1.0,c:"v"},
+    {in:"AS12E2CLA",out:"AS12E2CLA-O",hp:1.5,c:"v"},
+    {in:"AS18E2CLA",out:"AS18E2CLA-O",hp:2.0,c:"v"},
+    {in:"AS24E2CLA",out:"AS24E2CLA-O",hp:2.5,c:"v"}
+  ]}
+]}
+,
+"Acson":{series:[
+  {nEn:"Evora",nCn:"Evora",inv:true,models:[
+    {in:"A3WMY10BPF",out:"A3LCY10BP",hp:1.0,c:"v"},
+    {in:"A3WMY15BPF",out:"A3LCY15BP",hp:1.5,c:"v"},
+    {in:"A3WMY20BPF",out:"A3LCY20BP",hp:2.0,c:"v"},
+    {in:"A3WMY25BPF",out:"A3LCY25BP",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Avory Premium",nCn:"Avory Premium",inv:true,models:[
+    {in:"A3WMY10APF",out:"A3LCY10AP",hp:1.0,c:"v"},
+    {in:"A3WMY15APF",out:"A3LCY15AP",hp:1.5,c:"v"},
+    {in:"A3WMY20APF",out:"A3LCY20AP",hp:2.0,c:"v"},
+    {in:"A3WMY25APF",out:"A3LCY25AP",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Viento",nCn:"Viento",inv:true,models:[
+    {in:"A3WMY10EF",out:"A3LCY10E",hp:1.0,c:"v"},
+    {in:"A3WMY15EF",out:"A3LCY15E",hp:1.5,c:"v"},
+    {in:"A3WMY20EF1",out:"A3LCY20E1",hp:2.0,c:"v"},
+    {in:"A3WMY25EF",out:"A3LCY25E",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Reino+",nCn:"Reino+",inv:true,models:[
+    {in:"A3WMY10BF",out:"A3LCY10B",hp:1.0,c:"v"},
+    {in:"A3WMY15BF",out:"A3LCY15B",hp:1.5,c:"v"},
+    {in:"A3WMY20BF",out:"A3LCY20B",hp:2.0,c:"v"},
+    {in:"A3WMY25BF",out:"A3LCY25B",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Reino",nCn:"Reino",inv:true,models:[
+    {in:"A3WMY10BNF",out:"A3LCY10B",hp:1.0,c:"v"},
+    {in:"A3WMY15BNF",out:"A3LCY15B",hp:1.5,c:"v"},
+    {in:"A3WMY20BNF",out:"A3LCY20B",hp:2.0,c:"v"},
+    {in:"A3WMY25BNF",out:"A3LCY25B",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Relek",nCn:"Relek",inv:true,models:[
+    {in:"A3WMY10CF",out:"A3LCY10C",hp:1.0,c:"v"},
+    {in:"A3WMY15CF",out:"A3LCY15C",hp:1.5,c:"v"}
+  ]},
+  {nEn:"Avo Inverter",nCn:"Avo 变频",inv:true,models:[
+    {in:"A3WMY10AVF",out:"A3LCY10AV",hp:1.0,c:"v"},
+    {in:"A3WMY15AVF",out:"A3LCY15AV",hp:1.5,c:"v"},
+    {in:"A3WMY20AVF",out:"A3LCY20AV",hp:2.0,c:"v"},
+    {in:"A3WMY25AVF",out:"A3LCY25AV",hp:2.5,c:"v"}
+  ]},
+  {nEn:"S-Series (Inverter R410A)",nCn:"S-Series（变频 R410A）",inv:true,models:[
+    {in:"A5WMY10S",out:"A5SLY10F",hp:1.0,c:"v"},
+    {in:"A5WMY15S",out:"A5SLY15F",hp:1.5,c:"v"},
+    {in:"A5WMY20S",out:"A5SLY20C",hp:2.0,c:"v"},
+    {in:"A5WMY25S",out:"A5SLY25C",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Avo / Avory (Non-Inverter R32)",nCn:"Avo / Avory（非变频 R32）",inv:false,models:[
+    {in:"A3WM10N",out:"A3LC10FN",hp:1.0,c:"v"},
+    {in:"A3WM15N",out:"A3LC15F",hp:1.5,c:"v"},
+    {in:"A3WM20N",out:"A3LC20FN",hp:2.0,c:"v"},
+    {in:"A3WM25N",out:"A3LC25FN",hp:2.5,c:"v"}
+  ]},
+  {nEn:"N-Series (Non-Inverter R32)",nCn:"N-Series（非变频 R32）",inv:false,models:[
+    {in:"A3WM30N",out:"A3LC30F",hp:3.0,c:"v"}
+  ]},
+  {nEn:"N-Series / S-Series (Non-Inverter R410A)",nCn:"N-Series / S-Series（非变频 R410A）",inv:false,models:[
+    {in:"A5WM10N",out:"A5LC10F",hp:1.0,c:"v"},
+    {in:"A5WM15N",out:"A5LC15F",hp:1.5,c:"v"},
+    {in:"A5WM20N",out:"A5LC20C",hp:2.0,c:"v"},
+    {in:"A5WM25N",out:"A5LC25C",hp:2.5,c:"v"},
+    {in:"A5WM30N",out:"A5LC30C",hp:3.0,c:"v"}
+  ]}
+]},
+"TCL":{series:[
+  {nEn:"FreshIN 3.0 Series",nCn:"FreshIN 3.0 系列",inv:true,models:[
+    {in:"TAC-10CSD/P7-I",out:"TAC-10CSD/P7-O",hp:1.0,c:"v"},
+    {in:"TAC-13CSD/P7-I",out:"TAC-13CSD/P7-O",hp:1.5,c:"v"}
+  ]},
+  {nEn:"VoxIN Series",nCn:"VoxIN 系列",inv:true,models:[
+    {in:"TAC-VX10CSV/UA-I",out:"TAC-VX10CSV/UA-O",hp:1.0,c:"v"},
+    {in:"TAC-VX13CSV/UA-I",out:"TAC-VX13CSV/UA-O",hp:1.5,c:"v"},
+    {in:"TAC-VX19CSV/UA-I",out:"TAC-VX19CSV/UA-O",hp:2.0,c:"v"},
+    {in:"TAC-VX25CSV/UA-I",out:"TAC-VX25CSV/UA-O",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Gentle Cool Pro (TP31i)",nCn:"Gentle Cool Pro (TP31i)",inv:true,models:[
+    {in:"TAC-10CSD/TP31i-I",out:"TAC-10CSD/TP31i-O",hp:1.0,c:"v"},
+    {in:"TAC-13CSD/TP31i-I",out:"TAC-13CSD/TP31i-O",hp:1.5,c:"v"},
+    {in:"TAC-19CSD/TP31i-I",out:"TAC-19CSD/TP31i-O",hp:2.0,c:"v"},
+    {in:"TAC-25CSD/TP31i-I",out:"TAC-25CSD/TP31i-O",hp:2.5,c:"v"}
+  ]},
+  {nEn:"Gentle Cool Pro (TPH21i)",nCn:"Gentle Cool Pro (TPH21i)",inv:true,models:[
+    {in:"TAC-10CSD/TPH21i-I",out:"TAC-10CSD/TPH21i-O",hp:1.0,c:"v"},
+    {in:"TAC-13CSD/TPH21i-I",out:"TAC-13CSD/TPH21i-O",hp:1.5,c:"v"},
+    {in:"TAC-19CSD/TPH21i-I",out:"TAC-19CSD/TPH21i-O",hp:2.0,c:"v"},
+    {in:"TAC-25CSD/TPH21i-I",out:"TAC-25CSD/TPH21i-O",hp:2.5,c:"v"}
+  ]}
+]},
+"Teka":{series:[
+  {nEn:"Inverter Series",nCn:"变频系列",inv:true,models:[
+    {in:"ACI 410I WH",out:"ACO 410I WH",hp:1.0,c:"v"},
+    {in:"ACI 412I WH",out:"ACO 412I WH",hp:1.5,c:"v"},
+    {in:"ACI 418I WH",out:"ACO 418I WH",hp:2.0,c:"v"},
+    {in:"ACI 424I WH",out:"ACO 424I WH",hp:2.5,c:"v"}
+  ]}
+]}};
+
+var HP_VALUES=[1,1.5,2,2.5,3,4];
+
+function modelCode(x){
+  if(!x) return html`<span class="no-model">—</span>`;
+  if(x[1]==="v") return html`<span class="mc">${x[0]}</span>`;
+  return html`<span class="mc u">${x[0]} ?</span>`;
+}
+
+
+function seriesForFilter(brand, invFilter){
+  var m=M[brand];
+  if(!m||!m.series) return [];
+  return m.series.filter(function(s){
+    var isInv = s.inv !== false; // default true
+    if(invFilter===true) return isInv;
+    if(invFilter===false) return !isInv;
+    return true;
+  });
+}
+function brandHasInvMatch(brand, invFilter){
+  if(invFilter==null) return true;
+  return seriesForFilter(brand, invFilter).length > 0;
+}
+
+function supportsHp(d,hp){
+  if(hp==null) return true;
+  return d.lo<=hp && d.hi>=hp;
+}
+function firstModelAtHp(brand,hp){
+  var m=M[brand];
+  if(!m||!m.series) return html`<span class="no-model">—</span>`;
+  for(var i=0;i<m.series.length;i++){
+    var models=m.series[i].models||[];
+    for(var j=0;j<models.length;j++){
+      if(models[j].hp===hp){
+        var x=models[j];
+        var label=(x.in||x.code||"")+(x.out?" / "+x.out:"");
+        if(x.c==="v") return html`<span class="mc">${label}</span>`;
+        return html`<span class="mc u">${label} ?</span>`;
+      }
+    }
+  }
+  return html`<span class="no-model">—</span>`;
+}
+
+
+function App(){
+var langState=useState("en"),lang=langState[0],setLang=langState[1];
+var hpState=useState(null),hpFilter=hpState[0],setHpFilter=hpState[1];
+var showFilter=useState(false),filterOpen=showFilter[0],setFilterOpen=showFilter[1];
+var regionState=useState([]),regions=regionState[0],setRegions=regionState[1];
+var brandFilterState=useState([]),brandFilter=brandFilterState[0],setBrandFilter=brandFilterState[1];
+var invState=useState(null),invFilter=invState[0],setInvFilter=invState[1];
+var t=I18N[lang];
+var s=useState(""),q=s[0],setQ=s[1];
+var v=useState("all"),view=v[0],setView=v[1];
+var c=useState([]),sel=c[0],setSel=c[1];
+var pickedState=useState({}),picked=pickedState[0],setPicked=pickedState[1];
+var showModelsState=useState(true),showModels=showModelsState[0],setShowModels=showModelsState[1];
+var sortState=useState("az"),sortDir=sortState[0],setSortDir=sortState[1];
+var addBrandsState=useState(false),showAddBrands=addBrandsState[0],setShowAddBrands=addBrandsState[1];
+var adminState=useState(false),showAdmin=adminState[0],setShowAdmin=adminState[1];
+var adminAuthState=useState(false),adminAuth=adminAuthState[0],setAdminAuth=adminAuthState[1];
+var adminPwState=useState(""),adminPw=adminPwState[0],setAdminPw=adminPwState[1];
+var adminEditState=useState(""),adminEdit=adminEditState[0],setAdminEdit=adminEditState[1];
+var adminFormState=useState({}),adminForm=adminFormState[0],setAdminForm=adminFormState[1];
+var adminBrandState=useState(""),adminBrand=adminBrandState[0],setAdminBrand=adminBrandState[1];
+var adminSeriesState=useState(""),adminSeries=adminSeriesState[0],setAdminSeries=adminSeriesState[1];
+var adminNewSeriesState=useState(""),adminNewSeries=adminNewSeriesState[0],setAdminNewSeries=adminNewSeriesState[1];
+var adminNewModelState=useState(""),adminNewModel=adminNewModelState[0],setAdminNewModel=adminNewModelState[1];
+var adminNewHpState=useState("1.0"),adminNewHp=adminNewHpState[0],setAdminNewHp=adminNewHpState[1];
+var modelsState=useState(M),modelsData=modelsState[0],setModelsData=modelsState[1];
+var showSellingState=useState(false),showSelling=showSellingState[0],setShowSelling=showSellingState[1];
+function setPickedFor(brand,sIdx,mIdx){
+  setPicked(function(prev){
+    var n=Object.assign({},prev);
+    n[brand]={sIdx:sIdx,mIdx:mIdx};
+    return n;
+  });
+}
+function toggle(b){setSel(function(a){return a.indexOf(b)>-1?a.filter(function(x){return x!==b}):(a.length>=4?a:a.concat(b))})}
+function toggleRegion(r){
+  setRegions(function(a){
+    return a.indexOf(r)>-1?a.filter(function(x){return x!==r}):a.concat(r);
+  });
+}
+function toggleBrandFilter(b){
+  setBrandFilter(function(a){
+    return a.indexOf(b)>-1?a.filter(function(x){return x!==b}):a.concat(b);
+  });
+}
+function clearFilters(){setRegions([]);setBrandFilter([]);setInvFilter(null);}
+var ql=q.trim().toLowerCase();
+var regionOrder={"Japan":0,"Korea":1,"China":2,"Malaysia":3,"Germany":4};
+var rows=D.filter(function(d){
+  if(!supportsHp(d,hpFilter)) return false;
+  if(regions.length && regions.indexOf(d.o)<0) return false;
+  if(brandFilter.length && brandFilter.indexOf(d.b)<0) return false;
+  if(!brandHasInvMatch(d.b, invFilter)) return false;
+  var sell=lang==="cn"?d.sCn:d.sEn;
+  var tech=lang==="cn"?d.kCn:d.kEn;
+  return !ql||(d.b+" "+d.o+" "+sell+" "+tech).toLowerCase().indexOf(ql)>-1;
+});
+rows=rows.slice().sort(function(a,b){
+  var cmp=a.b.localeCompare(b.b);
+  return sortDir==="az"?cmp:-cmp;
+});
+
+var chosen=D.filter(function(d){return sel.indexOf(d.b)>-1});
+
+// brands visible in filter panel for section 2: if regions selected, only those; else all
+var panelBrands=D.filter(function(d){
+  return !regions.length || regions.indexOf(d.o)>-1;
+});
+
+function ModelDropdown(d){
+  var list=seriesForFilter(d.b, invFilter);
+  if(!list.length) return html`<span class="no-model">${t.notConfirmed}</span>`;
+  var pk=picked[d.b]||{sIdx:0,mIdx:0};
+  var safeS=pk.sIdx<list.length?pk.sIdx:0;
+  return html`<${SeriesModelPick} brand=${d.b} seriesList=${list} lang=${lang} t=${t} hpFilter=${hpFilter} sIdx=${safeS} mIdx=${pk.mIdx} onPick=${function(s,mi){setPickedFor(d.b,s,mi)}}/>`;
+}
+
+function SeriesModelPick(props){
+  var seriesList=props.seriesList, lang=props.lang, t=props.t, hpFilter=props.hpFilter;
+  var sIdx=props.sIdx||0, mIdx=props.mIdx||0, onPick=props.onPick;
+  if(sIdx>=seriesList.length) sIdx=0;
+  var ser=seriesList[sIdx]||seriesList[0];
+  var models=ser.models||[];
+  var shown=hpFilter==null?models:models.filter(function(x){return x.hp===hpFilter});
+  if(!shown.length && hpFilter!=null){
+    return html`<div>
+      <select class="model-select" value=${sIdx} onChange=${function(e){onPick(+e.target.value,0)}}>
+        ${seriesList.map(function(s,i){return html`<option key=${i} value=${i}>${lang==="cn"?s.nCn:s.nEn}</option>`})}
+      </select>
+      <span class="series-note">${t.notConfirmed}</span>
+    </div>`;
+  }
+  var safeMIdx=mIdx<shown.length?mIdx:0;
+  return html`<div style=${{display:"flex",flexDirection:"column",gap:"6px"}}>
+    <select class="model-select" value=${sIdx} onChange=${function(e){onPick(+e.target.value,0)}} aria-label="Series">
+      ${seriesList.map(function(s,i){return html`<option key=${i} value=${i}>${lang==="cn"?s.nCn:s.nEn}</option>`})}
+    </select>
+    <select class="model-select" value=${safeMIdx} onChange=${function(e){onPick(sIdx,+e.target.value)}} aria-label="Model">
+      ${shown.map(function(x,i){
+        var mark=x.c==="v"?"":" ?";
+        var hpLabel=x.hp+" HP";
+        var codes=(x.in||x.code||"")+(x.out?" / "+x.out:"")+mark;
+        var label=hpLabel+" "+codes;
+        return html`<option key=${i} value=${i}>${label}</option>`;
+      })}
+    </select>
+  </div>`;
+}
+
+function allModelCodes(){
+  var codes=[];
+  Object.keys(modelsData).forEach(function(brand){
+    var entry=modelsData[brand];
+    if(!entry||!entry.series) return;
+    entry.series.forEach(function(s){
+      (s.models||[]).forEach(function(m){
+        if(m.in) codes.push({code:m.in,brand:brand,series:s.nEn||"",hp:m.hp});
+      });
+    });
+  });
+  return codes;
+}
+function getSelectedModel(brand){
+  var list=seriesForFilter(brand, invFilter);
+  if(!list.length) return null;
+  var pk=picked[brand]||{sIdx:0,mIdx:0};
+  var ser=list[pk.sIdx]||list[0];
+  var models=ser.models||[];
+  var shown=hpFilter==null?models:models.filter(function(x){return x.hp===hpFilter});
+  if(!shown.length) return {series:ser, model:null};
+  var mi=pk.mIdx<shown.length?pk.mIdx:0;
+  return {series:ser, model:shown[mi]};
+}
+function renderSelected(d){
+  var r=getSelectedModel(d.b);
+  if(!r||!r.series) return html`<span class="no-model">${t.notConfirmed}</span>`;
+  var name=lang==="cn"?r.series.nCn:r.series.nEn;
+  if(!r.model) return html`<div><b>${name}</b><div class="series-note">${t.notConfirmed}</div></div>`;
+  var x=r.model;
+  var mark=x.c==="v"?"":" ?";
+  var codes=(x.in||"")+(x.out?" / "+x.out:"")+mark;
+  return html`<div><b>${name}</b><div class="series-note">${x.hp} HP ${codes}</div></div>`;
+}
+
+var SPECDATA = {
+"ACI 410I WH":{img:"",cap:"10000 (1250~11109)",input:"880",cspf:"5.87",stars:5,current:"3.83",power:"1/220V~240V 50Hz",ref:"R32",liq:"6.35",gas:"9.52",iaf:"630/440/400",inoise:"39.5/34.5/31.5",idim:"813x201x289",iwt:"9.8",ips:"Φ5",louver:"Up, Down & Left, Right",oaf:"1300",onoise:"52",odim:"668x252x469",owt:"18.6",ops:"Φ5",plen:"25",ph:"10",gasAmt:"360"},
+"ACI 412I WH":{img:"",cap:"12000 (3900~12500)",input:"1250",cspf:"5.41",stars:5,current:"5.09",power:"1/220V~240V 50/60Hz",ref:"R32",liq:"6.35",gas:"9.52",iaf:"630/440/400",inoise:"39.5/34.5/31.5",idim:"813x201x289",iwt:"9.9",ips:"Φ5",louver:"Up, Down & Left, Right",oaf:"1300",onoise:"55",odim:"668x252x469",owt:"18.5",ops:"Φ5",plen:"25",ph:"10",gasAmt:"420"},
+"ACI 418I WH":{img:"",cap:"18000 (6900~18500)",input:"1758",cspf:"5.35",stars:5,current:"7.64",power:"1/220V~240V 50/60Hz",ref:"R32",liq:"6.35",gas:"12.7",iaf:"895/740/650",inoise:"44.5/37/34.5",idim:"975x218x308",iwt:"13.3",ips:"Φ5",louver:"Up, Down & Left, Right",oaf:"2100",onoise:"56",odim:"765x303x555",owt:"26.9",ops:"Φ5",plen:"30",ph:"20",gasAmt:"650"},
+"ACI 424I WH":{img:"",cap:"24000 (9600~25500)",input:"2512",cspf:"5.12",stars:5,current:"10.92",power:"1/220V~240V 50/60Hz",ref:"R32",liq:"6.35",gas:"12.7",iaf:"1112/933/763",inoise:"47/40/36.5",idim:"1055x231x330",iwt:"15.6",ips:"Φ5",louver:"Up, Down & Left, Right",oaf:"2500",onoise:"59",odim:"805x330x554",owt:"32.5",ops:"Φ5",plen:"50",ph:"25",gasAmt:"830"},
+"FTKM25T":{img:"",cap:"8500 (4100-12300)",input:"520 (185-920)",cspf:"7.40",stars:5,current:"2.6",power:"220-240V/1/50Hz",ref:"R32",liq:"6.35",gas:"9.52",iaf:"",inoise:"42/26/19",idim:"285x770x226",iwt:"9",ips:"",louver:"",oaf:"",onoise:"46",odim:"595x845x300",owt:"32",ops:"",plen:"20",ph:"15",gasAmt:""},
+"CS-XU10BKH-1":{img:"",cap:"9720 (3750-12300)",input:"720 (205-1090)",cspf:"6.30",stars:5,current:"3.5-3.2",power:"220-240V",ref:"R32",liq:"",gas:"",iaf:"",inoise:"",idim:"295x890x244",iwt:"10",ips:"",louver:"",oaf:"",onoise:"",odim:"511x650x230",owt:"18",ops:"",plen:"",ph:"",gasAmt:""},
+"MSZ-LN10VF":{img:"",cap:"8871 (3412-11942)",input:"530",cspf:"7.40",stars:5,current:"2.8",power:"230-240V 50Hz",ref:"R32",liq:"6.35",gas:"9.52",iaf:"",inoise:"19-42",idim:"890x233x307",iwt:"15.5",ips:"",louver:"",oaf:"",onoise:"46",odim:"800x285x714",owt:"35.5",ops:"",plen:"20",ph:"12",gasAmt:""},
+"RAK-QH10PCASM":{img:"",cap:"9210 (3070-11260)",input:"800 (210-1190)",cspf:"4.92",stars:4,current:"4.28-3.92",power:"220-240V 50Hz",ref:"R32",liq:"6.35",gas:"9.52",iaf:"",inoise:"44/41/32/24/19",idim:"780x280x230",iwt:"8.0",ips:"",louver:"",oaf:"",onoise:"50",odim:"658x530x275",owt:"21.0",ops:"",plen:"20",ph:"10",gasAmt:""},
+"MSXS-10CRDN8":{img:"",cap:"10000 (4981-11075)",input:"780 (344-913)",cspf:"4.93",stars:4,current:"3.4",power:"220-240V 50Hz",ref:"R32",liq:"6.35",gas:"9.52",iaf:"580",inoise:"39/34",idim:"835x208x295",iwt:"8.9",ips:"",louver:"",oaf:"",onoise:"51",odim:"720x270x495",owt:"21.7",ops:"",plen:"25",ph:"10",gasAmt:"380"},
+"S3-Q09JA3WA":{img:"",cap:"9200-11900",input:"",cspf:"5.27",stars:4,current:"",power:"220-240V 50Hz",ref:"R32",liq:"",gas:"",iaf:"",inoise:"39",idim:"837x308x189",iwt:"8.7",ips:"",louver:"",oaf:"",onoise:"",odim:"720x500x230",owt:"21.7",ops:"",plen:"",ph:"",gasAmt:""},
+"AHXP10YHD":{img:"",cap:"9000 (2870-10600)",input:"710",cspf:"",stars:5,current:"4.3",power:"220-240V 50Hz",ref:"R32",liq:"6.35",gas:"9.52",iaf:"",inoise:"38/21",idim:"879x289x229",iwt:"8",ips:"",louver:"",oaf:"",onoise:"",odim:"599x495x265",owt:"18",ops:"",plen:"20",ph:"7",gasAmt:""},
+"AI10TUGS":{img:"",cap:"9554",input:"750",cspf:"",stars:5,current:"3.4",power:"220-240V 50Hz",ref:"R32",liq:"6.35",gas:"9.52",iaf:"550",inoise:"38/33",idim:"866x270x213",iwt:"8.5",ips:"",louver:"",oaf:"",onoise:"49",odim:"660x482x240",owt:"21.0",ops:"",plen:"25",ph:"10",gasAmt:"430"}
+};
+function getSpec(brand){
+  var r=getSelectedModel(brand);
+  if(!r||!r.model) return null;
+  var code=r.model.in||"";
+  return SPECDATA[code]||null;
+}
+function stars(n){if(!n)return "—";var s="";for(var i=0;i<n;i++)s+="★";return s;}
+
+var SPECS=[
+[t.product,function(d){
+  var r=getSelectedModel(d.b);
+  var sp=getSpec(d.b);
+  var img=sp&&sp.img?html`<img src=${sp.img} alt="" style=${{width:"80px",height:"60px",objectFit:"contain",marginBottom:"4px"}}/>`:html`<div style=${{width:"80px",height:"60px",background:"var(--hdr)",borderRadius:"6px",marginBottom:"4px",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted)",fontSize:".7rem"}}>No image</div>`;
+  var name=r&&r.series?(lang==="cn"?r.series.nCn:r.series.nEn):"—";
+  return html`<div>${img}<b>${name}</b></div>`;
+}],
+[t.indoorUnit,function(d){var r=getSelectedModel(d.b);return r&&r.model?html`<span class="mc">${r.model.in||"—"}</span>`:"—"}],
+[t.outdoorUnit,function(d){var r=getSelectedModel(d.b);return r&&r.model?html`<span class="mc">${r.model.out||"—"}</span>`:"—"}],
+[t.capacity+" (W / Btu/h)",function(d){var s=getSpec(d.b);return s?s.cap:"—"}],
+[t.input+" (W)",function(d){var s=getSpec(d.b);return s?s.input:"—"}],
+[t.cspf,function(d){var s=getSpec(d.b);return s?s.cspf:"—"}],
+[t.energyRating,function(d){var s=getSpec(d.b);return s?stars(s.stars):"—"}],
+[t.runningCurrent+" (A)",function(d){var s=getSpec(d.b);return s?s.current:"—"}],
+[t.powerSupply,function(d){var s=getSpec(d.b);return s?s.power:"—"}],
+[t.refrigerant,function(d){var s=getSpec(d.b);return s?s.ref:"—"}],
+[t.pipeLiquid+" (mm)",function(d){var s=getSpec(d.b);return s?s.liq:"—"}],
+[t.pipeGas+" (mm)",function(d){var s=getSpec(d.b);return s?s.gas:"—"}],
+["Indoor Unit",function(d){return ""}],
+[t.indoorAirflow+" (m³/h)",function(d){var s=getSpec(d.b);return s?s.iaf:"—"}],
+[t.indoorNoise+" (dB(A))",function(d){var s=getSpec(d.b);return s?s.inoise:"—"}],
+[t.dimension+" (mm)",function(d){var s=getSpec(d.b);return s?s.idim:"—"}],
+[t.grossWeight+" (kg)",function(d){var s=getSpec(d.b);return s?s.iwt:"—"}],
+[t.pipingSize+" (mm)",function(d){var s=getSpec(d.b);return s?s.ips:"—"}],
+[t.louverSwing,function(d){var s=getSpec(d.b);return s?s.louver:"—"}],
+["Outdoor Unit",function(d){return ""}],
+[t.outdoorAirflow+" (m³/h)",function(d){var s=getSpec(d.b);return s?s.oaf:"—"}],
+[t.outdoorNoise+" (dB(A))",function(d){var s=getSpec(d.b);return s?s.onoise:"—"}],
+[t.dimension+" (mm) ",function(d){var s=getSpec(d.b);return s?s.odim:"—"}],
+[t.grossWeight+" (kg) ",function(d){var s=getSpec(d.b);return s?s.owt:"—"}],
+[t.pipingSize+" (mm) ",function(d){var s=getSpec(d.b);return s?s.ops:"—"}],
+[t.maxPipeLength+" (m)",function(d){var s=getSpec(d.b);return s?s.plen:"—"}],
+[t.maxPipeHeight+" (m)",function(d){var s=getSpec(d.b);return s?s.ph:"—"}],
+[t.amountOfGas+" (g)",function(d){var s=getSpec(d.b);return s?s.gasAmt:"—"}]
+];
+
+var filterPanel=filterOpen?html`<div class="filter-panel">
+  <div>
+    <p class="filter-sec-title">${t.regions}</p>
+    <div class="filter-chips">
+      ${["Japan","Korea","China","Malaysia","Germany"].map(function(r){
+        var on=regions.indexOf(r)>-1;
+        return html`<button key=${r} type="button" class=${"fchip"+(on?" on":"")} onClick=${function(){toggleRegion(r)}}>${flagImg(r)}${t.countries[r]}</button>`;
+      })}
+    </div>
+  </div>
+  <div>
+    <p class="filter-sec-title">${t.brands}</p>
+    <div class="filter-chips">
+      ${panelBrands.map(function(d){
+        var on=brandFilter.length===0 || brandFilter.indexOf(d.b)>-1;
+        // if brandFilter empty = all included (lit); if has items, only those lit
+        var lit=brandFilter.length===0?false:brandFilter.indexOf(d.b)>-1;
+        // User wants: light up when selected for filter. Start with none lit = show all.
+        // When user clicks a brand, light it up and only show lit ones.
+        var isOn=brandFilter.indexOf(d.b)>-1;
+        return html`<button key=${d.b} type="button" class=${"fchip"+(isOn?" on":"")} onClick=${function(){toggleBrandFilter(d.b)}}>
+          <span class="brand-dot" style=${brandDotStyle(d.c)}></span>${d.b}
+        </button>`;
+      })}
+    </div>
+  </div>
+  <div>
+    <p class="filter-sec-title">${t.inverter}</p>
+    <div class="filter-chips">
+      <button type="button" class=${"fchip"+(invFilter===true?" on":"")} onClick=${function(){setInvFilter(invFilter===true?null:true)}}>${t.invYes}</button>
+      <button type="button" class=${"fchip"+(invFilter===false?" on":"")} onClick=${function(){setInvFilter(invFilter===false?null:false)}}>${t.invNo}</button>
+    </div>
+  </div>
+  <div><button type="button" class="chip" onClick=${clearFilters} disabled=${!(regions.length||brandFilter.length||invFilter!==null)}>${t.clearAll}</button></div>
+</div>`:null;
+
+var allView=html`
+<div class="bar">
+<input type="search" placeholder=${t.search} value=${q} onInput=${function(e){setQ(e.target.value)}} aria-label=${t.search}/>
+<button type="button" class="opt-btn" aria-pressed=${filterOpen} onClick=${function(){setFilterOpen(!filterOpen)}}>${t.options}</button>
+</div>
+${filterPanel}
+<div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
+  <button type="button" class="chip" disabled=${!sel.length} onClick=${function(){setSel([])}}>${t.clearCompare}</button>
+  <div style=${{display:"flex",gap:"8px"}}>
+    <button type="button" class=${"chip"+(showModels?" on":"")} onClick=${function(){setShowModels(!showModels)}}>${t.showModels}</button>
+    <button type="button" class=${"chip"+(showSelling?" on":"")} onClick=${function(){setShowSelling(!showSelling)}}>${t.showSelling}</button>
+  </div>
+</div>
+<div class="card"><div class="scroll"><table>
+<thead><tr>
+<th class="sticky">${t.compare}</th>
+<th>
+  <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"8px"}}>
+    <span>${t.brand}</span>
+    <button type="button" class="chip" style=${{fontSize:".72rem",padding:"2px 8px"}} onClick=${function(){setSortDir(sortDir==="az"?"za":"az")}} title="Sort A-Z / Z-A">${sortDir==="az"?"A–Z ↓":"Z–A ↑"}</button>
+  </div>
+</th>
+${showModels?html`<th>${t.models}</th>`:null}
+${showSelling?html`<th>${t.selling}</th>`:null}
+</tr></thead>
+<tbody>${rows.length?rows.map(function(d){
+  var on=sel.indexOf(d.b)>-1;
+  var sell=lang==="cn"?d.sCn:d.sEn;
+  var tech=lang==="cn"?d.kCn:d.kEn;
+  var country=t.countries[d.o]||d.o;
+  return html`<tr key=${d.b} class="brand-row">
+<td class="sticky"><input type="checkbox" checked=${on} disabled=${!on&&sel.length>=4} onChange=${function(){toggle(d.b)}} aria-label=${t.compare+" "+d.b}/></td>
+<th scope="row"><span class="brand-dot" style=${brandDotStyle(d.c)}></span>${d.b}<span class="or">${flagImg(d.o)}${country}</span></th>
+${showModels?html`<td>${ModelDropdown(d)}</td>`:null}
+${showSelling?html`<td class="sp"><b>${sell}</b><span>${tech}</span></td>`:null}
+</tr>`}):html`<tr><td colspan="4" class="empty">${t.empty}</td></tr>`}</tbody></table></div></div>
+<div class="bottom-bar">
+<button type="button" class="btn-compare" disabled=${!sel.length} onClick=${function(){setView("cmp")}}>
+${t.compareSelected(sel.length)}
+</button>
+</div>`;
+
+var cmpView=html`
+<div class="bar">
+<button type="button" class="chip" onClick=${function(){setView("all")}}>${t.back}</button>
+<button type="button" class=${"chip"+(showAddBrands?" on":"")} onClick=${function(){setShowAddBrands(!showAddBrands)}}>${t.addBrands}</button>
+</div>
+${showAddBrands?html`<div class="bar" style=${{flexWrap:"wrap",gap:"8px"}}>
+${D.map(function(d){
+  var on=sel.indexOf(d.b)>-1;
+  return html`<button key=${d.b} type="button" class=${"chip"+(on?" on":"")} disabled=${!on&&sel.length>=4} onClick=${function(){toggle(d.b)}}><span class="brand-dot" style=${brandDotStyle(d.c)}></span>${on?"✓ ":"+ "}${d.b}</button>`;
+})}
+</div>`:null}
+${chosen.length?html`<div class="card"><div class="scroll"><table class="cmp">
+<thead><tr><th class="sticky rl">Spec</th>${chosen.map(function(d){return html`<th key=${d.b} class="bh"><span class="brand-dot" style=${brandDotStyle(d.c)}></span>${d.b} <button class="x" type="button" onClick=${function(){toggle(d.b)}} aria-label=${"Remove "+d.b} title="Remove">×</button></th>`})}</tr></thead>
+<tbody>${SPECS.map(function(r){return html`<tr key=${r[0]}><th scope="row" class="sticky rl">${r[0]}</th>${chosen.map(function(d){return html`<td key=${d.b}>${r[1](d)}</td>`})}</tr>`})}</tbody></table></div></div>`
+:html`<div class="card"><div class="empty">${t.pickBrands}</div></div>`}`;
+
+return html`<div class="wrap">
+<div class="header-row">
+  <div class="header-text">
+    <h1>${t.title}</h1>
+    <p class="sub">${t.sub}</p>
+  </div>
+  <div class="header-controls">
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button type="button" aria-pressed=${lang==="en"} onClick=${function(){setLang("en")}}>EN</button>
+      <button type="button" aria-pressed=${lang==="cn"} onClick=${function(){setLang("cn")}}>CN</button>
+    </div>
+    <div class="hp-toggle" role="group" aria-label="HP filter">
+      <button type="button" aria-pressed=${hpFilter===null} onClick=${function(){setHpFilter(null)}}>${t.hpAll}</button>
+      ${HP_VALUES.map(function(hp,i){return html`<button key=${hp} type="button" aria-pressed=${hpFilter===hp} onClick=${function(){setHpFilter(hp)}}>${t.hp[i]}</button>`})}
+    </div>
+  </div>
+</div>
+${view==="all"?allView:cmpView}
+<button type="button" class="admin-btn" onClick=${function(){setShowAdmin(true)}} title="Admin">⚙</button>
+${showAdmin?html`<div class="admin-overlay" onClick=${function(){setShowAdmin(false)}}>
+<div class="admin-modal" onClick=${function(e){e.stopPropagation()}}>
+${!adminAuth?html`<h2>Admin Login</h2>
+<input type="password" placeholder="Password" value=${adminPw} onInput=${function(e){setAdminPw(e.target.value)}} />
+<div class="row" style=${{marginTop:"8px"}}>
+<button type="button" class="primary" onClick=${function(){if(adminPw==="TSS1048")setAdminAuth(true);else alert("Wrong password");}}>Login</button>
+<button type="button" onClick=${function(){setShowAdmin(false)}}>Cancel</button>
+</div>
+`:html`<h2>Manage Models</h2>
+<div style=${{marginBottom:"12px"}}>
+<label style=${{fontSize:".8rem",color:"var(--muted)"}}>Brand</label>
+<select onChange=${function(e){setAdminBrand(e.target.value);setAdminSeries("");setAdminEdit("");setAdminForm({});}} value=${adminBrand}>
+<option value="">— Select brand —</option>
+${Object.keys(M).map(function(b){return html`<option key=${b} value=${b}>${b}</option>`})}
+</select>
+</div>
+${adminBrand?html`<div style=${{marginBottom:"12px"}}>
+<label style=${{fontSize:".8rem",color:"var(--muted)"}}>Series</label>
+<select onChange=${function(e){setAdminSeries(e.target.value);setAdminEdit("");setAdminForm({});}} value=${adminSeries}>
+<option value="">— Select series —</option>
+${(modelsData[adminBrand]&&modelsData[adminBrand].series||[]).map(function(s){return html`<option key=${s.nEn} value=${s.nEn}>${s.nEn}</option>`})}
+</select>
+<div style=${{display:"flex",gap:"8px",marginTop:"6px"}}>
+<input placeholder="New series name" value=${adminNewSeries} onInput=${function(e){setAdminNewSeries(e.target.value)}} style=${{flex:1}} />
+<button type="button" onClick=${function(){
+  var name=(adminNewSeries||"").trim();
+  if(!name||!adminBrand) return;
+  var next=JSON.parse(JSON.stringify(modelsData));
+  if(!next[adminBrand].series) next[adminBrand].series=[];
+  if(next[adminBrand].series.some(function(s){return s.nEn===name})){alert("Series exists");return;}
+  next[adminBrand].series.push({nEn:name,nCn:name,inv:true,models:[]});
+  setModelsData(next);
+  setAdminSeries(name);
+  setAdminNewSeries("");
+  alert("Series added: "+name);
+}}>Add Series</button>
+</div>
+</div>`:null}
+${adminBrand&&adminSeries?html`<div style=${{marginBottom:"12px"}}>
+<label style=${{fontSize:".8rem",color:"var(--muted)"}}>Model</label>
+<select onChange=${function(e){var k=e.target.value;setAdminEdit(k);if(k&&SPECDATA[k]){var d=Object.assign({},SPECDATA[k]);d.code=k;setAdminForm(d);}else setAdminForm({code:k});}} value=${adminEdit}>
+<option value="">— Select model —</option>
+${allModelCodes().filter(function(m){return m.brand===adminBrand&&m.series===adminSeries}).map(function(m){return html`<option key=${m.code} value=${m.code}>${m.hp}HP · ${m.code}${SPECDATA[m.code]?" ✓":""}</option>`})}
+</select>
+<div style=${{display:"flex",gap:"8px",marginTop:"6px"}}>
+<input placeholder="New model code" value=${adminNewModel} onInput=${function(e){setAdminNewModel(e.target.value)}} style=${{flex:1}} />
+<select value=${adminNewHp} onChange=${function(e){setAdminNewHp(e.target.value)}} style=${{width:"80px"}}>
+${["1.0","1.5","2.0","2.5","3.0","4.0"].map(function(h){return html`<option key=${h} value=${h}>${h}HP</option>`})}
+</select>
+<button type="button" onClick=${function(){
+  var code=(adminNewModel||"").trim();
+  if(!code||!adminBrand||!adminSeries) return;
+  var next=JSON.parse(JSON.stringify(modelsData));
+  var series=next[adminBrand].series.find(function(s){return s.nEn===adminSeries});
+  if(!series) return;
+  if(series.models.some(function(m){return m.in===code})){alert("Model exists");return;}
+  series.models.push({in:code,out:"",hp:parseFloat(adminNewHp),c:"v"});
+  setModelsData(next);
+  setAdminNewModel("");
+  setAdminEdit(code);
+  setAdminForm({code:code});
+  
+  alert("Model added: "+code);
+}}>Add Model</button>
+</div>
+</div>`:null}
+<div style=${{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px"}}>
+<input placeholder="Model code (e.g. ACI 410I WH)" value=${adminForm.code||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{code:e.target.value}))}} />
+<input placeholder="Capacity" value=${adminForm.cap||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{cap:e.target.value}))}} />
+<input placeholder="Input (W)" value=${adminForm.input||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{input:e.target.value}))}} />
+<input placeholder="CSPF" value=${adminForm.cspf||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{cspf:e.target.value}))}} />
+<input placeholder="Stars" type="number" value=${adminForm.stars||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{stars:e.target.value}))}} />
+<input placeholder="Running Current (A)" value=${adminForm.current||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{current:e.target.value}))}} />
+<input placeholder="Power supply" value=${adminForm.power||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{power:e.target.value}))}} />
+<input placeholder="Refrigerant" value=${adminForm.ref||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{ref:e.target.value}))}} />
+<input placeholder="Pipe Liquid (mm)" value=${adminForm.liq||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{liq:e.target.value}))}} />
+<input placeholder="Pipe Gas (mm)" value=${adminForm.gas||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{gas:e.target.value}))}} />
+<input placeholder="Indoor airflow" value=${adminForm.iaf||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{iaf:e.target.value}))}} />
+<input placeholder="Indoor noise" value=${adminForm.inoise||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{inoise:e.target.value}))}} />
+<input placeholder="Indoor dim (WxDxH)" value=${adminForm.idim||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{idim:e.target.value}))}} />
+<input placeholder="Indoor weight (kg)" value=${adminForm.iwt||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{iwt:e.target.value}))}} />
+<input placeholder="Outdoor airflow" value=${adminForm.oaf||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{oaf:e.target.value}))}} />
+<input placeholder="Outdoor noise" value=${adminForm.onoise||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{onoise:e.target.value}))}} />
+<input placeholder="Outdoor dim" value=${adminForm.odim||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{odim:e.target.value}))}} />
+<input placeholder="Outdoor weight (kg)" value=${adminForm.owt||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{owt:e.target.value}))}} />
+<input placeholder="Max pipe length (m)" value=${adminForm.plen||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{plen:e.target.value}))}} />
+<input placeholder="Max pipe height (m)" value=${adminForm.ph||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{ph:e.target.value}))}} />
+<input placeholder="Amount of gas (g)" value=${adminForm.gasAmt||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{gasAmt:e.target.value}))}} />
+</div>
+<div class="row" style=${{marginTop:"12px"}}>
+<button type="button" class="primary" onClick=${function(){
+  var code=(adminForm.code||"").trim();
+  if(!code){alert("Model code required");return;}
+  SPECDATA[code]=Object.assign({},adminForm);
+  delete SPECDATA[code].code;
+  setAdminForm({});
+  setAdminEdit("");
+  alert("Saved: "+code);
+}}>Save Model</button>
+${adminEdit?html`<button type="button" onClick=${function(){
+  if(confirm("Delete "+adminEdit+" from series and specs?")){
+    delete SPECDATA[adminEdit];
+    var next=JSON.parse(JSON.stringify(modelsData));
+    if(adminBrand&&adminSeries&&next[adminBrand]){
+      var series=next[adminBrand].series.find(function(s){return s.nEn===adminSeries});
+      if(series) series.models=series.models.filter(function(m){return m.in!==adminEdit});
+    }
+    setModelsData(next);
+    setAdminForm({});setAdminEdit("");setAdminSeries("");setAdminBrand("");
+    alert("Deleted");
+  }
+}}>Delete Model</button>`:null}
+${adminSeries?html`<button type="button" onClick=${function(){
+  if(confirm("Delete series "+adminSeries+" and all its models?")){
+    var next=JSON.parse(JSON.stringify(modelsData));
+    if(adminBrand&&next[adminBrand]){
+      var series=next[adminBrand].series.find(function(s){return s.nEn===adminSeries});
+      if(series) series.models.forEach(function(m){if(m.in) delete SPECDATA[m.in];});
+      next[adminBrand].series=next[adminBrand].series.filter(function(s){return s.nEn!==adminSeries});
+    }
+    setModelsData(next);
+    setAdminSeries("");setAdminEdit("");setAdminForm({});setAdminBrand("");
+    alert("Series deleted");
+  }
+}}>Delete Series</button>`:null}
+<button type="button" onClick=${function(){setAdminAuth(false);setShowAdmin(false);}}>Logout</button>
+</div>
+`}
+</div>
+</div>`:null}
+</div>`;
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+})();
+</script></body></html>

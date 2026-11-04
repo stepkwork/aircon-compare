@@ -1,0 +1,151 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Aircon Brand Comparison Table</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#f5f7f9;--surface:#fff;--fg:#14202b;--muted:#5b6b7a;--line:#dde3e9;--accent:#0f6e8c;--accent-soft:#e0f0f5;--hdr:#eef2f5;
+--p:#7b5ac2;--m:#0f8a7e;--v:#c27a12;--ps:#ece6f8;--ms:#dcf2ef;--vs:#fbefd9;--ok:#0f8a7e;
+--font:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e151c;--surface:#16202a;--fg:#e8eef3;--muted:#93a3b2;--line:#263441;--accent:#4fb6d6;--accent-soft:#15333f;--hdr:#1b2733;--p:#a78bf0;--m:#3fc2b3;--v:#e5a548;--ps:#2a2244;--ms:#12332f;--vs:#3a2c13;--ok:#3fc2b3;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e151c;--surface:#16202a;--fg:#e8eef3;--muted:#93a3b2;--line:#263441;--accent:#4fb6d6;--accent-soft:#15333f;--hdr:#1b2733;--p:#a78bf0;--m:#3fc2b3;--v:#e5a548;--ps:#2a2244;--ms:#12332f;--vs:#3a2c13;--ok:#3fc2b3;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 var(--font);padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.75rem;line-height:1.15;margin:0;font-weight:700;text-wrap:balance}.sub{color:var(--muted);margin:4px 0 0}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+button{font:inherit;color:var(--fg);cursor:pointer}
+.seg button{border:0;background:none;padding:8px 14px}.seg button[aria-pressed=true]{background:var(--accent);color:var(--surface);font-weight:600}
+input,select{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:0}
+.bar input{flex:1 1 180px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:.85rem}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.scroll{overflow:auto;max-width:100%;max-height:78vh}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:980px;font-size:.9rem}
+th,td{padding:11px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+thead th{position:sticky;top:0;z-index:3;background:var(--hdr);font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;white-space:nowrap}
+tbody tr:hover td,tbody tr:hover th{background:var(--accent-soft)}
+.sticky{position:sticky;left:0;z-index:2;background:var(--surface);border-right:1px solid var(--line)}thead .sticky{z-index:4;background:var(--hdr)}
+tbody th{font-weight:700}
+.or{display:block;color:var(--muted);font-size:.78rem;font-weight:500}
+.pill{display:inline-block;font-size:.76rem;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.pill.P{background:var(--ps);color:var(--p)}.pill.M{background:var(--ms);color:var(--m)}.pill.V{background:var(--vs);color:var(--v)}
+.sp b{font-weight:600}.sp span{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
+.hp{white-space:nowrap;font-weight:600;font-variant-numeric:tabular-nums}
+.rail{display:block;position:relative;height:6px;border-radius:3px;background:var(--line);margin-top:6px;min-width:70px}.rail i{position:absolute;top:0;bottom:0;border-radius:3px;background:var(--accent)}
+.pr{font-weight:700;white-space:nowrap}.pr s{text-decoration:none;color:var(--line)}
+.yes{color:var(--ok);font-weight:700}.no{color:var(--muted)}
+.cmp th.rl{background:var(--hdr);font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);white-space:nowrap}
+.cmp td{min-width:170px}.cmp thead th.bh{text-transform:none;letter-spacing:0;font-size:1rem;color:var(--fg)}
+.x{border:0;background:none;color:var(--muted);font-size:1.1rem;padding:0 4px}
+.hint{color:var(--muted);font-size:.85rem;margin:0}.empty{padding:36px 16px;text-align:center;color:var(--muted)}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0}
+.foot{color:var(--muted);font-size:.82rem;margin:0}
+.mc{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem;font-weight:700;white-space:nowrap}.mc.u{font-weight:400;font-style:italic;color:var(--muted)}
+</style></head><body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script>
+(function(){
+var h=React.createElement,html=htm.bind(h),useState=React.useState;
+var T={P:"Premium",M:"Mid-range",V:"Value"};
+// brand,origin,tier,price,selling,tech,hpLo,hpHi,wifi,type,stars,purify,selfclean
+var D=[
+["Daikin","Japan","P",3,"Reliability and quiet operation, a technician favourite","Coanda airflow on higher models",1,3,"Some","Inverter","4–5★","Streamer (some)","Some"],
+["Panasonic","Japan","P",3,"Energy saving plus air purifying","nanoe X air purification",1,3,"Most","Inverter","4–5★","nanoe X","Some"],
+["Mitsubishi Electric","Japan","P",4,"Very quiet, precise and well built","i-see sensor on higher models",1,2.5,"Some","Inverter","4–5★","Filters","Some"],
+["Mitsubishi Heavy","Japan","P",3,"Strong airflow and fast, durable cooling","Powerful fan, rugged build",1,3,"Some","Inverter","4–5★","Filters","Some"],
+["Hitachi","Japan","P",3,"Durability and easier upkeep","Frost Wash self-cleaning",1,2.5,"Some","Inverter","4–5★","Filters","Frost Wash"],
+["LG","Korea","P",3,"Smart features and good design","Dual Inverter, ThinQ app",1,2.5,"Most","Inverter","4–5★","Some","Some"],
+["Samsung","Korea","P",3,"Draft-free cooling and smart control","WindFree, SmartThings app",1,2.5,"Most","Inverter","4–5★","Some","Some"],
+["Toshiba","Japan","M",2,"Familiar Japanese name, friendlier prices","Easy to find and service",1,2.5,"Some","Inverter","3–5★","Filters","Some"],
+["Sharp","Japan","M",2,"Air cleaning at a mid price","Plasmacluster ions",1,2.5,"Some","Inverter","3–5★","Plasmacluster","Some"],
+["Midea","China","V",1,"Best value, inverter cooling at entry prices","Popular budget inverter lines",1,3,"Most","Inverter + non-inverter","3–5★","Filters","Some"],
+["Gree","China","V",1,"World’s largest AC maker, strong cooling for the price","Inverter range at low cost",1,3,"Some","Inverter + non-inverter","3–5★","Filters","Some"],
+["Haier","China","V",1,"Affordable inverter with self-cleaning","Self-clean function",1,2.5,"Most","Inverter + non-inverter","3–5★","Filters","Self-clean"],
+["Hisense","China","V",1,"Budget-friendly, popular in 1.5 HP","Entry-level inverter",1,2.5,"Some","Inverter + non-inverter","3–5★","Filters","Some"]
+].map(function(r){return{b:r[0],o:r[1],t:r[2],p:r[3],s:r[4],k:r[5],lo:r[6],hi:r[7],w:r[8],ty:r[9],st:r[10],pu:r[11],sc:r[12]}});
+function pc(v){return((v-1)/2*100).toFixed(1)}
+// model codes per HP: [code,"v"=confirmed on a Malaysian brand/retailer page | "u"=likely, confirm] or null
+var M={
+"Daikin":{l:"FTKF-C Standard Inverter",c:[["FTKF25C","v"],["FTKF35C","v"],["FTKF50C","v"]]},
+"Panasonic":{l:"X-Premium Inverter XU (BKH-1)",c:[["CS-XU10BKH-1","v"],["CS-XU13BKH-1","v"],["CS-XU18BKH-1","v"]]},
+"Mitsubishi Electric":{l:"MSY-JW inverter",c:[["MSY-JW10VF","u"],["MSY-JW13VF","u"],["MSY-JW18VF","u"]]},
+"Mitsubishi Heavy":{l:"Not confirmed yet",c:[null,null,null]},
+"Hitachi":{l:"Not confirmed yet",c:[null,null,null]},
+"LG":{l:"Dual Inverter (S3-Q)",c:[["S3-Q09JA3WA","v"],["S3-Q12JA3WA","u"],["S3-Q18JA3WA","u"]]},
+"Samsung":{l:"Not confirmed yet",c:[null,null,null]},
+"Toshiba":{l:"Not confirmed yet",c:[null,null,null]},
+"Sharp":{l:"J-Tech Inverter (AHX-VED2)",c:[null,["AHX12VED2","v"],null]},
+"Midea":{l:"Xtreme SavE Inverter",c:[["MSXS-10CRDN8","v"],["MSXS-13CRDN8","v"],["MSXS-19CRDN8","v"]]},
+"Gree":{l:"Not confirmed yet",c:[null,null,null]},
+"Haier":{l:"HSU-VTH21 Inverter",c:[null,null,["HSU-19VTH21","v"]]},
+"Hisense":{l:"AI-TUGS 5-star Inverter",c:[["AI10TUGS","v"],null,null]}};
+function Code(x){return !x?html`<span class="no">—</span>`:(x[1]==="v"?html`<span class="mc">${x[0]}</span>`:html`<span class="mc u">${x[0]} ?</span>`)}
+function Models(){return html`<div class="card"><div class="scroll"><table style=${{minWidth:"780px"}}>
+<thead><tr><th class="sticky">Brand</th><th>Series</th><th>1.0 HP</th><th>1.5 HP</th><th>2.0 HP</th></tr></thead>
+<tbody>${D.map(function(d){var m=M[d.b];return html`<tr key=${d.b}><th scope="row" class="sticky">${d.b}<span class="or">${d.o}</span></th><td>${m.l}</td>${m.c.map(function(x,i){return html`<td key=${i}>${Code(x)}</td>`})}</tr>`})}</tbody></table></div></div>
+<p class="foot">Bold = confirmed on a Malaysian brand or retailer page. Italic with ? = likely code, confirm before buying. — = not found yet.</p>`}
+function Price(p){return html`<span class="pr">${"$".repeat(p.p)}<s>${"$".repeat(4-p.p)}</s></span>`}
+function Pill(p){return html`<span class=${"pill "+p.t}>${T[p.t]}</span>`}
+function Hp(p){return html`<div class="hp">${p.lo.toFixed(1)}–${p.hi.toFixed(1)} HP<span class="rail"><i style=${{left:pc(p.lo)+"%",width:Math.max(pc(p.hi)-pc(p.lo),5)+"%"}}></i></span></div>`}
+function Yn(v){return v==="Most"?html`<span class="yes">✓ Most models</span>`:html`<span class="no">Some models</span>`}
+var SPECS=[
+["Tier",function(d){return Pill(d)}],
+["Main selling point",function(d){return html`<div class="sp"><b>${d.s}</b><span>${d.k}</span></div>`}],
+["Typical HP",function(d){return Hp(d)}],
+["Type",function(d){return d.ty}],
+["Energy rating",function(d){return d.st}],
+["Refrigerant",function(){return "R32"}],
+["Wi-Fi control",function(d){return Yn(d.w)}],
+["Air purifying",function(d){return d.pu}],
+["Self-cleaning",function(d){return d.sc}],
+["Price tier",function(d){return Price(d)}],
+["1.0 HP model",function(d){return Code(M[d.b].c[0])}],
+["1.5 HP model",function(d){return Code(M[d.b].c[1])}],
+["2.0 HP model",function(d){return Code(M[d.b].c[2])}],
+["Origin",function(d){return d.o}]];
+function App(){
+var s=useState(""),q=s[0],setQ=s[1];
+var t=useState(""),tier=t[0],setTier=t[1];
+var so=useState("def"),sort=so[0],setSort=so[1];
+var v=useState("all"),view=v[0],setView=v[1];
+var c=useState(["Daikin","Panasonic","Midea"]),sel=c[0],setSel=c[1];
+function toggle(b){setSel(function(a){return a.indexOf(b)>-1?a.filter(function(x){return x!==b}):(a.length>=4?a:a.concat(b))})}
+var ql=q.trim().toLowerCase();
+var rows=D.filter(function(d){return(!tier||d.t===tier)&&(!ql||(d.b+" "+d.o+" "+d.s+" "+d.k).toLowerCase().indexOf(ql)>-1)});
+var ord={P:0,M:1,V:2};
+rows=rows.slice().sort(function(a,b){
+if(sort==="lo")return a.p-b.p||a.b.localeCompare(b.b);
+if(sort==="hi")return b.p-a.p||a.b.localeCompare(b.b);
+if(sort==="hp")return b.hi-a.hi||a.b.localeCompare(b.b);
+if(sort==="az")return a.b.localeCompare(b.b);
+return ord[a.t]-ord[b.t]||b.p-a.p||a.b.localeCompare(b.b)});
+var chosen=D.filter(function(d){return sel.indexOf(d.b)>-1});
+return html`<div class="wrap">
+<header><h1>Air Conditioner Brand Comparison</h1><p class="sub">Home wall-split units. Browse every brand in one table, see model names for 1.0, 1.5 and 2.0 HP, or tick up to 4 brands to compare side by side.</p></header>
+<div class="bar">
+<div class="seg" role="group" aria-label="View"><button type="button" aria-pressed=${view==="all"} onClick=${function(){setView("all")}}>All brands</button><button type="button" aria-pressed=${view==="mod"} onClick=${function(){setView("mod")}}>Models by HP</button><button type="button" aria-pressed=${view==="cmp"} onClick=${function(){setView("cmp")}}>Compare (${sel.length})</button></div>
+${view==="all"&&html`<input type="search" placeholder="Search brand or feature" value=${q} onInput=${function(e){setQ(e.target.value)}} aria-label="Search"/>
+<select value=${sort} onChange=${function(e){setSort(e.target.value)}} aria-label="Sort"><option value="def">Sort: Tier, then price</option><option value="lo">Price, low to high</option><option value="hi">Price, high to low</option><option value="hp">Max HP</option><option value="az">Brand A to Z</option></select>`}
+</div>
+${view==="all"&&html`<div class="bar">${[["","All tiers"],["P","Premium"],["M","Mid-range"],["V","Value"]].map(function(x){return html`<button key=${x[0]} type="button" class="chip" aria-pressed=${tier===x[0]} onClick=${function(){setTier(x[0])}}>${x[1]}</button>`})}</div>`}
+${view==="mod"?html`<${Models}/>`:view==="all"?html`<div class="card"><div class="scroll"><table>
+<thead><tr><th class="sticky">Compare</th><th>Brand</th><th>Tier</th><th>Main selling point</th><th>Typical HP</th><th>Type</th><th>Energy</th><th>Wi-Fi</th><th>Price</th></tr></thead>
+<tbody>${rows.length?rows.map(function(d){var on=sel.indexOf(d.b)>-1;return html`<tr key=${d.b}>
+<td class="sticky"><input type="checkbox" checked=${on} disabled=${!on&&sel.length>=4} onChange=${function(){toggle(d.b)}} aria-label=${"Compare "+d.b}/></td>
+<th scope="row">${d.b}<span class="or">${d.o}</span></th><td><${Pill} ...${d}/></td>
+<td class="sp"><b>${d.s}</b><span>${d.k}</span></td><td><${Hp} ...${d}/></td><td>${d.ty}</td><td>${d.st}</td><td>${Yn(d.w)}</td><td><${Price} ...${d}/></td></tr>`}):html`<tr><td colspan="9" class="empty">No brands match.</td></tr>`}</tbody></table></div></div>`
+:html`${chosen.length?html`<div class="card"><div class="scroll"><table class="cmp">
+<thead><tr><th class="sticky rl">Spec</th>${chosen.map(function(d){return html`<th key=${d.b} class="bh">${d.b} <button class="x" type="button" onClick=${function(){toggle(d.b)}} aria-label=${"Remove "+d.b} title="Remove">×</button></th>`})}</tr></thead>
+<tbody>${SPECS.map(function(r){return html`<tr key=${r[0]}><th scope="row" class="sticky rl">${r[0]}</th>${chosen.map(function(d){return html`<td key=${d.b}>${r[1](d)}</td>`})}</tr>`})}</tbody></table></div></div>
+<div class="bar">${D.filter(function(d){return sel.indexOf(d.b)<0}).map(function(d){return html`<button key=${d.b} type="button" class="chip" disabled=${sel.length>=4} onClick=${function(){toggle(d.b)}}>+ ${d.b}</button>`})}</div>`
+:html`<div class="card"><div class="empty">Pick brands from the All brands view, or add them below.</div></div><div class="bar">${D.map(function(d){return html`<button key=${d.b} type="button" class="chip" onClick=${function(){toggle(d.b)}}>+ ${d.b}</button>`})}</div>`}`}
+
+</div>`}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+})();
+</script></body></html>
