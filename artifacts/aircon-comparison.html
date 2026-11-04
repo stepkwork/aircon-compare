@@ -14,6 +14,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 h1{font-size:1.75rem;line-height:1.15;margin:0;font-weight:700;text-wrap:balance}.sub{color:var(--muted);margin:4px 0 0}
 .header-controls{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
 .lang-toggle,.hp-toggle{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.hp-cycle{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:7px 12px;font:inherit;font-size:.85rem;color:var(--fg);cursor:pointer}
+.hp-cycle:hover{background:var(--hdr)}
+.hp-cycle .sym{font-size:.9rem;opacity:.7}
 .lang-toggle button,.hp-toggle button{border:0;background:none;padding:7px 12px;font:inherit;font-size:.85rem;color:var(--fg);cursor:pointer}
 .lang-toggle button[aria-pressed=true],.hp-toggle button[aria-pressed=true]{background:var(--accent);color:var(--surface);font-weight:600}
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
@@ -1056,10 +1059,14 @@ return html`<div class="wrap">
       <button type="button" aria-pressed=${lang==="en"} onClick=${function(){setLang("en")}}>EN</button>
       <button type="button" aria-pressed=${lang==="cn"} onClick=${function(){setLang("cn")}}>CN</button>
     </div>
-    <div class="hp-toggle" role="group" aria-label="HP filter">
-      <button type="button" aria-pressed=${hpFilter===null} onClick=${function(){setHpFilter(null)}}>${t.hpAll}</button>
-      ${HP_VALUES.map(function(hp,i){return html`<button key=${hp} type="button" aria-pressed=${hpFilter===hp} onClick=${function(){setHpFilter(hp)}}>${t.hp[i]}</button>`})}
-    </div>
+    <button type="button" class="hp-cycle" onClick=${function(){
+      var opts=[null].concat(HP_VALUES);
+      var idx=opts.indexOf(hpFilter);
+      setHpFilter(opts[(idx+1)%opts.length]);
+    }} title="Click to cycle HP">
+      <span class="sym">⇄</span>
+      ${hpFilter===null?t.hpAll:(hpFilter+" HP")}
+    </button>
   </div>
 </div>
 ${view==="all"?allView:cmpView}
