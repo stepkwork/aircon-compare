@@ -47,9 +47,9 @@ variables → Actions**:
 
 After creating D1, keep its database ID in `wrangler.jsonc`; that ID is not a
 secret. Run the schema command once for each new environment/database.
-The admin dashboard's English-to-Chinese selling-point translation uses the
-Cloudflare Workers AI binding configured in `wrangler.jsonc` and the
-`@cf/meta/m2m100-1.2b` translation model. Translation requests are sent only
+The admin dashboard's English-to-Chinese translation for selling points and
+additional features uses the Cloudflare Workers AI binding configured in
+`wrangler.jsonc` and the `@cf/meta/m2m100-1.2b` translation model. Requests are sent only
 when an admin clicks **Translate from English** and count toward the Cloudflare
 account's Workers AI usage.
 Once deployed, attach your existing domain to the Worker in Cloudflare if you

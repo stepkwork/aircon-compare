@@ -795,6 +795,8 @@ var adminSeriesFormState=useState({}),adminSeriesForm=adminSeriesFormState[0],se
 var adminTabState=useState("brands"),adminTab=adminTabState[0],setAdminTab=adminTabState[1];
 var translateState=useState(false),translating=translateState[0],setTranslating=translateState[1];
 var translateMessageState=useState(""),translateMessage=translateMessageState[0],setTranslateMessage=translateMessageState[1];
+var featureTranslateState=useState(false),translatingFeature=featureTranslateState[0],setTranslatingFeature=featureTranslateState[1];
+var featureTranslateMessageState=useState(""),featureTranslateMessage=featureTranslateMessageState[0],setFeatureTranslateMessage=featureTranslateMessageState[1];
 var brandsState=useState(D),brandsData=brandsState[0],setBrandsData=brandsState[1];
 var modelsState=useState(M),modelsData=modelsState[0],setModelsData=modelsState[1];
 var adminNoticeState=useState(""),adminNotice=adminNoticeState[0],setAdminNotice=adminNoticeState[1];
@@ -842,6 +844,26 @@ function commitModels(next){
 function commitBrands(next){
   D=next;
   setBrandsData(next);
+}
+async function translateBrandField(sourceKey,targetKey,setBusy,setMessage,successMessage){
+  setBusy(true);setMessage("");
+  try{
+    var response=await fetch("/api/admin/translate",{
+      method:"POST",
+      headers:{"content-type":"application/json"},
+      body:JSON.stringify({text:adminBrandForm[sourceKey]||""})
+    });
+    var responseText=await response.text(),result={};
+    try{result=responseText?JSON.parse(responseText):{}}catch(_err){throw new Error("Translation service returned an invalid response ("+response.status+")")}
+    if(!response.ok) throw new Error(result.error||"Translation failed ("+response.status+")");
+    if(typeof result.translation!=="string"||!result.translation.trim()) throw new Error("Translation service returned an empty translation");
+    setAdminBrandForm(function(current){return Object.assign({},current,{[targetKey]:result.translation})});
+    setMessage(successMessage);
+  }catch(err){
+    setMessage(err.message||"Translation failed. Please try again.");
+  }finally{
+    setBusy(false);
+  }
 }
 async function persistAdminData(nextBrands,nextModels,nextSpecs){
   if(!dataReady) throw new Error("Saved Cloudflare data is not ready; reload the page before editing.");
@@ -1210,37 +1232,26 @@ ${brandsData.map(function(b){return html`<option key=${b.b} value=${b.b}>${b.b}<
 ${adminBrand?html`<div class="admin-fields">
 <div><label class="admin-field">Brand name</label><input value=${adminBrandForm.b||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{b:e.target.value}))}} /></div>
 <div><label class="admin-field">Country / region</label><input value=${adminBrandForm.o||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{o:e.target.value}))}} /></div>
-<div><label class="admin-field">Main selling point (English)</label><textarea maxlength="2000" value=${adminBrandForm.sEn||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{sEn:e.target.value}))}} /></div>
+<div><label class="admin-field">Main selling point (English)</label><textarea maxlength="2000" value=${adminBrandForm.sEn||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{sEn:e.target.value}));setTranslateMessage("")}} /></div>
 <div>
 <label class="admin-field">Main selling point (Chinese)</label>
 <textarea value=${adminBrandForm.sCn||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{sCn:e.target.value}));setTranslateMessage("")}} />
 <div class="row">
-<button type="button" disabled=${translating||!(adminBrandForm.sEn||"").trim()} onClick=${async function(){
-  setTranslating(true);setTranslateMessage("");
-  try{
-    var response=await fetch("/api/admin/translate",{
-      method:"POST",
-      headers:{"content-type":"application/json"},
-      body:JSON.stringify({text:adminBrandForm.sEn||""})
-    });
-    var responseText=await response.text(),result={};
-    try{result=responseText?JSON.parse(responseText):{}}catch(_err){throw new Error("Translation service returned an invalid response ("+response.status+")")}
-    if(!response.ok) throw new Error(result.error||"Translation failed ("+response.status+")");
-    if(typeof result.translation!=="string"||!result.translation.trim()) throw new Error("Translation service returned an empty translation");
-    setAdminBrandForm(function(current){return Object.assign({},current,{sCn:result.translation})});
-    setTranslateMessage("Translation ready. Review it, then save the brand.");
-  }catch(err){
-    setTranslateMessage(err.message||"Translation failed. Please try again.");
-  }finally{
-    setTranslating(false);
-  }
-}}>${translating?"Translating…":"Translate from English"}</button>
+<button type="button" disabled=${translating||!(adminBrandForm.sEn||"").trim()} onClick=${function(){translateBrandField("sEn","sCn",setTranslating,setTranslateMessage,"Translation ready. Review it, then save the brand.")}}>${translating?"Translating…":"Translate from English"}</button>
 </div>
 <p style=${{margin:"0 0 10px",color:"var(--muted)",fontSize:".78rem"}}>Translation is sent to Cloudflare AI. Review the Chinese before saving.</p>
 ${translateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:"var(--muted)",fontSize:".8rem"}}>${translateMessage}</p>`:null}
 </div>
-<div><label class="admin-field">Additional feature (English)</label><textarea value=${adminBrandForm.kEn||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{kEn:e.target.value}))}} /></div>
-<div><label class="admin-field">Additional feature (Chinese)</label><textarea value=${adminBrandForm.kCn||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{kCn:e.target.value}))}} /></div>
+<div><label class="admin-field">Additional feature (English)</label><textarea maxlength="2000" value=${adminBrandForm.kEn||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{kEn:e.target.value}));setFeatureTranslateMessage("")}} /></div>
+<div>
+<label class="admin-field">Additional feature (Chinese)</label>
+<textarea value=${adminBrandForm.kCn||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{kCn:e.target.value}));setFeatureTranslateMessage("")}} />
+<div class="row">
+<button type="button" disabled=${translatingFeature||!(adminBrandForm.kEn||"").trim()} onClick=${function(){translateBrandField("kEn","kCn",setTranslatingFeature,setFeatureTranslateMessage,"Translation ready. Review it, then save the brand.")}}>${translatingFeature?"Translating…":"Translate from English"}</button>
+</div>
+<p style=${{margin:"0 0 10px",color:"var(--muted)",fontSize:".78rem"}}>Translation is sent to Cloudflare AI. Review the Chinese before saving.</p>
+${featureTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:"var(--muted)",fontSize:".8rem"}}>${featureTranslateMessage}</p>`:null}
+</div>
 <div><label class="admin-field">Brand color (hex; optional second color after |)</label><input value=${adminBrandForm.c||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{c:e.target.value}))}} /></div>
 <div class="admin-fields">
 <div><label class="admin-field">Minimum HP shown</label><input type="number" step="0.5" value=${adminBrandForm.lo||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{lo:e.target.value}))}} /></div>
