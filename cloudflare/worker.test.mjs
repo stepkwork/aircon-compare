@@ -3,12 +3,18 @@ import test from "node:test";
 import worker from "./worker.js";
 
 function makeEnv() {
-  const store = { value: null };
+  const store = { value: null, aiInput: null };
   return {
     store,
     env: {
       ADMIN_PASSWORD: "test-admin-password",
       SESSION_SECRET: "a-test-session-signing-secret-that-is-long-enough",
+      AI: {
+        async run(model, input) {
+          store.aiInput = { model, input };
+          return { translated_text: "安静可靠" };
+        },
+      },
       ASSETS: {
         async fetch(request) {
           return new Response(new URL(request.url).pathname);
@@ -142,6 +148,86 @@ test("rejects saves without a valid admin session", async () => {
     env,
   );
   assert.equal(response.status, 401);
+});
+
+test("translates selling points through Workers AI for authenticated admins", async () => {
+  const { env, store } = makeEnv();
+  const unauthorized = await worker.fetch(
+    request("/api/admin/translate", {
+      method: "POST",
+      headers: { origin: "https://aircon.example", "content-type": "application/json" },
+      body: JSON.stringify({ text: "Quiet and reliable" }),
+    }),
+    env,
+  );
+  assert.equal(unauthorized.status, 401);
+
+  const login = await worker.fetch(
+    request("/api/admin/login", {
+      method: "POST",
+      headers: { origin: "https://aircon.example", "content-type": "application/json" },
+      body: JSON.stringify({ password: "test-admin-password" }),
+    }),
+    env,
+  );
+  const cookie = login.headers.get("set-cookie").split(";", 1)[0];
+  const response = await worker.fetch(
+    request("/api/admin/translate", {
+      method: "POST",
+      headers: {
+        origin: "https://aircon.example",
+        cookie,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ text: "  Quiet and reliable  " }),
+    }),
+    env,
+  );
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { translation: "安静可靠" });
+  assert.deepEqual(store.aiInput, {
+    model: "@cf/meta/m2m100-1.2b",
+    input: { text: "Quiet and reliable", source_lang: "en", target_lang: "zh" },
+  });
+});
+
+test("limits selling-point translation input and requires the AI binding", async () => {
+  const { env } = makeEnv();
+  const login = await worker.fetch(
+    request("/api/admin/login", {
+      method: "POST",
+      headers: { origin: "https://aircon.example", "content-type": "application/json" },
+      body: JSON.stringify({ password: "test-admin-password" }),
+    }),
+    env,
+  );
+  const cookie = login.headers.get("set-cookie").split(";", 1)[0];
+  const headers = {
+    origin: "https://aircon.example",
+    cookie,
+    "content-type": "application/json",
+  };
+  const tooLong = await worker.fetch(
+    request("/api/admin/translate", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ text: "x".repeat(2001) }),
+    }),
+    env,
+  );
+  assert.equal(tooLong.status, 400);
+
+  delete env.AI;
+  const notConfigured = await worker.fetch(
+    request("/api/admin/translate", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ text: "Quiet and reliable" }),
+    }),
+    env,
+  );
+  assert.equal(notConfigured.status, 503);
 });
 
 test("rejects invalid brand metadata", async () => {

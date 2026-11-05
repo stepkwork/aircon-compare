@@ -13,5 +13,8 @@
       "database_name": "aircon-compare",
       "database_id": "a278f507-a749-4def-8977-43cfe449260b"
     }
-  ]
+  ],
+  "ai": {
+    "binding": "AI"
+  }
 }

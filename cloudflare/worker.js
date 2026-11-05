@@ -1,6 +1,8 @@
 const SESSION_COOKIE = "aircon_admin";
 const SESSION_SECONDS = 60 * 60 * 8;
 const MAX_DATA_BYTES = 1_000_000;
+const MAX_TRANSLATION_LENGTH = 2_000;
+const MAX_TRANSLATION_REQUEST_BYTES = 16_000;
 
 function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
@@ -119,6 +121,56 @@ async function login(request, env) {
   );
 }
 
+async function translateSellingPoint(request, env) {
+  if (!env.SESSION_SECRET || !(await hasAdminSession(request, env.SESSION_SECRET))) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+  if (!hasSameOrigin(request)) return json({ error: "Forbidden" }, 403);
+  if (!env.AI) return json({ error: "Cloudflare Workers AI is not configured" }, 503);
+  if (Number(request.headers.get("content-length") || 0) > MAX_TRANSLATION_REQUEST_BYTES) {
+    return json({ error: "Translation request is too large" }, 413);
+  }
+
+  let body;
+  try {
+    const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_TRANSLATION_REQUEST_BYTES) {
+      return json({ error: "Translation request is too large" }, 413);
+    }
+    body = JSON.parse(rawBody);
+  } catch {
+    return json({ error: "Invalid JSON" }, 400);
+  }
+  if (
+    !body ||
+    typeof body !== "object" ||
+    typeof body.text !== "string" ||
+    !body.text.trim() ||
+    body.text.length > MAX_TRANSLATION_LENGTH
+  ) {
+    return json(
+      { error: `Enter English text between 1 and ${MAX_TRANSLATION_LENGTH} characters` },
+      400,
+    );
+  }
+
+  try {
+    const result = await env.AI.run("@cf/meta/m2m100-1.2b", {
+      text: body.text.trim(),
+      source_lang: "en",
+      target_lang: "zh",
+    });
+    if (typeof result?.translated_text !== "string" || !result.translated_text.trim()) {
+      console.error("[aircon-compare] Workers AI returned an invalid translation response");
+      return json({ error: "Translation service returned an invalid response" }, 502);
+    }
+    return json({ translation: result.translated_text.trim() });
+  } catch (error) {
+    console.error("[aircon-compare] Selling-point translation failed:", error);
+    return json({ error: "Translation failed. Please try again." }, 502);
+  }
+}
+
 async function handleApi(request, env) {
   const { pathname } = new URL(request.url);
 
@@ -129,6 +181,10 @@ async function handleApi(request, env) {
 
   if (pathname === "/api/admin/login" && request.method === "POST") {
     return login(request, env);
+  }
+
+  if (pathname === "/api/admin/translate" && request.method === "POST") {
+    return translateSellingPoint(request, env);
   }
 
   if (pathname === "/api/admin/logout" && request.method === "POST") {
