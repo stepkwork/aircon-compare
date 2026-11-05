@@ -172,6 +172,35 @@ async function handleApi(request, env) {
     ) {
       return json({ error: "Expected models and specData objects" }, 400);
     }
+    if (
+      "brands" in data &&
+      (!Array.isArray(data.brands) ||
+        data.brands.some(
+          (brand) =>
+            !brand ||
+            typeof brand !== "object" ||
+            typeof brand.b !== "string" ||
+            !brand.b.trim() ||
+            typeof brand.o !== "string" ||
+            typeof brand.sEn !== "string" ||
+            typeof brand.sCn !== "string" ||
+            typeof brand.kEn !== "string" ||
+            typeof brand.kCn !== "string" ||
+            typeof brand.c !== "string" ||
+            !/^#[0-9a-f]{6}(?:\|#[0-9a-f]{6})?$/i.test(brand.c) ||
+            !Number.isFinite(brand.lo) ||
+            !Number.isFinite(brand.hi) ||
+            ![1, 1.5, 2, 2.5, 3, 4].includes(brand.lo) ||
+            ![1, 1.5, 2, 2.5, 3, 4].includes(brand.hi) ||
+            brand.lo <= 0 ||
+            brand.hi < brand.lo ||
+            typeof brand.inv !== "boolean",
+        ) ||
+        new Set(data.brands.map((brand) => brand.b.toLowerCase())).size !==
+          data.brands.length)
+    ) {
+      return json({ error: "Expected a valid, unique brands list" }, 400);
+    }
 
     await env.DB.prepare(
       "INSERT INTO site_data (id, payload, updated_at) VALUES (1, ?, ?) " +

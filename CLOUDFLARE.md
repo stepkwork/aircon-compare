@@ -54,6 +54,8 @@ assigning that same hostname to the Worker.
 
 ## What persists
 
-The first successful admin edit writes the current model catalog and specs to
-D1. Later visits load that saved catalog from D1. Changes made to the source
-catalog in `public/aircon.html` do not overwrite existing D1 data.
+The first successful admin save writes the brand descriptions, model catalog,
+and specifications to D1. Use the site's Admin panel to add, edit, or delete
+brands and series, and to update model specifications. Later visits load those
+saved changes from D1. Changes made to the built-in catalog in
+`public/aircon.html` do not overwrite existing D1 data.

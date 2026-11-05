@@ -68,13 +68,25 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0
 .admin-btn{position:fixed;bottom:16px;right:16px;width:40px;height:40px;border-radius:50%;border:none;background:var(--muted);color:#fff;font-size:1.1rem;cursor:pointer;opacity:.4;z-index:50}
 .admin-btn:hover{opacity:1}
 .admin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center}
-.admin-modal{background:var(--surface);border-radius:14px;padding:24px;max-width:480px;width:90%;max-height:80vh;overflow:auto}
-.admin-modal h2{margin:0 0 16px}
-.admin-modal input,.admin-modal select,.admin-modal textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:10px;font:inherit}
+.admin-modal{background:var(--surface);border-radius:14px;padding:24px;max-width:900px;width:min(94vw,900px);max-height:90vh;overflow:auto}
+.admin-modal h2{margin:0 0 4px}
+.admin-subtitle{color:var(--muted);font-size:.85rem;margin:0 0 16px}
+.admin-tabs{display:flex;gap:8px;position:sticky;top:-24px;z-index:5;background:var(--surface);padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:16px}
+.admin-tabs button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px}
+.admin-tabs button[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.admin-section{border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
+.admin-section h3{margin:0 0 4px;font-size:1rem}
+.admin-section p{color:var(--muted);font-size:.82rem;margin:0 0 12px}
+.admin-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
+.admin-field{display:block;font-size:.78rem;color:var(--muted);margin:0 0 4px}
+.admin-modal input,.admin-modal select,.admin-modal textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:10px;font:inherit;background:var(--surface);color:var(--fg)}
+.admin-modal textarea{min-height:76px;resize:vertical}
 .admin-modal .row{display:flex;gap:8px;margin-bottom:10px}
 .admin-modal .row>*{flex:1}
 .admin-modal button{padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
 .admin-modal button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.admin-modal button.danger{color:#a52a2a}
+@media(max-width:600px){.admin-modal{padding:16px;width:96vw;max-height:92vh}.admin-tabs{top:-16px}.admin-fields{grid-template-columns:1fr}.admin-modal .row{flex-wrap:wrap}}
 </style></head><body>
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -776,6 +788,12 @@ var adminSeriesState=useState(""),adminSeries=adminSeriesState[0],setAdminSeries
 var adminNewSeriesState=useState(""),adminNewSeries=adminNewSeriesState[0],setAdminNewSeries=adminNewSeriesState[1];
 var adminNewModelState=useState(""),adminNewModel=adminNewModelState[0],setAdminNewModel=adminNewModelState[1];
 var adminNewHpState=useState("1.0"),adminNewHp=adminNewHpState[0],setAdminNewHp=adminNewHpState[1];
+var adminNewBrandState=useState(""),adminNewBrand=adminNewBrandState[0],setAdminNewBrand=adminNewBrandState[1];
+var adminNewSeriesCnState=useState(""),adminNewSeriesCn=adminNewSeriesCnState[0],setAdminNewSeriesCn=adminNewSeriesCnState[1];
+var adminBrandFormState=useState({}),adminBrandForm=adminBrandFormState[0],setAdminBrandForm=adminBrandFormState[1];
+var adminSeriesFormState=useState({}),adminSeriesForm=adminSeriesFormState[0],setAdminSeriesForm=adminSeriesFormState[1];
+var adminTabState=useState("brands"),adminTab=adminTabState[0],setAdminTab=adminTabState[1];
+var brandsState=useState(D),brandsData=brandsState[0],setBrandsData=brandsState[1];
 var modelsState=useState(M),modelsData=modelsState[0],setModelsData=modelsState[1];
 var adminNoticeState=useState(""),adminNotice=adminNoticeState[0],setAdminNotice=adminNoticeState[1];
 var dataReadyState=useState(false),dataReady=dataReadyState[0],setDataReady=dataReadyState[1];
@@ -794,6 +812,18 @@ useEffect(function(){
       M=data.models;
       SPECDATA=data.specData;
       setModelsData(data.models);
+      if(data.brands){
+        if(!Array.isArray(data.brands)||data.brands.some(function(b){
+          return !b||typeof b.b!=="string"||typeof b.o!=="string"||
+            typeof b.sEn!=="string"||typeof b.sCn!=="string"||
+            typeof b.kEn!=="string"||typeof b.kCn!=="string"||
+            typeof b.c!=="string"||!Number.isFinite(b.lo)||
+            !Number.isFinite(b.hi)||b.lo<=0||b.hi<b.lo||
+            typeof b.inv!=="boolean";
+        })) throw new Error("Cloudflare returned invalid brand data");
+        D=data.brands;
+        setBrandsData(data.brands);
+      }
     }
     setAdminNotice("");
     setDataReady(true);
@@ -807,12 +837,16 @@ function commitModels(next){
   M=next;
   setModelsData(next);
 }
-async function persistAdminData(nextModels,nextSpecs){
+function commitBrands(next){
+  D=next;
+  setBrandsData(next);
+}
+async function persistAdminData(nextBrands,nextModels,nextSpecs){
   if(!dataReady) throw new Error("Saved Cloudflare data is not ready; reload the page before editing.");
   var response=await fetch("/api/admin/data",{
     method:"PUT",
     headers:{"content-type":"application/json"},
-    body:JSON.stringify({models:nextModels,specData:nextSpecs})
+    body:JSON.stringify({brands:nextBrands,models:nextModels,specData:nextSpecs})
   });
   var result={};
   var responseText=await response.text();
@@ -844,8 +878,7 @@ function toggleBrandFilter(b){
 }
 function clearFilters(){setRegions([]);setBrandFilter([]);setInvFilter(null);}
 var ql=q.trim().toLowerCase();
-var regionOrder={"Japan":0,"Korea":1,"China":2,"Malaysia":3,"Germany":4};
-var rows=D.filter(function(d){
+var rows=brandsData.filter(function(d){
   if(!supportsHp(d,hpFilter)) return false;
   if(regions.length && regions.indexOf(d.o)<0) return false;
   if(brandFilter.length && brandFilter.indexOf(d.b)<0) return false;
@@ -859,10 +892,10 @@ rows=rows.slice().sort(function(a,b){
   return sortDir==="az"?cmp:-cmp;
 });
 
-var chosen=D.filter(function(d){return sel.indexOf(d.b)>-1});
+var chosen=brandsData.filter(function(d){return sel.indexOf(d.b)>-1});
 
 // brands visible in filter panel for section 2: if regions selected, only those; else all
-var panelBrands=D.filter(function(d){
+var panelBrands=brandsData.filter(function(d){
   return !regions.length || regions.indexOf(d.o)>-1;
 });
 
@@ -1000,13 +1033,14 @@ var SPECS=[
 [t.amountOfGas+" (g)",function(d){var s=getSpec(d.b);return s?s.gasAmt:"—"}]
 ];
 
+var availableRegions=Array.from(new Set(brandsData.map(function(d){return d.o}).filter(Boolean))).sort();
 var filterPanel=filterOpen?html`<div class="filter-panel">
   <div>
     <p class="filter-sec-title">${t.regions}</p>
     <div class="filter-chips">
-      ${["Japan","Korea","China","Malaysia","Germany"].map(function(r){
+      ${availableRegions.map(function(r){
         var on=regions.indexOf(r)>-1;
-        return html`<button key=${r} type="button" class=${"fchip"+(on?" on":"")} onClick=${function(){toggleRegion(r)}}>${flagImg(r)}${t.countries[r]}</button>`;
+        return html`<button key=${r} type="button" class=${"fchip"+(on?" on":"")} onClick=${function(){toggleRegion(r)}}>${flagImg(r)}${t.countries[r]||r}</button>`;
       })}
     </div>
   </div>
@@ -1084,7 +1118,7 @@ var cmpView=html`
 <button type="button" class=${"chip"+(showAddBrands?" on":"")} onClick=${function(){setShowAddBrands(!showAddBrands)}}>${t.addBrands}</button>
 </div>
 ${showAddBrands?html`<div class="bar" style=${{flexWrap:"wrap",gap:"8px"}}>
-${D.map(function(d){
+${brandsData.map(function(d){
   var on=sel.indexOf(d.b)>-1;
   return html`<button key=${d.b} type="button" class=${"chip"+(on?" on":"")} disabled=${!on&&sel.length>=4} onClick=${function(){toggle(d.b)}}><span class="brand-dot" style=${brandDotStyle(d.c)}></span>${on?"✓ ":"+ "}${d.b}</button>`;
 })}
@@ -1141,12 +1175,142 @@ ${!adminAuth?html`<h2>Admin Login</h2>
 }}>Login</button>
 <button type="button" onClick=${function(){setShowAdmin(false)}}>Cancel</button>
 </div>
-`:html`<h2>Manage Models</h2>
+`:html`<h2>Catalog admin</h2>
+<p class="admin-subtitle">Manage the comparison catalog. Every save is stored in Cloudflare.</p>
+<div class="admin-tabs" role="tablist" aria-label="Catalog sections">
+<button type="button" role="tab" aria-selected=${adminTab==="brands"} onClick=${function(){setAdminTab("brands")}}>Brands</button>
+<button type="button" role="tab" aria-selected=${adminTab==="series"} onClick=${function(){setAdminTab("series")}}>Series</button>
+<button type="button" role="tab" aria-selected=${adminTab==="models"} onClick=${function(){setAdminTab("models")}}>Models & specifications</button>
+</div>
+${adminTab==="brands"?html`<section class="admin-section">
+<h3>Brand details</h3><p>Edit the brand name, country, selling points, and comparison display settings.</p>
+<label class="admin-field">Choose a brand to edit</label>
+<select onChange=${function(e){
+  var name=e.target.value,selected=brandsData.find(function(b){return b.b===name});
+  setAdminBrand(name);setAdminSeries("");setAdminEdit("");setAdminForm({});
+  setAdminBrandForm(selected?Object.assign({},selected):{});
+}} value=${adminBrand}>
+<option value="">— Select brand —</option>
+${brandsData.map(function(b){return html`<option key=${b.b} value=${b.b}>${b.b}</option>`})}
+</select>
+<div class="row">
+<input placeholder="New brand name" value=${adminNewBrand} onInput=${function(e){setAdminNewBrand(e.target.value)}} />
+<button type="button" class="primary" onClick=${function(){
+  var name=(adminNewBrand||"").trim();
+  if(!name){alert("Brand name required");return;}
+  if(brandsData.some(function(b){return b.b.toLowerCase()===name.toLowerCase()})){alert("Brand already exists");return;}
+  var entry={b:name,o:"Malaysia",sEn:"",sCn:"",kEn:"",kCn:"",c:"#0f6e8c",lo:1,hi:4,inv:true};
+  var nextBrands=brandsData.concat(entry),nextModels=Object.assign({},modelsData,{[name]:{series:[]}});
+  commitBrands(nextBrands);commitModels(nextModels);setAdminBrand(name);setAdminBrandForm(entry);setAdminNewBrand("");
+  persistAdminData(nextBrands,nextModels,SPECDATA).then(function(){alert("Brand added and saved: "+name)}).catch(function(err){alert("Brand was added in this page but could not be saved to Cloudflare: "+err.message)});
+}}>Add brand</button>
+</div>
+${adminBrand?html`<div class="admin-fields">
+<div><label class="admin-field">Brand name</label><input value=${adminBrandForm.b||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{b:e.target.value}))}} /></div>
+<div><label class="admin-field">Country / region</label><input value=${adminBrandForm.o||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{o:e.target.value}))}} /></div>
+<div><label class="admin-field">Main selling point (English)</label><textarea value=${adminBrandForm.sEn||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{sEn:e.target.value}))}} /></div>
+<div><label class="admin-field">Main selling point (Chinese)</label><textarea value=${adminBrandForm.sCn||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{sCn:e.target.value}))}} /></div>
+<div><label class="admin-field">Additional feature (English)</label><textarea value=${adminBrandForm.kEn||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{kEn:e.target.value}))}} /></div>
+<div><label class="admin-field">Additional feature (Chinese)</label><textarea value=${adminBrandForm.kCn||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{kCn:e.target.value}))}} /></div>
+<div><label class="admin-field">Brand color (hex; optional second color after |)</label><input value=${adminBrandForm.c||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{c:e.target.value}))}} /></div>
+<div class="admin-fields">
+<div><label class="admin-field">Minimum HP shown</label><input type="number" step="0.5" value=${adminBrandForm.lo||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{lo:e.target.value}))}} /></div>
+<div><label class="admin-field">Maximum HP shown</label><input type="number" step="0.5" value=${adminBrandForm.hi||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{hi:e.target.value}))}} /></div>
+</div>
+</div>
+<label class="admin-field"><input type="checkbox" checked=${adminBrandForm.inv!==false} onChange=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{inv:e.target.checked}))}} style=${{width:"auto",marginRight:"8px"}} />Brand offers inverter models</label>
+<div class="row">
+<button type="button" class="primary" onClick=${function(){
+  var oldName=adminBrand,name=(adminBrandForm.b||"").trim();
+  var minHp=Number(adminBrandForm.lo),maxHp=Number(adminBrandForm.hi);
+  if(!name){alert("Brand name required");return;}
+  if(!/^#[0-9a-f]{6}(\|#[0-9a-f]{6})?$/i.test(adminBrandForm.c||"")){alert("Enter a valid hex brand color, such as #0f6e8c");return;}
+  if(HP_VALUES.indexOf(minHp)<0||HP_VALUES.indexOf(maxHp)<0||maxHp<minHp){alert("Choose valid minimum and maximum HP values");return;}
+  if(brandsData.some(function(b){return b.b!==oldName&&b.b.toLowerCase()===name.toLowerCase()})){alert("Brand already exists");return;}
+  var nextBrands=brandsData.map(function(b){return b.b===oldName?Object.assign({},adminBrandForm,{b:name,o:(adminBrandForm.o||"").trim(),sEn:(adminBrandForm.sEn||"").trim(),sCn:(adminBrandForm.sCn||"").trim(),kEn:(adminBrandForm.kEn||"").trim(),kCn:(adminBrandForm.kCn||"").trim(),lo:minHp,hi:maxHp}):b});
+  var nextModels=modelsData;
+  if(name!==oldName){
+    nextModels=Object.assign({},modelsData);nextModels[name]=nextModels[oldName];delete nextModels[oldName];
+    setSel(function(a){return a.map(function(b){return b===oldName?name:b})});
+    setBrandFilter(function(a){return a.map(function(b){return b===oldName?name:b})});
+  }
+  commitBrands(nextBrands);commitModels(nextModels);setAdminBrand(name);
+  persistAdminData(nextBrands,nextModels,SPECDATA).then(function(){alert("Brand saved: "+name)}).catch(function(err){alert("Brand changes could not be saved to Cloudflare: "+err.message)});
+}}>Save brand</button>
+<button type="button" class="danger" onClick=${function(){
+  if(!confirm("Delete "+adminBrand+" and all of its series and models?")) return;
+  var removed=modelsData[adminBrand]||{series:[]},nextSpecs=Object.assign({},SPECDATA);
+  (removed.series||[]).forEach(function(series){(series.models||[]).forEach(function(model){if(model.in) delete nextSpecs[model.in]})});
+  var nextBrands=brandsData.filter(function(b){return b.b!==adminBrand}),nextModels=Object.assign({},modelsData);delete nextModels[adminBrand];
+  SPECDATA=nextSpecs;commitBrands(nextBrands);commitModels(nextModels);
+  setSel(function(a){return a.filter(function(b){return b!==adminBrand})});setBrandFilter(function(a){return a.filter(function(b){return b!==adminBrand})});
+  setAdminBrand("");setAdminBrandForm({});setAdminSeries("");setAdminEdit("");setAdminForm({});
+  persistAdminData(nextBrands,nextModels,nextSpecs).then(function(){alert("Brand and its catalog entries deleted")}).catch(function(err){alert("Brand was deleted in this page but could not be saved to Cloudflare: "+err.message)});
+}}>Delete brand</button>
+</div>`:null}
+</section>`:null}
+${adminTab==="series"?html`<section class="admin-section">
+<h3>Series</h3><p>Add, rename, or remove a series within a brand. Deleting a series also removes its model specifications.</p>
+<label class="admin-field">Brand</label>
+<select onChange=${function(e){setAdminBrand(e.target.value);setAdminSeries("");setAdminSeriesForm({});setAdminEdit("");setAdminForm({})}} value=${adminBrand}>
+<option value="">— Select brand —</option>${brandsData.map(function(b){return html`<option key=${b.b} value=${b.b}>${b.b}</option>`})}
+</select>
+${adminBrand?html`<label class="admin-field">Add a series (English and Chinese names)</label>
+<div class="row">
+<input placeholder="Series name (English)" value=${adminNewSeries} onInput=${function(e){setAdminNewSeries(e.target.value)}} />
+<input placeholder="Series name (Chinese)" value=${adminNewSeriesCn} onInput=${function(e){setAdminNewSeriesCn(e.target.value)}} />
+<button type="button" class="primary" onClick=${function(){
+  var name=(adminNewSeries||"").trim(),nameCn=(adminNewSeriesCn||"").trim()||name;
+  if(!name){alert("Series name required");return;}
+  var next=JSON.parse(JSON.stringify(modelsData));
+  if(!next[adminBrand]) next[adminBrand]={series:[]};
+  if(next[adminBrand].series.some(function(s){return s.nEn.toLowerCase()===name.toLowerCase()})){alert("Series already exists");return;}
+  next[adminBrand].series.push({nEn:name,nCn:nameCn,inv:true,models:[]});
+  commitModels(next);setAdminSeries(name);setAdminSeriesForm({nEn:name,nCn:nameCn});setAdminNewSeries("");setAdminNewSeriesCn("");
+  persistAdminData(brandsData,next,SPECDATA).then(function(){alert("Series added and saved: "+name)}).catch(function(err){alert("Series was added in this page but could not be saved to Cloudflare: "+err.message)});
+}}>Add series</button>
+</div>
+<label class="admin-field">Choose a series to edit</label>
+<select onChange=${function(e){
+  var name=e.target.value,series=(modelsData[adminBrand]&&modelsData[adminBrand].series||[]).find(function(s){return s.nEn===name});
+  setAdminSeries(name);setAdminEdit("");setAdminForm({});setAdminSeriesForm(series?Object.assign({},series):{});
+}} value=${adminSeries}>
+<option value="">— Select series —</option>
+${(modelsData[adminBrand]&&modelsData[adminBrand].series||[]).map(function(s){return html`<option key=${s.nEn} value=${s.nEn}>${s.nEn}</option>`})}
+</select>
+${adminSeries?html`<div class="admin-fields">
+<div><label class="admin-field">Series name (English)</label><input value=${adminSeriesForm.nEn||""} onInput=${function(e){setAdminSeriesForm(Object.assign({},adminSeriesForm,{nEn:e.target.value}))}} /></div>
+<div><label class="admin-field">Series name (Chinese)</label><input value=${adminSeriesForm.nCn||""} onInput=${function(e){setAdminSeriesForm(Object.assign({},adminSeriesForm,{nCn:e.target.value}))}} /></div>
+</div>
+<div class="row">
+<button type="button" class="primary" onClick=${function(){
+  var oldName=adminSeries,name=(adminSeriesForm.nEn||"").trim(),nameCn=(adminSeriesForm.nCn||"").trim()||name;
+  if(!name){alert("Series name required");return;}
+  var current=modelsData[adminBrand]&&modelsData[adminBrand].series||[];
+  if(current.some(function(s){return s.nEn!==oldName&&s.nEn.toLowerCase()===name.toLowerCase()})){alert("Series already exists");return;}
+  var next=JSON.parse(JSON.stringify(modelsData));
+  next[adminBrand].series=next[adminBrand].series.map(function(s){return s.nEn===oldName?Object.assign({},s,{nEn:name,nCn:nameCn}):s});
+  commitModels(next);setAdminSeries(name);setAdminSeriesForm({nEn:name,nCn:nameCn});
+  persistAdminData(brandsData,next,SPECDATA).then(function(){alert("Series saved: "+name)}).catch(function(err){alert("Series changes could not be saved to Cloudflare: "+err.message)});
+}}>Save series</button>
+<button type="button" class="danger" onClick=${function(){
+  if(!confirm("Delete series "+adminSeries+" and all its models?")) return;
+  var next=JSON.parse(JSON.stringify(modelsData)),nextSpecs=Object.assign({},SPECDATA);
+  var series=next[adminBrand].series.find(function(s){return s.nEn===adminSeries});
+  if(series)(series.models||[]).forEach(function(m){if(m.in) delete nextSpecs[m.in]});
+  next[adminBrand].series=next[adminBrand].series.filter(function(s){return s.nEn!==adminSeries});
+  SPECDATA=nextSpecs;commitModels(next);setAdminSeries("");setAdminSeriesForm({});setAdminEdit("");setAdminForm({});
+  persistAdminData(brandsData,next,nextSpecs).then(function(){alert("Series and its models deleted")}).catch(function(err){alert("Series was deleted in this page but could not be saved to Cloudflare: "+err.message)});
+}}>Delete series</button>
+</div>`:null}`:html`<p>Select a brand to manage its series.</p>`}
+</section>`:null}
+${adminTab==="models"?html`<section class="admin-section">
+<h3>Models & specifications</h3><p>Choose a brand and series to add models or update their technical details.</p>
 <div style=${{marginBottom:"12px"}}>
 <label style=${{fontSize:".8rem",color:"var(--muted)"}}>Brand</label>
 <select onChange=${function(e){setAdminBrand(e.target.value);setAdminSeries("");setAdminEdit("");setAdminForm({});}} value=${adminBrand}>
 <option value="">— Select brand —</option>
-${Object.keys(M).map(function(b){return html`<option key=${b} value=${b}>${b}</option>`})}
+${brandsData.map(function(b){return html`<option key=${b.b} value=${b.b}>${b.b}</option>`})}
 </select>
 </div>
 ${adminBrand?html`<div style=${{marginBottom:"12px"}}>
@@ -1155,25 +1319,6 @@ ${adminBrand?html`<div style=${{marginBottom:"12px"}}>
 <option value="">— Select series —</option>
 ${(modelsData[adminBrand]&&modelsData[adminBrand].series||[]).map(function(s){return html`<option key=${s.nEn} value=${s.nEn}>${s.nEn}</option>`})}
 </select>
-<div style=${{display:"flex",gap:"8px",marginTop:"6px"}}>
-<input placeholder="New series name" value=${adminNewSeries} onInput=${function(e){setAdminNewSeries(e.target.value)}} style=${{flex:1}} />
-<button type="button" onClick=${function(){
-  var name=(adminNewSeries||"").trim();
-  if(!name||!adminBrand) return;
-  var next=JSON.parse(JSON.stringify(modelsData));
-  if(!next[adminBrand].series) next[adminBrand].series=[];
-  if(next[adminBrand].series.some(function(s){return s.nEn===name})){alert("Series exists");return;}
-  next[adminBrand].series.push({nEn:name,nCn:name,inv:true,models:[]});
-  commitModels(next);
-  setAdminSeries(name);
-  setAdminNewSeries("");
-  persistAdminData(next,SPECDATA).then(function(){
-    alert("Series added and saved: "+name);
-  }).catch(function(err){
-    alert("Series was added in this page but could not be saved to Cloudflare: "+err.message);
-  });
-}}>Add Series</button>
-</div>
 </div>`:null}
 ${adminBrand&&adminSeries?html`<div style=${{marginBottom:"12px"}}>
 <label style=${{fontSize:".8rem",color:"var(--muted)"}}>Model</label>
@@ -1198,7 +1343,7 @@ ${["1.0","1.5","2.0","2.5","3.0","4.0"].map(function(h){return html`<option key=
   setAdminNewModel("");
   setAdminEdit(code);
   setAdminForm({code:code});
-  persistAdminData(next,SPECDATA).then(function(){
+  persistAdminData(brandsData,next,SPECDATA).then(function(){
     alert("Model added and saved: "+code);
   }).catch(function(err){
     alert("Model was added in this page but could not be saved to Cloudflare: "+err.message);
@@ -1206,7 +1351,8 @@ ${["1.0","1.5","2.0","2.5","3.0","4.0"].map(function(h){return html`<option key=
 }}>Add Model</button>
 </div>
 </div>`:null}
-<div style=${{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px"}}>
+${adminBrand&&adminSeries?html`<h3>Model specifications</h3>
+<div class="admin-fields">
 <input placeholder="Model code (e.g. ACI 410I WH)" value=${adminForm.code||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{code:e.target.value}))}} />
 <input placeholder="Capacity" value=${adminForm.cap||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{cap:e.target.value}))}} />
 <input placeholder="Input (W)" value=${adminForm.input||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{input:e.target.value}))}} />
@@ -1239,7 +1385,7 @@ ${["1.0","1.5","2.0","2.5","3.0","4.0"].map(function(h){return html`<option key=
   SPECDATA=nextSpecs;
   setAdminForm({});
   setAdminEdit("");
-  persistAdminData(modelsData,nextSpecs).then(function(){
+  persistAdminData(brandsData,modelsData,nextSpecs).then(function(){
     alert("Saved to Cloudflare: "+code);
   }).catch(function(err){
     alert("Changes are only in this page and could not be saved to Cloudflare: "+err.message);
@@ -1257,32 +1403,17 @@ ${adminEdit?html`<button type="button" onClick=${function(){
     SPECDATA=nextSpecs;
     commitModels(next);
     setAdminForm({});setAdminEdit("");setAdminSeries("");setAdminBrand("");
-    persistAdminData(next,nextSpecs).then(function(){
+    persistAdminData(brandsData,next,nextSpecs).then(function(){
       alert("Deleted and saved to Cloudflare");
     }).catch(function(err){
       alert("Deleted in this page but could not save to Cloudflare: "+err.message);
     });
   }
 }}>Delete Model</button>`:null}
-${adminSeries?html`<button type="button" onClick=${function(){
-  if(confirm("Delete series "+adminSeries+" and all its models?")){
-    var next=JSON.parse(JSON.stringify(modelsData));
-    var nextSpecs=Object.assign({},SPECDATA);
-    if(adminBrand&&next[adminBrand]){
-      var series=next[adminBrand].series.find(function(s){return s.nEn===adminSeries});
-      if(series) series.models.forEach(function(m){if(m.in) delete nextSpecs[m.in];});
-      next[adminBrand].series=next[adminBrand].series.filter(function(s){return s.nEn!==adminSeries});
-    }
-    SPECDATA=nextSpecs;
-    commitModels(next);
-    setAdminSeries("");setAdminEdit("");setAdminForm({});setAdminBrand("");
-    persistAdminData(next,nextSpecs).then(function(){
-      alert("Series deleted and saved to Cloudflare");
-    }).catch(function(err){
-      alert("Series deleted in this page but could not save to Cloudflare: "+err.message);
-    });
-  }
-}}>Delete Series</button>`:null}
+</div>
+`:html`<p>Select a brand and series to edit model specifications.</p>`}
+</section>`:null}
+<div class="row">
 <button type="button" onClick=${async function(){
   try{
     var response=await fetch("/api/admin/logout",{method:"POST"});

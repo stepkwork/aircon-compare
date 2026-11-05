@@ -76,7 +76,27 @@ test("requires same-origin admin login and persists protected data", async () =>
   assert.equal(login.status, 200);
   const cookie = login.headers.get("set-cookie").split(";", 1)[0];
 
-  const data = { models: { Daikin: { series: [] } }, specData: {} };
+  const data = {
+    models: { Daikin: { series: [] } },
+    specData: {},
+  };
+  const dataWithBrands = {
+    ...data,
+    brands: [
+      {
+        b: "Daikin",
+        o: "Japan",
+        sEn: "Quiet and reliable",
+        sCn: "安静可靠",
+        kEn: "Coanda airflow",
+        kCn: "康达气流",
+        c: "#0090D0",
+        lo: 1,
+        hi: 4,
+        inv: true,
+      },
+    ],
+  };
   const save = await worker.fetch(
     request("/api/admin/data", {
       method: "PUT",
@@ -93,6 +113,22 @@ test("requires same-origin admin login and persists protected data", async () =>
 
   const read = await worker.fetch(request("/api/data"), env);
   assert.deepEqual(await read.json(), data);
+
+  const saveBrands = await worker.fetch(
+    request("/api/admin/data", {
+      method: "PUT",
+      headers: {
+        origin: "https://aircon.example",
+        cookie,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(dataWithBrands),
+    }),
+    env,
+  );
+  assert.equal(saveBrands.status, 200);
+  const readBrands = await worker.fetch(request("/api/data"), env);
+  assert.deepEqual(await readBrands.json(), dataWithBrands);
 });
 
 test("rejects saves without a valid admin session", async () => {
@@ -106,4 +142,46 @@ test("rejects saves without a valid admin session", async () => {
     env,
   );
   assert.equal(response.status, 401);
+});
+
+test("rejects invalid brand metadata", async () => {
+  const { env } = makeEnv();
+  const login = await worker.fetch(
+    request("/api/admin/login", {
+      method: "POST",
+      headers: { origin: "https://aircon.example", "content-type": "application/json" },
+      body: JSON.stringify({ password: "test-admin-password" }),
+    }),
+    env,
+  );
+  const cookie = login.headers.get("set-cookie").split(";", 1)[0];
+  const duplicateBrand = {
+    b: "Duplicate",
+    o: "Japan",
+    sEn: "",
+    sCn: "",
+    kEn: "",
+    kCn: "",
+    c: "#0090D0",
+    lo: 1,
+    hi: 4,
+    inv: true,
+  };
+  const response = await worker.fetch(
+    request("/api/admin/data", {
+      method: "PUT",
+      headers: {
+        origin: "https://aircon.example",
+        cookie,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        brands: [duplicateBrand, { ...duplicateBrand }],
+        models: {},
+        specData: {},
+      }),
+    }),
+    env,
+  );
+  assert.equal(response.status, 400);
 });
