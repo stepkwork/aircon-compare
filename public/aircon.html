@@ -79,8 +79,22 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0
 .admin-modal h2{margin:0 0 4px}
 .admin-subtitle{color:var(--muted);font-size:.85rem;margin:0 0 16px}
 .admin-tabs{display:flex;gap:8px;position:sticky;top:-24px;z-index:5;background:var(--surface);padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:16px}
+.admin-tabs{flex-wrap:wrap}
 .admin-tabs button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px}
 .admin-tabs button[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.admin-brand-search{display:flex;gap:8px;align-items:center}
+.admin-brand-search input{flex:1;width:0;margin-bottom:10px}
+.admin-brand-search button,.spec-mode button{min-height:40px}
+.admin-brand-search button{margin-bottom:10px}
+.spec-editor{padding:14px;background:var(--hdr);border:1px solid var(--line);border-radius:10px;margin:12px 0}
+.spec-editor-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.spec-editor-head h4{margin:0;font-size:.95rem}
+.spec-mode{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.spec-mode button{border:0;border-radius:999px;padding:7px 12px;background:transparent}
+.spec-mode button[aria-pressed=true]{background:var(--accent);color:var(--surface);font-weight:600}
+.spec-table-note{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 10px;color:var(--muted);font-size:.82rem}
+.model-admin-table{min-width:920px}
+.model-admin-table td,.model-admin-table th{vertical-align:middle}
 .admin-section{border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
 .admin-section h3{margin:0 0 4px;font-size:1rem}
 .admin-section p{color:var(--muted);font-size:.82rem;margin:0 0 12px}
@@ -147,6 +161,15 @@ en:{
   best:"Best",
   highlightHint:"Highlights show the best value in each comparable row. HP depends on room size.",
   mostAffordable:"Most affordable",
+  adminDashboard:"Admin Dashboard",
+  brandSearch:"Search brands",
+  searchButton:"Search",
+  clearSearch:"Clear",
+  simpleEditor:"Simple",
+  detailedEditor:"Detailed",
+  modelTable:"Model Table",
+  editModel:"Edit",
+  modelsFound:function(n){return n+" models"},
   showModels:"Models",
   showSelling:"Selling point",
   addBrands:"Add brands",
@@ -224,6 +247,15 @@ cn:{
   best:"最佳",
   highlightHint:"高亮表示该项表现更佳；匹数应按房间大小选择。",
   mostAffordable:"价格更亲民",
+  adminDashboard:"管理面板",
+  brandSearch:"搜索品牌",
+  searchButton:"搜索",
+  clearSearch:"清除",
+  simpleEditor:"简洁",
+  detailedEditor:"详细",
+  modelTable:"机型表",
+  editModel:"编辑",
+  modelsFound:function(n){return n+" 个机型"},
   showModels:"机型",
   showSelling:"卖点",
   addBrands:"添加品牌",
@@ -836,6 +868,10 @@ var adminNewSeriesCnState=useState(""),adminNewSeriesCn=adminNewSeriesCnState[0]
 var adminBrandFormState=useState({}),adminBrandForm=adminBrandFormState[0],setAdminBrandForm=adminBrandFormState[1];
 var adminSeriesFormState=useState({}),adminSeriesForm=adminSeriesFormState[0],setAdminSeriesForm=adminSeriesFormState[1];
 var adminTabState=useState("brands"),adminTab=adminTabState[0],setAdminTab=adminTabState[1];
+var brandSearchState=useState(""),brandSearch=brandSearchState[0],setBrandSearch=brandSearchState[1];
+var brandFilterSearchState=useState(""),brandFilterSearch=brandFilterSearchState[0],setBrandFilterSearch=brandFilterSearchState[1];
+var modelTableSearchState=useState(""),modelTableSearch=modelTableSearchState[0],setModelTableSearch=modelTableSearchState[1];
+var specEditorModeState=useState("simple"),specEditorMode=specEditorModeState[0],setSpecEditorMode=specEditorModeState[1];
 var translateState=useState(false),translating=translateState[0],setTranslating=translateState[1];
 var translateMessageState=useState(""),translateMessage=translateMessageState[0],setTranslateMessage=translateMessageState[1];
 var featureTranslateState=useState(false),translatingFeature=featureTranslateState[0],setTranslatingFeature=featureTranslateState[1];
@@ -953,6 +989,24 @@ function toggleBrandFilter(b){
   });
 }
 function clearFilters(){setRegions([]);setBrandFilter([]);setInvFilter(null);}
+function AdminBrandSelect(props){
+  var needle=brandFilterSearch.trim().toLowerCase();
+  var options=brandsData.slice().sort(function(a,b){return a.b.localeCompare(b.b)}).filter(function(brand){
+    return !needle||brand.b.toLowerCase().indexOf(needle)>-1||brand.b===props.value;
+  });
+  return html`<div>
+    <label class="admin-field">${props.label}</label>
+    <div class="admin-brand-search">
+      <input type="search" placeholder=${t.brandSearch} aria-label=${t.brandSearch} value=${brandSearch} onInput=${function(e){setBrandSearch(e.target.value)}} onKeyDown=${function(e){if(e.key==="Enter"){e.preventDefault();setBrandFilterSearch(brandSearch)}}} />
+      <button type="button" onClick=${function(){setBrandFilterSearch(brandSearch)}}>${t.searchButton}</button>
+      ${brandFilterSearch?html`<button type="button" onClick=${function(){setBrandSearch("");setBrandFilterSearch("")}}>${t.clearSearch}</button>`:null}
+    </div>
+    <select aria-label=${props.label} value=${props.value} onChange=${props.onChange}>
+      <option value="">— Select brand —</option>
+      ${options.map(function(brand){return html`<option key=${brand.b} value=${brand.b}>${brand.b}</option>`})}
+    </select>
+  </div>`;
+}
 var ql=q.trim().toLowerCase();
 var rows=brandsData.filter(function(d){
   if(!supportsHp(d,hpFilter)) return false;
@@ -1022,11 +1076,13 @@ function allModelCodes(){
     if(!entry||!entry.series) return;
     entry.series.forEach(function(s){
       (s.models||[]).forEach(function(m){
-        if(m.in) codes.push({code:m.in,brand:brand,series:s.nEn||"",hp:m.hp});
+        if(m.in) codes.push({code:m.in,out:m.out||"",brand:brand,series:s.nEn||"",hp:m.hp,inv:s.inv});
       });
     });
   });
-  return codes;
+  return codes.sort(function(a,b){
+    return a.brand.localeCompare(b.brand)||a.series.localeCompare(b.series)||a.hp-b.hp||a.code.localeCompare(b.code);
+  });
 }
 function getSelectedModel(brand){
   var list=seriesForFilter(brand, invFilter);
@@ -1101,6 +1157,44 @@ function getLeaderFlags(metrics,highIsBetter){
   var worst=highIsBetter?Math.min.apply(Math,ranks):Math.max.apply(Math,ranks);
   if(best===worst) return metrics.map(function(){return false});
   return metrics.map(function(metric){return metric.rank===best});
+}
+function specValue(value){return value===undefined||value===null||value===""?t.notConfirmed:value;}
+function priceValue(value){
+  return ({budget:t.budget,mid:t.midRange,premium:t.premium})[value]||t.notConfirmed;
+}
+function featureValue(value){return typeof value==="boolean"?(value?t.invYes:t.invNo):t.notConfirmed;}
+var modelTableRows=allModelCodes().map(function(model){
+  var spec=SPECDATA[model.code]||{};
+  return {
+    brand:model.brand,series:model.series,code:model.code,out:model.out,hp:model.hp,
+    inverter:featureValue(model.inv),price:priceValue(spec.priceRange),
+    stars:Number(spec.stars)>0?stars(Number(spec.stars)):t.notConfirmed,
+    wifi:featureValue(spec.wifi),selfCleaning:featureValue(spec.selfCleaning),
+    airPurification:featureValue(spec.airPurification)
+  };
+});
+var modelQuery=modelTableSearch.trim().toLowerCase();
+var visibleModelRows=modelTableRows.filter(function(row){
+  return !modelQuery||(row.brand+" "+row.series+" "+row.code+" "+row.out).toLowerCase().indexOf(modelQuery)>-1;
+});
+function SpecInput(field,label,options){
+  options=options||{};
+  return html`<div><label class="admin-field" for=${"spec-"+field}>${label}</label>
+    <input id=${"spec-"+field} type=${options.type||"text"} min=${options.min||null} max=${options.max||null} step=${options.step||null} value=${adminForm[field]||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{[field]:e.target.value}))}} />
+  </div>`;
+}
+function SpecChoice(field,label,options){
+  var isPrice=field==="priceRange";
+  var value=isPrice?(adminForm[field]||""):(adminForm[field]===true?"yes":adminForm[field]===false?"no":"");
+  return html`<div><label class="admin-field" for=${"spec-"+field}>${label}</label>
+    <select id=${"spec-"+field} value=${value} onChange=${function(e){
+      var selected=e.target.value;
+      setAdminForm(Object.assign({},adminForm,{[field]:selected===""?undefined:(isPrice?selected:selected==="yes")}));
+    }}>
+      <option value="">${label} — not confirmed</option>
+      ${options.map(function(option){return html`<option key=${option.value} value=${option.value}>${option.label}</option>`})}
+    </select>
+  </div>`;
 }
 
 var SPECS=[
@@ -1319,24 +1413,21 @@ ${!adminAuth?html`<h2>Admin Login</h2>
 }}>Login</button>
 <button type="button" onClick=${function(){setShowAdmin(false)}}>Cancel</button>
 </div>
-`:html`<h2>Catalog admin</h2>
+`:html`<h2>${t.adminDashboard}</h2>
 <p class="admin-subtitle">Manage the comparison catalog. Every save is stored in Cloudflare.</p>
 <div class="admin-tabs" role="tablist" aria-label="Catalog sections">
 <button type="button" role="tab" aria-selected=${adminTab==="brands"} onClick=${function(){setAdminTab("brands")}}>Brands</button>
 <button type="button" role="tab" aria-selected=${adminTab==="series"} onClick=${function(){setAdminTab("series")}}>Series</button>
 <button type="button" role="tab" aria-selected=${adminTab==="models"} onClick=${function(){setAdminTab("models")}}>Models & specifications</button>
+<button type="button" role="tab" aria-selected=${adminTab==="modelTable"} onClick=${function(){setAdminTab("modelTable")}}>${t.modelTable}</button>
 </div>
 ${adminTab==="brands"?html`<section class="admin-section">
 <h3>Brand details</h3><p>Edit the brand name, country, selling points, and comparison display settings.</p>
-<label class="admin-field">Choose a brand to edit</label>
-<select onChange=${function(e){
+${AdminBrandSelect({label:"Choose a brand to edit",value:adminBrand,onChange:function(e){
   var name=e.target.value,selected=brandsData.find(function(b){return b.b===name});
   setAdminBrand(name);setAdminSeries("");setAdminEdit("");setAdminForm({});
   setAdminBrandForm(selected?Object.assign({},selected):{});
-}} value=${adminBrand}>
-<option value="">— Select brand —</option>
-${brandsData.map(function(b){return html`<option key=${b.b} value=${b.b}>${b.b}</option>`})}
-</select>
+}})}
 <div class="row">
 <input placeholder="New brand name" value=${adminNewBrand} onInput=${function(e){setAdminNewBrand(e.target.value)}} />
 <button type="button" class="primary" onClick=${function(){
@@ -1411,10 +1502,7 @@ ${featureTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color
 </section>`:null}
 ${adminTab==="series"?html`<section class="admin-section">
 <h3>Series</h3><p>Add, rename, or remove a series within a brand. Deleting a series also removes its model specifications.</p>
-<label class="admin-field">Brand</label>
-<select onChange=${function(e){setAdminBrand(e.target.value);setAdminSeries("");setAdminSeriesForm({});setAdminEdit("");setAdminForm({})}} value=${adminBrand}>
-<option value="">— Select brand —</option>${brandsData.map(function(b){return html`<option key=${b.b} value=${b.b}>${b.b}</option>`})}
-</select>
+${AdminBrandSelect({label:"Brand",value:adminBrand,onChange:function(e){setAdminBrand(e.target.value);setAdminSeries("");setAdminSeriesForm({});setAdminEdit("");setAdminForm({})}})}
 ${adminBrand?html`<label class="admin-field">Add a series (English and Chinese names)</label>
 <div class="row">
 <input placeholder="Series name (English)" value=${adminNewSeries} onInput=${function(e){setAdminNewSeries(e.target.value)}} />
@@ -1467,11 +1555,7 @@ ${adminSeries?html`<div class="admin-fields">
 ${adminTab==="models"?html`<section class="admin-section">
 <h3>Models & specifications</h3><p>Choose a brand and series to add models or update their technical details.</p>
 <div style=${{marginBottom:"12px"}}>
-<label style=${{fontSize:".8rem",color:"var(--muted)"}}>Brand</label>
-<select onChange=${function(e){setAdminBrand(e.target.value);setAdminSeries("");setAdminEdit("");setAdminForm({});}} value=${adminBrand}>
-<option value="">— Select brand —</option>
-${brandsData.map(function(b){return html`<option key=${b.b} value=${b.b}>${b.b}</option>`})}
-</select>
+${AdminBrandSelect({label:"Brand",value:adminBrand,onChange:function(e){setAdminBrand(e.target.value);setAdminSeries("");setAdminEdit("");setAdminForm({});}})}
 </div>
 ${adminBrand?html`<div style=${{marginBottom:"12px"}}>
 <label style=${{fontSize:".8rem",color:"var(--muted)"}}>Series</label>
@@ -1512,40 +1596,48 @@ ${["1.0","1.5","2.0","2.5","3.0","4.0"].map(function(h){return html`<option key=
 </div>
 </div>`:null}
 ${adminBrand&&adminSeries?html`<h3>Model specifications</h3>
-<div class="admin-fields">
-<input placeholder="Model code (e.g. ACI 410I WH)" value=${adminForm.code||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{code:e.target.value}))}} />
-<input placeholder="Capacity" value=${adminForm.cap||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{cap:e.target.value}))}} />
-<input placeholder="Input (W)" value=${adminForm.input||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{input:e.target.value}))}} />
-<input placeholder="CSPF" value=${adminForm.cspf||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{cspf:e.target.value}))}} />
-<input placeholder="Energy stars (2-5)" type="number" min="2" max="5" step="1" value=${adminForm.stars||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{stars:e.target.value}))}} />
-<select aria-label="Price range" value=${adminForm.priceRange||""} onChange=${function(e){setAdminForm(Object.assign({},adminForm,{priceRange:e.target.value}))}}>
-<option value="">Price range — not confirmed</option><option value="budget">Budget</option><option value="mid">Mid-range</option><option value="premium">Premium</option>
-</select>
-<select aria-label="Wi-Fi" value=${adminForm.wifi===true?"yes":adminForm.wifi===false?"no":""} onChange=${function(e){setAdminForm(Object.assign({},adminForm,{wifi:e.target.value===""?undefined:e.target.value==="yes"}))}}>
-<option value="">Wi-Fi — not confirmed</option><option value="yes">Wi-Fi — Yes</option><option value="no">Wi-Fi — No</option>
-</select>
-<select aria-label="Self-cleaning" value=${adminForm.selfCleaning===true?"yes":adminForm.selfCleaning===false?"no":""} onChange=${function(e){setAdminForm(Object.assign({},adminForm,{selfCleaning:e.target.value===""?undefined:e.target.value==="yes"}))}}>
-<option value="">Self-cleaning — not confirmed</option><option value="yes">Self-cleaning — Yes</option><option value="no">Self-cleaning — No</option>
-</select>
-<select aria-label="Air purification" value=${adminForm.airPurification===true?"yes":adminForm.airPurification===false?"no":""} onChange=${function(e){setAdminForm(Object.assign({},adminForm,{airPurification:e.target.value===""?undefined:e.target.value==="yes"}))}}>
-<option value="">Air purification — not confirmed</option><option value="yes">Air purification — Yes</option><option value="no">Air purification — No</option>
-</select>
-<input placeholder="Running Current (A)" value=${adminForm.current||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{current:e.target.value}))}} />
-<input placeholder="Power supply" value=${adminForm.power||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{power:e.target.value}))}} />
-<input placeholder="Refrigerant" value=${adminForm.ref||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{ref:e.target.value}))}} />
-<input placeholder="Pipe Liquid (mm)" value=${adminForm.liq||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{liq:e.target.value}))}} />
-<input placeholder="Pipe Gas (mm)" value=${adminForm.gas||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{gas:e.target.value}))}} />
-<input placeholder="Indoor airflow" value=${adminForm.iaf||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{iaf:e.target.value}))}} />
-<input placeholder="Indoor noise" value=${adminForm.inoise||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{inoise:e.target.value}))}} />
-<input placeholder="Indoor dim (WxDxH)" value=${adminForm.idim||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{idim:e.target.value}))}} />
-<input placeholder="Indoor weight (kg)" value=${adminForm.iwt||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{iwt:e.target.value}))}} />
-<input placeholder="Outdoor airflow" value=${adminForm.oaf||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{oaf:e.target.value}))}} />
-<input placeholder="Outdoor noise" value=${adminForm.onoise||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{onoise:e.target.value}))}} />
-<input placeholder="Outdoor dim" value=${adminForm.odim||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{odim:e.target.value}))}} />
-<input placeholder="Outdoor weight (kg)" value=${adminForm.owt||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{owt:e.target.value}))}} />
-<input placeholder="Max pipe length (m)" value=${adminForm.plen||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{plen:e.target.value}))}} />
-<input placeholder="Max pipe height (m)" value=${adminForm.ph||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{ph:e.target.value}))}} />
-<input placeholder="Amount of gas (g)" value=${adminForm.gasAmt||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{gasAmt:e.target.value}))}} />
+<div class="spec-editor">
+<div class="spec-editor-head">
+  <h4>Model specification details</h4>
+  <div class="spec-mode" role="group" aria-label="Specification editor mode">
+    <button type="button" aria-pressed=${specEditorMode==="simple"} onClick=${function(){setSpecEditorMode("simple")}}>${t.simpleEditor}</button>
+    <button type="button" aria-pressed=${specEditorMode==="detailed"} onClick=${function(){setSpecEditorMode("detailed")}}>${t.detailedEditor}</button>
+  </div>
+</div>
+${specEditorMode==="simple"?html`<div class="admin-fields">
+  ${SpecInput("code","Model code")}
+  ${SpecInput("stars","Energy rating (2-5 stars)",{type:"number",min:2,max:5,step:1})}
+  ${SpecChoice("priceRange",t.priceRange,[{value:"budget",label:t.budget},{value:"mid",label:t.midRange},{value:"premium",label:t.premium}])}
+  ${SpecChoice("wifi",t.wifi,[{value:"yes",label:t.invYes},{value:"no",label:t.invNo}])}
+  ${SpecChoice("selfCleaning",t.selfCleaning,[{value:"yes",label:t.invYes},{value:"no",label:t.invNo}])}
+  ${SpecChoice("airPurification",t.airPurification,[{value:"yes",label:t.invYes},{value:"no",label:t.invNo}])}
+</div>`:html`<div class="admin-fields">
+  ${SpecInput("code","Model code")}
+  ${SpecInput("cap","Capacity")}
+  ${SpecInput("input","Input (W)")}
+  ${SpecInput("cspf","CSPF")}
+  ${SpecInput("stars","Energy rating (2-5 stars)",{type:"number",min:2,max:5,step:1})}
+  ${SpecChoice("priceRange",t.priceRange,[{value:"budget",label:t.budget},{value:"mid",label:t.midRange},{value:"premium",label:t.premium}])}
+  ${SpecChoice("wifi",t.wifi,[{value:"yes",label:t.invYes},{value:"no",label:t.invNo}])}
+  ${SpecChoice("selfCleaning",t.selfCleaning,[{value:"yes",label:t.invYes},{value:"no",label:t.invNo}])}
+  ${SpecChoice("airPurification",t.airPurification,[{value:"yes",label:t.invYes},{value:"no",label:t.invNo}])}
+  ${SpecInput("current","Running current (A)")}
+  ${SpecInput("power","Power supply")}
+  ${SpecInput("ref","Refrigerant")}
+  ${SpecInput("liq","Pipe liquid (mm)")}
+  ${SpecInput("gas","Pipe gas (mm)")}
+  ${SpecInput("iaf","Indoor airflow")}
+  ${SpecInput("inoise","Indoor noise")}
+  ${SpecInput("idim","Indoor dimensions (W×D×H)")}
+  ${SpecInput("iwt","Indoor weight (kg)")}
+  ${SpecInput("oaf","Outdoor airflow")}
+  ${SpecInput("onoise","Outdoor noise")}
+  ${SpecInput("odim","Outdoor dimensions")}
+  ${SpecInput("owt","Outdoor weight (kg)")}
+  ${SpecInput("plen","Maximum pipe length (m)")}
+  ${SpecInput("ph","Maximum pipe height (m)")}
+  ${SpecInput("gasAmt","Refrigerant amount (g)")}
+</div>`}
 </div>
 <div class="row" style=${{marginTop:"12px"}}>
 <button type="button" class="primary" onClick=${function(){
@@ -1585,6 +1677,33 @@ ${adminEdit?html`<button type="button" onClick=${function(){
 }}>Delete Model</button>`:null}
 </div>
 `:html`<p>Select a brand and series to edit model specifications.</p>`}
+</section>`:null}
+${adminTab==="modelTable"?html`<section class="admin-section">
+<h3>${t.modelTable}</h3>
+<p>Browse every catalog model and its simple comparison details. Use Edit to open a model in the specification editor.</p>
+<div class="spec-table-note">
+  <input type="search" placeholder="Search brand, series, or model" aria-label="Search model table" value=${modelTableSearch} onInput=${function(e){setModelTableSearch(e.target.value)}} />
+  <span>${t.modelsFound(visibleModelRows.length)}</span>
+</div>
+<div class="card"><div class="scroll"><table class="model-admin-table">
+<thead><tr>
+  <th>${t.brand}</th><th>${t.series}</th><th>${t.product}</th><th>${t.hpLabel}</th>
+  <th>${t.inverterType}</th><th>${t.priceRange}</th><th>${t.energyRating}</th>
+  <th>${t.wifi}</th><th>${t.selfCleaning}</th><th>${t.airPurification}</th><th></th>
+</tr></thead>
+<tbody>${visibleModelRows.length?visibleModelRows.map(function(row){
+  return html`<tr key=${row.brand+"-"+row.code}>
+    <td>${row.brand}</td><td>${row.series}</td><td><span class="mc">${row.code}</span>${row.out?html`<span class="series-note">${row.out}</span>`:null}</td>
+    <td>${row.hp} HP</td><td>${row.inverter}</td><td>${row.price}</td><td>${row.stars}</td>
+    <td>${row.wifi}</td><td>${row.selfCleaning}</td><td>${row.airPurification}</td>
+    <td><button type="button" onClick=${function(){
+      var selected=SPECDATA[row.code]||{};
+      setAdminBrand(row.brand);setAdminSeries(row.series);setAdminEdit(row.code);
+      setAdminForm(Object.assign({},selected,{code:row.code}));setSpecEditorMode("simple");setAdminTab("models");
+    }}>${t.editModel}</button></td>
+  </tr>`;
+}):html`<tr><td colspan="11" class="empty">${t.empty}</td></tr>`}</tbody>
+</table></div></div>
 </section>`:null}
 <div class="row">
 <button type="button" onClick=${async function(){
