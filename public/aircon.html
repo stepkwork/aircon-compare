@@ -860,6 +860,7 @@ useEffect(function(){
       M=data.models;
       SPECDATA=data.specData;
       setModelsData(data.models);
+      setSpecData(data.specData);
       if(data.brands){
         if(!Array.isArray(data.brands)||data.brands.some(function(b){
           return !b||typeof b.b!=="string"||typeof b.o!=="string"||
@@ -911,10 +912,12 @@ async function translateBrandField(sourceKey,targetKey,setBusy,setMessage,succes
 }
 async function persistAdminData(nextBrands,nextModels,nextSpecs){
   if(!dataReady) throw new Error("Saved Cloudflare data is not ready; reload the page before editing.");
+  var payload={brands:nextBrands,models:nextModels,specData:nextSpecs};
+  var serializedPayload=JSON.stringify(payload);
   var response=await fetch("/api/admin/data",{
     method:"PUT",
     headers:{"content-type":"application/json"},
-    body:JSON.stringify({brands:nextBrands,models:nextModels,specData:nextSpecs})
+    body:serializedPayload
   });
   var result={};
   var responseText=await response.text();
@@ -924,6 +927,11 @@ async function persistAdminData(nextBrands,nextModels,nextSpecs){
     throw new Error("Cloudflare returned an invalid save response ("+response.status+")");
   }
   if(!response.ok) throw new Error(result.error||"Cloudflare save failed ("+response.status+")");
+  if(result.saved!==true) throw new Error("Cloudflare did not confirm that the comparison data was saved.");
+  var verifyResponse=await fetch("/api/data",{cache:"no-store"});
+  if(!verifyResponse.ok) throw new Error("Cloudflare accepted the save but could not verify it ("+verifyResponse.status+").");
+  var savedData=await verifyResponse.json();
+  if(JSON.stringify(savedData)!==serializedPayload) throw new Error("Cloudflare did not return the saved comparison data. Please reload and try again.");
   setAdminNotice("");
 }
 function setPickedFor(brand,sIdx,mIdx){
@@ -1056,6 +1064,8 @@ var SPECDATA = {
 "AHXP10YHD":{img:"",cap:"9000 (2870-10600)",input:"710",cspf:"",stars:5,current:"4.3",power:"220-240V 50Hz",ref:"R32",liq:"6.35",gas:"9.52",iaf:"",inoise:"38/21",idim:"879x289x229",iwt:"8",ips:"",louver:"",oaf:"",onoise:"",odim:"599x495x265",owt:"18",ops:"",plen:"20",ph:"7",gasAmt:""},
 "AI10TUGS":{img:"",cap:"9554",input:"750",cspf:"",stars:5,current:"3.4",power:"220-240V 50Hz",ref:"R32",liq:"6.35",gas:"9.52",iaf:"550",inoise:"38/33",idim:"866x270x213",iwt:"8.5",ips:"",louver:"",oaf:"",onoise:"49",odim:"660x482x240",owt:"21.0",ops:"",plen:"25",ph:"10",gasAmt:"430"}
 };
+var specState=useState(SPECDATA),specData=specState[0],setSpecData=specState[1];
+SPECDATA=specData;
 function getSpec(brand){
   var r=getSelectedModel(brand);
   if(!r||!r.model) return null;
@@ -1392,7 +1402,7 @@ ${featureTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color
   var removed=modelsData[adminBrand]||{series:[]},nextSpecs=Object.assign({},SPECDATA);
   (removed.series||[]).forEach(function(series){(series.models||[]).forEach(function(model){if(model.in) delete nextSpecs[model.in]})});
   var nextBrands=brandsData.filter(function(b){return b.b!==adminBrand}),nextModels=Object.assign({},modelsData);delete nextModels[adminBrand];
-  SPECDATA=nextSpecs;commitBrands(nextBrands);commitModels(nextModels);
+  SPECDATA=nextSpecs;setSpecData(nextSpecs);commitBrands(nextBrands);commitModels(nextModels);
   setSel(function(a){return a.filter(function(b){return b!==adminBrand})});setBrandFilter(function(a){return a.filter(function(b){return b!==adminBrand})});
   setAdminBrand("");setAdminBrandForm({});setAdminSeries("");setAdminEdit("");setAdminForm({});
   persistAdminData(nextBrands,nextModels,nextSpecs).then(function(){alert("Brand and its catalog entries deleted")}).catch(function(err){alert("Brand was deleted in this page but could not be saved to Cloudflare: "+err.message)});
@@ -1449,7 +1459,7 @@ ${adminSeries?html`<div class="admin-fields">
   var series=next[adminBrand].series.find(function(s){return s.nEn===adminSeries});
   if(series)(series.models||[]).forEach(function(m){if(m.in) delete nextSpecs[m.in]});
   next[adminBrand].series=next[adminBrand].series.filter(function(s){return s.nEn!==adminSeries});
-  SPECDATA=nextSpecs;commitModels(next);setAdminSeries("");setAdminSeriesForm({});setAdminEdit("");setAdminForm({});
+  SPECDATA=nextSpecs;setSpecData(nextSpecs);commitModels(next);setAdminSeries("");setAdminSeriesForm({});setAdminEdit("");setAdminForm({});
   persistAdminData(brandsData,next,nextSpecs).then(function(){alert("Series and its models deleted")}).catch(function(err){alert("Series was deleted in this page but could not be saved to Cloudflare: "+err.message)});
 }}>Delete series</button>
 </div>`:null}`:html`<p>Select a brand to manage its series.</p>`}
@@ -1545,6 +1555,7 @@ ${adminBrand&&adminSeries?html`<h3>Model specifications</h3>
   nextSpecs[code]=Object.assign({},adminForm);
   delete nextSpecs[code].code;
   SPECDATA=nextSpecs;
+  setSpecData(nextSpecs);
   setAdminForm({});
   setAdminEdit("");
   persistAdminData(brandsData,modelsData,nextSpecs).then(function(){
@@ -1562,7 +1573,7 @@ ${adminEdit?html`<button type="button" onClick=${function(){
       var series=next[adminBrand].series.find(function(s){return s.nEn===adminSeries});
       if(series) series.models=series.models.filter(function(m){return m.in!==adminEdit});
     }
-    SPECDATA=nextSpecs;
+    SPECDATA=nextSpecs;setSpecData(nextSpecs);
     commitModels(next);
     setAdminForm({});setAdminEdit("");setAdminSeries("");setAdminBrand("");
     persistAdminData(brandsData,next,nextSpecs).then(function(){
