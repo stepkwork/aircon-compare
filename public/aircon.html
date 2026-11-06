@@ -2,9 +2,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
 <style>
 :root{--bg:#f5f7f9;--surface:#fff;--fg:#14202b;--muted:#5b6b7a;--line:#dde3e9;--accent:#0f6e8c;--accent-soft:#e0f0f5;--hdr:#eef2f5;
+--leader-bg:#e8f5ed;--leader-fg:#17643e;
 --font:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e151c;--surface:#16202a;--fg:#e8eef3;--muted:#93a3b2;--line:#263441;--accent:#4fb6d6;--accent-soft:#15333f;--hdr:#1b2733;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0e151c;--surface:#16202a;--fg:#e8eef3;--muted:#93a3b2;--line:#263441;--accent:#4fb6d6;--accent-soft:#15333f;--hdr:#1b2733;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e151c;--surface:#16202a;--fg:#e8eef3;--muted:#93a3b2;--line:#263441;--accent:#4fb6d6;--accent-soft:#15333f;--hdr:#1b2733;--leader-bg:#183328;--leader-fg:#8dd3aa;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e151c;--surface:#16202a;--fg:#e8eef3;--muted:#93a3b2;--line:#263441;--accent:#4fb6d6;--accent-soft:#15333f;--hdr:#1b2733;--leader-bg:#183328;--leader-fg:#8dd3aa;color-scheme:dark}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 var(--font);padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
@@ -39,6 +40,12 @@ tbody th{font-weight:700}
 .sp b{font-weight:600}.sp span{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
 .cmp th.rl{background:var(--hdr);font-size:.68rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);white-space:normal;width:120px;min-width:120px;max-width:140px;word-break:break-word;line-height:1.25;padding:8px 10px}
 .cmp td{width:180px;min-width:180px;max-width:180px;word-break:break-word}.cmp thead th.bh{text-transform:none;letter-spacing:0;font-size:1rem;color:var(--fg);width:180px;min-width:180px;max-width:180px}
+.simple-cmp td{vertical-align:middle}.simple-cmp .model-name{display:block;color:var(--muted);font-size:.72rem;font-weight:400;margin:4px 20px 0 18px;word-break:break-word}
+.leader-cell{background:var(--leader-bg);color:var(--leader-fg);font-weight:600}.leader-mark{display:inline-block;margin-left:6px;border-radius:999px;background:var(--leader-fg);color:var(--surface);padding:2px 7px;font-size:.65rem;vertical-align:1px}
+.simple-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 14px;color:var(--muted);font-size:.8rem}
+.leader-key{display:inline-flex;align-items:center;gap:7px}.leader-key i{width:12px;height:12px;border-radius:3px;background:var(--leader-bg);border:1px solid var(--leader-fg)}
+.compare-mode{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.compare-mode .chip{border:0}.simple-status{white-space:nowrap}.simple-status.muted{color:var(--muted);font-weight:400}
 .x{border:0;background:none;color:var(--muted);font-size:1.1rem;padding:0 4px}
 .empty{padding:36px 16px;text-align:center;color:var(--muted)}
 input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0}
@@ -122,6 +129,24 @@ en:{
   brands:"Brands",
   clearFilters:"Clear filters",
   clearCompare:"Clear",
+  simpleView:"Simple",
+  detailedView:"Detailed",
+  model:"Brand / model",
+  inverterOn:"Inverter",
+  inverterOff:"Non-inverter",
+  hpLabel:"HP",
+  inverterType:"Inverter type",
+  priceRange:"Price range",
+  budget:"Budget",
+  midRange:"Mid-range",
+  premium:"Premium",
+  technology:"Technology",
+  wifi:"Wi-Fi",
+  selfCleaning:"Self-cleaning",
+  airPurification:"Air purification",
+  best:"Best",
+  highlightHint:"Highlights show the best value in each comparable row. HP depends on room size.",
+  mostAffordable:"Most affordable",
   showModels:"Models",
   showSelling:"Selling point",
   addBrands:"Add brands",
@@ -181,6 +206,24 @@ cn:{
   brands:"品牌",
   clearFilters:"清除筛选",
   clearCompare:"清除",
+  simpleView:"简洁对比",
+  detailedView:"详细参数",
+  model:"品牌 / 机型",
+  inverterOn:"变频",
+  inverterOff:"定频",
+  hpLabel:"匹数",
+  inverterType:"变频类型",
+  priceRange:"价格区间",
+  budget:"经济型",
+  midRange:"中端",
+  premium:"高端",
+  technology:"功能",
+  wifi:"Wi-Fi",
+  selfCleaning:"自清洁",
+  airPurification:"空气净化",
+  best:"最佳",
+  highlightHint:"高亮表示该项表现更佳；匹数应按房间大小选择。",
+  mostAffordable:"价格更亲民",
   showModels:"机型",
   showSelling:"卖点",
   addBrands:"添加品牌",
@@ -802,6 +845,7 @@ var modelsState=useState(M),modelsData=modelsState[0],setModelsData=modelsState[
 var adminNoticeState=useState(""),adminNotice=adminNoticeState[0],setAdminNotice=adminNoticeState[1];
 var dataReadyState=useState(false),dataReady=dataReadyState[0],setDataReady=dataReadyState[1];
 var showSellingState=useState(false),showSelling=showSellingState[0],setShowSelling=showSellingState[1];
+var compareModeState=useState("simple"),compareMode=compareModeState[0],setCompareMode=compareModeState[1];
 useEffect(function(){
   var cancelled=false;
   fetch("/api/data").then(function(res){
@@ -1019,6 +1063,35 @@ function getSpec(brand){
   return SPECDATA[code]||null;
 }
 function stars(n){if(!n)return "—";var s="";for(var i=0;i<n;i++)s+="★";return s;}
+function getSimpleMetric(d,key){
+  var selected=getSelectedModel(d.b),spec=getSpec(d.b);
+  if(key==="hp") return selected&&selected.model?{text:selected.model.hp+" "+t.hpLabel,rank:null}:{text:t.notConfirmed,rank:null,unknown:true};
+  if(key==="inverter"){
+    if(!selected||!selected.series||typeof selected.series.inv!=="boolean") return {text:t.notConfirmed,rank:null,unknown:true};
+    return {text:selected.series.inv?t.inverterOn:t.inverterOff,rank:selected.series.inv?1:0};
+  }
+  if(key==="price"){
+    var price=spec&&spec.priceRange;
+    var priceLabels={budget:t.budget,mid:t.midRange,premium:t.premium};
+    var priceRanks={budget:0,mid:1,premium:2};
+    return priceLabels[price]?{text:priceLabels[price],rank:priceRanks[price]}:{text:t.notConfirmed,rank:null,unknown:true};
+  }
+  if(key==="energy"){
+    var rating=spec&&Number(spec.stars);
+    return Number.isFinite(rating)&&rating>0?{text:stars(rating),rank:rating}:{text:t.notConfirmed,rank:null,unknown:true};
+  }
+  var field={wifi:"wifi",selfCleaning:"selfCleaning",airPurification:"airPurification"}[key];
+  if(!spec||typeof spec[field]!=="boolean") return {text:t.notConfirmed,rank:null,unknown:true};
+  return {text:spec[field]?t.invYes:t.invNo,rank:spec[field]?1:0};
+}
+function getLeaderFlags(metrics,highIsBetter){
+  var ranks=metrics.map(function(metric){return metric.rank}).filter(function(rank){return typeof rank==="number"});
+  if(ranks.length<2||ranks.length!==metrics.length) return metrics.map(function(){return false});
+  var best=highIsBetter?Math.max.apply(Math,ranks):Math.min.apply(Math,ranks);
+  var worst=highIsBetter?Math.min.apply(Math,ranks):Math.max.apply(Math,ranks);
+  if(best===worst) return metrics.map(function(){return false});
+  return metrics.map(function(metric){return metric.rank===best});
+}
 
 var SPECS=[
 [t.product,function(d){
@@ -1136,10 +1209,50 @@ ${t.compareSelected(sel.length)}
 </button>
 </div>`;
 
+var simpleRows=[
+  {key:"hp",label:t.hpLabel},
+  {key:"inverter",label:t.inverterType},
+  {key:"price",label:t.priceRange},
+  {key:"energy",label:t.energyRating,highIsBetter:true},
+  {key:"wifi",label:t.wifi},
+  {key:"selfCleaning",label:t.selfCleaning},
+  {key:"airPurification",label:t.airPurification}
+];
+var simpleView=html`
+<div class="simple-meta"><span>${t.highlightHint}</span><span class="leader-key"><i></i>${t.best}</span></div>
+<div class="card"><div class="scroll"><table class="cmp simple-cmp">
+<thead><tr><th class="sticky rl">${t.model}</th>${chosen.map(function(d){
+  var selected=getSelectedModel(d.b);
+  var modelName=selected&&selected.model?(selected.model.in||selected.model.code||""):"";
+  return html`<th key=${d.b} class="bh"><span class="brand-dot" style=${brandDotStyle(d.c)}></span>${d.b}
+    <button class="x" type="button" onClick=${function(){toggle(d.b)}} aria-label=${"Remove "+d.b} title="Remove">×</button>
+    ${modelName?html`<span class="model-name">${modelName}</span>`:html`<span class="model-name">${t.notConfirmed}</span>`}
+  </th>`;
+})}</tr></thead>
+<tbody>${simpleRows.map(function(row){
+  var metrics=chosen.map(function(d){return getSimpleMetric(d,row.key)});
+  var leaders=getLeaderFlags(metrics,row.highIsBetter===true);
+  return html`<tr key=${row.key}><th scope="row" class="sticky rl">${row.label}</th>${metrics.map(function(metric,i){
+    return html`<td key=${chosen[i].b} class=${leaders[i]?"leader-cell":""}>
+      <span class=${"simple-status"+(metric.unknown?" muted":"")}>${metric.text}</span>
+      ${leaders[i]?html`<span class="leader-mark">${row.key==="price"?t.mostAffordable:t.best}</span>`:null}
+    </td>`;
+  })}</tr>`;
+})}</tbody></table></div></div>`;
+
+var detailedView=html`
+<div class="card"><div class="scroll"><table class="cmp">
+<thead><tr><th class="sticky rl">Spec</th>${chosen.map(function(d){return html`<th key=${d.b} class="bh"><span class="brand-dot" style=${brandDotStyle(d.c)}></span>${d.b} <button class="x" type="button" onClick=${function(){toggle(d.b)}} aria-label=${"Remove "+d.b} title="Remove">×</button></th>`})}</tr></thead>
+<tbody>${SPECS.map(function(r){return html`<tr key=${r[0]}><th scope="row" class="sticky rl">${r[0]}</th>${chosen.map(function(d){return html`<td key=${d.b}>${r[1](d)}</td>`})}</tr>`})}</tbody></table></div></div>`;
+
 var cmpView=html`
 <div class="bar">
 <button type="button" class="chip" onClick=${function(){setView("all")}}>${t.back}</button>
 <button type="button" class=${"chip"+(showAddBrands?" on":"")} onClick=${function(){setShowAddBrands(!showAddBrands)}}>${t.addBrands}</button>
+<div class="compare-mode" role="group" aria-label="Comparison detail">
+  <button type="button" class=${"chip"+(compareMode==="simple"?" on":"")} aria-pressed=${compareMode==="simple"} onClick=${function(){setCompareMode("simple")}}>${t.simpleView}</button>
+  <button type="button" class=${"chip"+(compareMode==="detailed"?" on":"")} aria-pressed=${compareMode==="detailed"} onClick=${function(){setCompareMode("detailed")}}>${t.detailedView}</button>
+</div>
 </div>
 ${showAddBrands?html`<div class="bar" style=${{flexWrap:"wrap",gap:"8px"}}>
 ${brandsData.map(function(d){
@@ -1147,10 +1260,7 @@ ${brandsData.map(function(d){
   return html`<button key=${d.b} type="button" class=${"chip"+(on?" on":"")} disabled=${!on&&sel.length>=4} onClick=${function(){toggle(d.b)}}><span class="brand-dot" style=${brandDotStyle(d.c)}></span>${on?"✓ ":"+ "}${d.b}</button>`;
 })}
 </div>`:null}
-${chosen.length?html`<div class="card"><div class="scroll"><table class="cmp">
-<thead><tr><th class="sticky rl">Spec</th>${chosen.map(function(d){return html`<th key=${d.b} class="bh"><span class="brand-dot" style=${brandDotStyle(d.c)}></span>${d.b} <button class="x" type="button" onClick=${function(){toggle(d.b)}} aria-label=${"Remove "+d.b} title="Remove">×</button></th>`})}</tr></thead>
-<tbody>${SPECS.map(function(r){return html`<tr key=${r[0]}><th scope="row" class="sticky rl">${r[0]}</th>${chosen.map(function(d){return html`<td key=${d.b}>${r[1](d)}</td>`})}</tr>`})}</tbody></table></div></div>`
-:html`<div class="card"><div class="empty">${t.pickBrands}</div></div>`}`;
+${chosen.length?(compareMode==="simple"?simpleView:detailedView):html`<div class="card"><div class="empty">${t.pickBrands}</div></div>`}`;
 
 return html`<div class="wrap">
 <div class="header-row">
@@ -1397,7 +1507,19 @@ ${adminBrand&&adminSeries?html`<h3>Model specifications</h3>
 <input placeholder="Capacity" value=${adminForm.cap||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{cap:e.target.value}))}} />
 <input placeholder="Input (W)" value=${adminForm.input||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{input:e.target.value}))}} />
 <input placeholder="CSPF" value=${adminForm.cspf||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{cspf:e.target.value}))}} />
-<input placeholder="Stars" type="number" value=${adminForm.stars||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{stars:e.target.value}))}} />
+<input placeholder="Energy stars (2-5)" type="number" min="2" max="5" step="1" value=${adminForm.stars||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{stars:e.target.value}))}} />
+<select aria-label="Price range" value=${adminForm.priceRange||""} onChange=${function(e){setAdminForm(Object.assign({},adminForm,{priceRange:e.target.value}))}}>
+<option value="">Price range — not confirmed</option><option value="budget">Budget</option><option value="mid">Mid-range</option><option value="premium">Premium</option>
+</select>
+<select aria-label="Wi-Fi" value=${adminForm.wifi===true?"yes":adminForm.wifi===false?"no":""} onChange=${function(e){setAdminForm(Object.assign({},adminForm,{wifi:e.target.value===""?undefined:e.target.value==="yes"}))}}>
+<option value="">Wi-Fi — not confirmed</option><option value="yes">Wi-Fi — Yes</option><option value="no">Wi-Fi — No</option>
+</select>
+<select aria-label="Self-cleaning" value=${adminForm.selfCleaning===true?"yes":adminForm.selfCleaning===false?"no":""} onChange=${function(e){setAdminForm(Object.assign({},adminForm,{selfCleaning:e.target.value===""?undefined:e.target.value==="yes"}))}}>
+<option value="">Self-cleaning — not confirmed</option><option value="yes">Self-cleaning — Yes</option><option value="no">Self-cleaning — No</option>
+</select>
+<select aria-label="Air purification" value=${adminForm.airPurification===true?"yes":adminForm.airPurification===false?"no":""} onChange=${function(e){setAdminForm(Object.assign({},adminForm,{airPurification:e.target.value===""?undefined:e.target.value==="yes"}))}}>
+<option value="">Air purification — not confirmed</option><option value="yes">Air purification — Yes</option><option value="no">Air purification — No</option>
+</select>
 <input placeholder="Running Current (A)" value=${adminForm.current||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{current:e.target.value}))}} />
 <input placeholder="Power supply" value=${adminForm.power||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{power:e.target.value}))}} />
 <input placeholder="Refrigerant" value=${adminForm.ref||""} onInput=${function(e){setAdminForm(Object.assign({},adminForm,{ref:e.target.value}))}} />
