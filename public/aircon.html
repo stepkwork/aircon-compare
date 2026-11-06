@@ -1,11 +1,11 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Aircon Brand Comparison</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
 <style>
-:root{--bg:#f5f7f9;--surface:#fff;--fg:#14202b;--muted:#5b6b7a;--line:#dde3e9;--accent:#0f6e8c;--accent-soft:#e0f0f5;--hdr:#eef2f5;
---leader-bg:#e8f5ed;--leader-fg:#17643e;
+:root{--bg:#fff;--surface:#fff;--fg:#242124;--muted:#655c5e;--line:#e6dfe0;--accent:#c8102e;--accent-soft:#fff0f2;--hdr:#faf5f6;
+--leader-bg:#ffebee;--leader-fg:#9d1026;
 --font:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e151c;--surface:#16202a;--fg:#e8eef3;--muted:#93a3b2;--line:#263441;--accent:#4fb6d6;--accent-soft:#15333f;--hdr:#1b2733;--leader-bg:#183328;--leader-fg:#8dd3aa;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0e151c;--surface:#16202a;--fg:#e8eef3;--muted:#93a3b2;--line:#263441;--accent:#4fb6d6;--accent-soft:#15333f;--hdr:#1b2733;--leader-bg:#183328;--leader-fg:#8dd3aa;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e151c;--surface:#16202a;--fg:#e8eef3;--muted:#a59ba0;--line:#332b30;--accent:#c8102e;--accent-soft:#351820;--hdr:#201b20;--leader-bg:#3a1c23;--leader-fg:#ff9eaa;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e151c;--surface:#16202a;--fg:#e8eef3;--muted:#a59ba0;--line:#332b30;--accent:#c8102e;--accent-soft:#351820;--hdr:#201b20;--leader-bg:#3a1c23;--leader-fg:#ff9eaa;color-scheme:dark}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 var(--font);padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
@@ -89,7 +89,7 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0
 .spec-editor{padding:14px;background:var(--hdr);border:1px solid var(--line);border-radius:10px;margin:12px 0}
 .spec-editor-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .spec-editor-head h4{margin:0;font-size:.95rem}
-.spec-mode{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.spec-mode{display:flex;gap:4px;padding:0;border:0;border-radius:0;background:transparent}
 .spec-mode button{border:0;border-radius:999px;padding:7px 12px;background:transparent}
 .spec-mode button[aria-pressed=true]{background:var(--accent);color:var(--surface);font-weight:600}
 .spec-table-note{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 10px;color:var(--muted);font-size:.82rem}
@@ -105,6 +105,7 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0
 .admin-modal .row{display:flex;gap:8px;margin-bottom:10px}
 .admin-modal .row>*{flex:1}
 .admin-modal button{padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
+.admin-modal .spec-mode button{border:0;box-shadow:none}
 .admin-modal button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
 .admin-modal button.danger{color:#a52a2a}
 @media(max-width:600px){.admin-modal{padding:16px;width:96vw;max-height:92vh}.admin-tabs{top:-16px}.admin-fields{grid-template-columns:1fr}.admin-modal .row{flex-wrap:wrap}}
