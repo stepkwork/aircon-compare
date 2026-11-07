@@ -1,0 +1,1 @@
+import{t as e}from"./index--rgVnybU.js";var t=e();function n(){return(0,t.jsx)(`iframe`,{title:`Aircon brand comparison`,src:`/aircon.html`,className:`aircon-frame`})}export{n as component};

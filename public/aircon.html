@@ -32,6 +32,7 @@ input{font:inherit;color:var(--fg);background:var(--surface);border:1px solid va
 .scroll{overflow:auto;max-width:100%;max-height:78vh}
 table{border-collapse:separate;border-spacing:0;width:100%;min-width:640px;font-size:.9rem}
 th,td{padding:11px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.brand-table .compare-col{width:48px;min-width:48px;max-width:48px;padding:8px 10px;text-align:center;white-space:nowrap}
 thead th{position:sticky;top:0;z-index:3;background:var(--hdr);font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;white-space:nowrap}
 tbody tr:hover td,tbody tr:hover th{background:var(--accent-soft)}
 .sticky{position:sticky;left:0;z-index:2;background:var(--surface);border-right:1px solid var(--line)}thead .sticky{z-index:4;background:var(--hdr)}
@@ -1285,9 +1286,9 @@ ${filterPanel}
     <button type="button" class=${"chip"+(showSelling?" on":"")} onClick=${function(){setShowSelling(!showSelling)}}>${t.showSelling}</button>
   </div>
 </div>
-<div class="card"><div class="scroll"><table>
+<div class="card"><div class="scroll"><table class="brand-table">
 <thead><tr>
-<th class="sticky">${t.compare}</th>
+<th class="sticky compare-col" aria-label=${t.compare} title=${t.compare}></th>
 <th>
   <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"8px"}}>
     <span>${t.brand}</span>
@@ -1303,7 +1304,7 @@ ${showSelling?html`<th>${t.selling}</th>`:null}
   var tech=lang==="cn"?d.kCn:d.kEn;
   var country=t.countries[d.o]||d.o;
   return html`<tr key=${d.b} class="brand-row">
-<td class="sticky"><input type="checkbox" checked=${on} disabled=${!on&&sel.length>=4} onChange=${function(){toggle(d.b)}} aria-label=${t.compare+" "+d.b}/></td>
+<td class="sticky compare-col"><input type="checkbox" checked=${on} disabled=${!on&&sel.length>=4} onChange=${function(){toggle(d.b)}} aria-label=${t.compare+" "+d.b}/></td>
 <th scope="row"><span class="brand-dot" style=${brandDotStyle(d.c)}></span>${d.b}<span class="or">${flagImg(d.o)}${country}</span></th>
 ${showModels?html`<td>${ModelDropdown(d)}</td>`:null}
 ${showSelling?html`<td class="sp"><b>${sell}</b><span>${tech}</span></td>`:null}
