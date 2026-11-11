@@ -416,6 +416,25 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 .spec-input-group .model-select{height:44px;border-radius:10px!important}
 .spec-dimensions{gap:10px}
 .spec-dimensions .model-select-wrap{min-width:88px;width:88px}
+
+.admin-fields{align-items:start}
+.admin-fields>div{min-width:0}
+.country-picker{position:relative}
+.country-picker .model-select{display:flex;align-items:center;gap:8px}
+.flag{width:20px;height:14px;object-fit:cover;border-radius:2px;flex:none}
+.country-list{position:absolute;z-index:30;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 28px rgba(20,12,16,.16);padding:8px}
+.country-list input{width:100%;margin:0 0 8px;height:40px}
+.country-options{max-height:240px;overflow:auto;display:flex;flex-direction:column;gap:2px}
+.country-option{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border:1px solid transparent;border-radius:8px;background:transparent;text-align:left}
+.country-option:hover,.country-option.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.country-empty{margin:8px;color:var(--muted);font-size:.8rem}
+.collapse{border:1px solid var(--line);border-radius:12px;margin:14px 0;overflow:hidden}
+.collapse-head{display:flex;width:100%;align-items:center;justify-content:space-between;padding:12px 14px;border:0;background:var(--hdr);font-weight:600}
+.collapse-arrow{color:var(--muted)}
+.collapse-body{padding:14px}
+.collapse-body .admin-fields{margin-top:0}
+.spec-input-group input{flex:1 1 180px;min-width:140px}
+.spec-prefix{display:flex;align-items:center;justify-content:center;min-width:52px;height:44px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--hdr);color:var(--muted);font-weight:600}
 </style></head><body> 
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -1181,6 +1200,7 @@ var adminNewSeriesCnState=useState(""),adminNewSeriesCn=adminNewSeriesCnState[0]
 var adminBrandFormState=useState({}),adminBrandForm=adminBrandFormState[0],setAdminBrandForm=adminBrandFormState[1];
 var adminSeriesFormState=useState({}),adminSeriesForm=adminSeriesFormState[0],setAdminSeriesForm=adminSeriesFormState[1];
 var adminTabState=useState("brands"),adminTab=adminTabState[0],setAdminTab=adminTabState[1];
+var seriesPanelState=useState(""),seriesPanel=seriesPanelState[0],setSeriesPanel=seriesPanelState[1];
 var brandSearchState=useState(""),brandSearch=brandSearchState[0],setBrandSearch=brandSearchState[1];
 var brandFilterSearchState=useState(""),brandFilterSearch=brandFilterSearchState[0],setBrandFilterSearch=brandFilterSearchState[1];
 var modelTableSearchState=useState(""),modelTableSearch=modelTableSearchState[0],setModelTableSearch=modelTableSearchState[1];
@@ -1480,6 +1500,36 @@ function ModelPicker(props){
   </div>`;
 }
 
+var COUNTRIES=[["AF","Afghanistan"],["AL","Albania"],["DZ","Algeria"],["AR","Argentina"],["AU","Australia"],["AT","Austria"],["BD","Bangladesh"],["BE","Belgium"],["BR","Brazil"],["BN","Brunei"],["BG","Bulgaria"],["KH","Cambodia"],["CA","Canada"],["CL","Chile"],["CN","China"],["CO","Colombia"],["HR","Croatia"],["CZ","Czechia"],["DK","Denmark"],["EG","Egypt"],["FI","Finland"],["FR","France"],["DE","Germany"],["GR","Greece"],["HK","Hong Kong"],["HU","Hungary"],["IN","India"],["ID","Indonesia"],["IR","Iran"],["IQ","Iraq"],["IE","Ireland"],["IL","Israel"],["IT","Italy"],["JP","Japan"],["JO","Jordan"],["KZ","Kazakhstan"],["KE","Kenya"],["KR","South Korea"],["KW","Kuwait"],["LA","Laos"],["LB","Lebanon"],["MY","Malaysia"],["MX","Mexico"],["MN","Mongolia"],["MA","Morocco"],["MM","Myanmar"],["NP","Nepal"],["NL","Netherlands"],["NZ","New Zealand"],["NG","Nigeria"],["NO","Norway"],["OM","Oman"],["PK","Pakistan"],["PH","Philippines"],["PL","Poland"],["PT","Portugal"],["QA","Qatar"],["RO","Romania"],["RU","Russia"],["SA","Saudi Arabia"],["SG","Singapore"],["ZA","South Africa"],["ES","Spain"],["LK","Sri Lanka"],["SE","Sweden"],["CH","Switzerland"],["TW","Taiwan"],["TH","Thailand"],["TR","Turkey"],["AE","United Arab Emirates"],["GB","United Kingdom"],["US","United States"],["VN","Vietnam"]];
+function CountryPicker(props){
+  var openState=useState(false),open=openState[0],setOpen=openState[1];
+  var qState=useState(""),q=qState[0],setQ=qState[1];
+  var wrapRef=useRef(null);
+  useEffect(function(){
+    if(!open) return;
+    function onDown(event){if(wrapRef.current&&!wrapRef.current.contains(event.target)) setOpen(false);}
+    document.addEventListener("pointerdown",onDown);
+    return function(){document.removeEventListener("pointerdown",onDown);};
+  },[open]);
+  var selected=COUNTRIES.find(function(c){return c[1]===props.value});
+  var needle=q.trim().toLowerCase();
+  var shown=COUNTRIES.filter(function(c){return !needle||c[1].toLowerCase().indexOf(needle)>-1;});
+  function flag(code){return "https://flagcdn.com/w40/"+code.toLowerCase()+".png";}
+  return html`<div class="country-picker" ref=${wrapRef}>
+    <button type="button" class="model-select" onClick=${function(){setOpen(!open);setQ("");}}>
+      ${selected?html`<img class="flag" src=${flag(selected[0])} alt="" /> ${selected[1]}`:"Select country"}
+    </button>
+    ${open?html`<div class="country-list">
+      <input type="search" placeholder="Search country" value=${q} onInput=${function(e){setQ(e.target.value)}} />
+      <div class="country-options">
+        ${shown.map(function(c){return html`<button type="button" key=${c[0]} class=${"country-option"+(props.value===c[1]?" on":"")} onClick=${function(){props.onChange(c[1]);setOpen(false);}}>
+          <img class="flag" src=${flag(c[0])} alt="" /><span>${c[1]}</span>
+        </button>`;})}
+        ${shown.length?null:html`<p class="country-empty">No country found.</p>`}
+      </div>
+    </div>`:null}
+  </div>`;
+}
 function AdminPicker(props){
   var options=props.options||[];
   var idx=options.findIndex(function(option){return option.value===props.value});
@@ -1626,7 +1676,7 @@ function specField(field,label,options){options=options||{};var id="spec-"+field
 function specSelect(field,label,options,required){var id="spec-"+field,error=specErrors[field],value=adminForm[field]==null?"":String(adminForm[field]);return html`<div class="spec-field"><label class="admin-field" for=${id}>${label}${required?html`<span class="required-mark" aria-hidden="true">*</span>`:null}</label><${AdminPicker} label=${label} value=${value||""} options=${[{value:"",label:"Choose…"}].concat(options.map(function(option){return {value:option,label:option}}))} onChange=${function(next){updateSpec(field,next)}}/>${error?html`<span id=${id+"-error"} class="spec-error" role="alert">${error}</span>`:null}</div>`}
 function specUnitField(field,label,units,defaultUnit,placeholder,wide){var value=adminForm[field]==null?"":adminForm[field],unitField=field+"Unit",unit=adminForm[unitField]||defaultUnit,id="spec-"+field,error=specErrors[field];return html`<div class=${"spec-field"+(wide?" wide":"")}><label class="admin-field" for=${id}>${label}</label><div class="spec-input-group"><input id=${id} type="number" min="0" step="any" placeholder=${placeholder} value=${value} aria-invalid=${error?"true":"false"} aria-describedby=${error?id+"-error":null} onKeyDown=${function(e){if(e.key==="Enter")e.preventDefault()}} onInput=${function(e){updateSpec(field,e.target.value)}} /><${AdminPicker} label=${label+" unit"} value=${unit} options=${units.map(function(u){return {value:u,label:u}})} onChange=${function(next){updateSpec(unitField,next)}}/></div>${error?html`<span id=${id+"-error"} class="spec-error" role="alert">${error}</span>`:null}</div>`}
 function specDimensionField(field,label){var parts=(adminForm[field]||"").split(/[x×]/);while(parts.length<3)parts.push("");var unitField=field+"Unit",unit=adminForm[unitField]||"mm",id="spec-"+field,error=specErrors[field];return html`<div class="spec-field wide"><label class="admin-field" for=${id+"-w"}>${label}</label><div class="spec-dimensions">${["W","D","H"].map(function(axis,index){return html`<div><label for=${id+"-"+axis.toLowerCase()}>${axis}</label><input id=${id+"-"+axis.toLowerCase()} type="number" min="0" step="any" placeholder=${[800,250,300][index]} value=${parts[index]} aria-label=${label+" "+axis} aria-invalid=${error?"true":"false"} onKeyDown=${function(e){if(e.key==="Enter")e.preventDefault()}} onInput=${function(e){var next=(adminForm[field]||"").split(/[x×]/);while(next.length<3)next.push("");next[index]=e.target.value;updateSpec(field,next.join("x"))}} /></div>`})}<${AdminPicker} label=${label+" unit"} value=${unit} options=${["mm","cm","in"].map(function(u){return {value:u,label:u}})} onChange=${function(next){updateSpec(unitField,next)}}/></div>${error?html`<span id=${id+"-error"} class="spec-error" role="alert">${error}</span>`:null}</div>`}
-function SpecPriceField(){var currency=adminForm.priceCurrency||adminForm.priceUnit||"RM",id="spec-price",error=specErrors.price;return html`<div class="spec-field"><label class="admin-field" for=${id}>Price (MSP)</label><div class="spec-input-group"><input id=${id} type="number" min="0" step="0.01" placeholder="e.g. 2499" value=${priceInput||adminForm._displayPrice||adminForm.price||""} aria-invalid=${error?"true":"false"} aria-describedby=${error?id+"-error":null} onKeyDown=${function(e){if(e.key==="Enter")e.preventDefault()}} onInput=${function(e){setPriceInput(e.target.value);updateSpec("price",e.target.value);updateSpec("_displayPrice",e.target.value)}} /><${AdminPicker} label="Price currency" value=${currency} options=${["RM","SGD","USD"].map(function(c){return {value:c,label:c}})} onChange=${function(next){updateSpec("priceCurrency",next);updateSpec("priceUnit",next)}}/></div>${error?html`<span id=${id+"-error"} class="spec-error" role="alert">${error}</span>`:null}</div>`}
+function SpecPriceField(){var currency=adminForm.priceCurrency||adminForm.priceUnit||"RM",id="spec-price",error=specErrors.price;return html`<div class="spec-field"><label class="admin-field" for=${id}>Price (MSP)</label><div class="spec-input-group"><input id=${id} type="number" min="0" step="0.01" placeholder="e.g. 2499" value=${priceInput||adminForm._displayPrice||adminForm.price||""} aria-invalid=${error?"true":"false"} aria-describedby=${error?id+"-error":null} onKeyDown=${function(e){if(e.key==="Enter")e.preventDefault()}} onInput=${function(e){setPriceInput(e.target.value);updateSpec("price",e.target.value);updateSpec("_displayPrice",e.target.value)}} /><span class="spec-prefix">RM</span></div>${error?html`<span id=${id+"-error"} class="spec-error" role="alert">${error}</span>`:null}</div>`}
 function SpecFeatures(){var features=Array.isArray(adminForm.features)?adminForm.features:[],choices=["Wi-Fi","Self-cleaning","Air purification","Inverter","Sleep mode","Eco mode","Voice control"];function toggleFeature(name){updateSpec("features",features.indexOf(name)>-1?features.filter(function(item){return item!==name}):features.concat(name))}return html`<div class="spec-field wide"><span class="admin-field">Features</span><div class="spec-feature-list">${choices.concat(features.filter(function(x){return choices.indexOf(x)<0})).map(function(name){return html`<button type="button" class="spec-feature-chip" aria-pressed=${features.indexOf(name)>-1} onClick=${function(){toggleFeature(name)}}>${name}</button>`})}</div><div class="spec-add-feature"><input aria-label="Add custom feature" placeholder="Add a custom feature" value=${customFeature} onInput=${function(e){setCustomFeature(e.target.value)}} onKeyDown=${function(e){if(e.key==="Enter"){e.preventDefault();var name=customFeature.trim();if(name&&features.indexOf(name)<0)updateSpec("features",features.concat(name));setCustomFeature("")}}} /><button type="button" onClick=${function(){var name=customFeature.trim();if(name&&features.indexOf(name)<0)updateSpec("features",features.concat(name));setCustomFeature("")}}>Add</button></div></div>`}
 
 var SPECS=[
@@ -1874,7 +1924,7 @@ ${adminTab==="brands"?html`<section class="admin-section">
 </div>
 ${adminBrand?html`<div class="admin-fields">
 <div><label class="admin-field">Brand name</label><input value=${adminBrandForm.b||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{b:e.target.value}))}} /></div>
-<div><label class="admin-field">Country / region</label><input value=${adminBrandForm.o||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{o:e.target.value}))}} /></div>
+<div><label class="admin-field">Country / region</label><${CountryPicker} value=${adminBrandForm.o||""} onChange=${function(value){setAdminBrandForm(Object.assign({},adminBrandForm,{o:value}))}} /></div>
 <div><label class="admin-field">Main selling point (English)</label><textarea maxlength="2000" value=${adminBrandForm.sEn||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{sEn:e.target.value}));setTranslateMessage("")}} /></div>
 <div>
 <label class="admin-field">Main selling point (Chinese)</label>
@@ -1896,10 +1946,8 @@ ${translateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:"var(-
 ${featureTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:"var(--muted)",fontSize:".8rem"}}>${featureTranslateMessage}</p>`:null}
 </div>
 <div><label class="admin-field">Brand color (hex; optional second color after |)</label><input value=${adminBrandForm.c||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{c:e.target.value}))}} /></div>
-<div class="admin-fields">
 <div><label class="admin-field">Minimum HP shown</label><input type="number" step="0.5" value=${adminBrandForm.lo||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{lo:e.target.value}))}} /></div>
 <div><label class="admin-field">Maximum HP shown</label><input type="number" step="0.5" value=${adminBrandForm.hi||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{hi:e.target.value}))}} /></div>
-</div>
 </div>
 <label class="admin-field"><input type="checkbox" checked=${adminBrandForm.inv!==false} onChange=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{inv:e.target.checked}))}} style=${{width:"auto",marginRight:"8px"}} />Brand offers inverter models</label>
 <div class="row">
@@ -1935,7 +1983,11 @@ ${featureTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color
 ${adminTab==="series"?html`<section class="admin-section">
 <h3>Series</h3><p>Add, rename, or remove a series within a brand. Deleting a series also removes its model specifications.</p>
 ${AdminBrandSelect({label:"Brand",value:adminBrand,onChange:function(e){setAdminBrand(e.target.value);setAdminSeries("");setAdminSeriesForm({});setAdminEdit("");setAdminForm({})}})}
-${adminBrand?html`<div class="admin-fields">
+${adminBrand?html`<div class="collapse">
+<button type="button" class="collapse-head" aria-expanded=${seriesPanel==="add"} onClick=${function(){setSeriesPanel(seriesPanel==="add"?"":"add")}}>
+<span>Add Series</span><span class="collapse-arrow">${seriesPanel==="add"?"▴":"▾"}</span>
+</button>
+${seriesPanel==="add"?html`<div class="collapse-body"><div class="admin-fields">
 <div>
 <label class="admin-field">Series name (English)</label>
 <input placeholder="Series name (English)" value=${adminNewSeries} onInput=${function(e){setAdminNewSeries(e.target.value);setSeriesTranslateMessage("")}} />
@@ -1961,6 +2013,13 @@ ${seriesTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:
   persistAdminData(brandsData,next,SPECDATA).then(function(){alert("Series added and saved: "+name)}).catch(function(err){alert("Series was added in this page but could not be saved to Cloudflare: "+err.message)});
 }}>Add series</button>
 </div>
+</div>`:null}
+</div>
+<div class="collapse">
+<button type="button" class="collapse-head" aria-expanded=${seriesPanel==="edit"} onClick=${function(){setSeriesPanel(seriesPanel==="edit"?"":"edit")}}>
+<span>Edit Series</span><span class="collapse-arrow">${seriesPanel==="edit"?"▴":"▾"}</span>
+</button>
+${seriesPanel==="edit"?html`<div class="collapse-body">
 <label class="admin-field">Choose a series to edit</label>
 <${AdminPicker} label="Choose a series to edit" value=${adminSeries||""} options=${[{value:"",label:"— Select series —"}].concat((modelsData[adminBrand]&&modelsData[adminBrand].series||[]).map(function(s){return {value:s.nEn,label:s.nEn}}))} onChange=${function(name){
   var series=(modelsData[adminBrand]&&modelsData[adminBrand].series||[]).find(function(s){return s.nEn===name});
@@ -2000,7 +2059,9 @@ ${seriesTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:
   SPECDATA=nextSpecs;setSpecData(nextSpecs);commitModels(next);setAdminSeries("");setAdminSeriesForm({});setAdminEdit("");setAdminForm({});
   persistAdminData(brandsData,next,nextSpecs).then(function(){alert("Series and its models deleted")}).catch(function(err){alert("Series was deleted in this page but could not be saved to Cloudflare: "+err.message)});
 }}>Delete series</button>
-</div>`:null}`:html`<p>Select a brand to manage its series.</p>`}
+</div>`:null}
+</div>`:null}
+</div>`:html`<p>Select a brand to manage its series.</p>`}
 </section>`:null}
 ${adminTab==="models"?html`<section class="admin-section">
 <h3>Models & specifications</h3><p>Choose a brand and series to add models or update their technical details.</p>
@@ -2016,7 +2077,7 @@ ${adminBrand&&adminSeries?html`<div style=${{marginBottom:"12px"}}>
 <${AdminPicker} label="Model" value=${adminEdit||""} options=${[{value:"",label:"— Select model —"}].concat(allModelCodes().filter(function(m){return m.brand===adminBrand&&m.series===adminSeries}).map(function(m){return {value:m.code,label:m.hp+"HP · "+m.code+(SPECDATA[m.code]?" ✓":"")}}))} onChange=${function(k){setAdminEdit(k);var model=allModelCodes().find(function(item){return item.code===k});setAdminForm(k?prepareSpecForm(SPECDATA[k],k,model):{});setPriceInput(k?(prepareSpecForm(SPECDATA[k],k,model)._displayPrice||""):"");setSpecErrors({});}}/>
 <div class="admin-add-model">
 <input placeholder="New model code" value=${adminNewModel} onInput=${function(e){setAdminNewModel(e.target.value)}} />
-<${AdminPicker} label="HP" value=${adminNewHp} options=${["0.75","1.0","1.5","2.0","2.5","3.0"].map(function(h){return {value:h,label:h+"HP"}})} onChange=${setAdminNewHp}/>
+<${AdminPicker} label="HP" value=${adminNewHp} options=${["1.0","1.5","2.0","2.5","3.0","4.0"].map(function(h){return {value:h,label:h+"HP"}})} onChange=${setAdminNewHp}/>
 <button type="button" onClick=${function(){
   var code=(adminNewModel||"").trim();
   if(!code||!adminBrand||!adminSeries) return;
