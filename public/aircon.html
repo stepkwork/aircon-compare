@@ -79,12 +79,7 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0
 .model-select{display:block;width:100%;min-width:0;max-width:280px;padding:7px 34px 7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);font:inherit;font-size:.82rem;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:border-color .15s,box-shadow .15s}
 .model-select:hover{border-color:var(--muted)}
 .model-select:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
-.model-picker-portal{position:fixed;inset:0;z-index:200;pointer-events:none}
-.model-picker-list{position:fixed;z-index:200;display:flex;flex-direction:column;gap:2px;overflow:auto;padding:4px;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:0 10px 28px rgba(20,12,16,.2);overscroll-behavior:contain;pointer-events:auto}
-.model-picker-option{pointer-events:auto;flex:none;width:100%;padding:8px 10px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--fg);font:inherit;font-size:.82rem;text-align:left;white-space:normal;overflow-wrap:anywhere;transition:background .12s,border-color .12s,color .12s}
-.model-picker-option:hover,.model-picker-option:focus-visible{outline:none;background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
-.model-picker-option[aria-selected=true]{background:var(--accent-soft);color:var(--accent);font-weight:600;border-color:var(--accent)}
-.admin-modal .model-select-wrap,.admin-modal .model-select{max-width:none}
+.model-picker-portal{position:fixed;inset:0;z-index:220;pointer-events:none}
 .series-note{display:block;color:var(--muted);font-size:.72rem;margin-top:4px}
 .mc{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem;font-weight:600}
 .mc.u{font-weight:400;font-style:italic;color:var(--muted)}
@@ -393,6 +388,21 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 .spec-savebar{position:sticky;bottom:-1px;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px -20px -20px;padding:12px 20px max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--line);background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(14px);border-radius:0 0 18px 18px}
 @media(max-width:700px){.spec-form-sections{grid-template-columns:1fr}.spec-editor{padding:14px}.spec-savebar{margin:14px -14px -14px;padding-inline:14px}.spec-section{padding:13px}}
 @media(max-width:380px){.spec-section-fields{grid-template-columns:1fr}.spec-field.wide{grid-column:auto}.spec-dimensions{grid-template-columns:repeat(3,minmax(0,1fr))}.spec-dimensions select{grid-column:1/-1;width:100%}}
+
+/* Admin form rhythm + matching picker */
+.admin-brand-block{margin-bottom:16px}
+.admin-modal .row{align-items:stretch;gap:10px}
+.admin-modal .row input,
+.admin-modal .row button.primary{height:44px;min-height:44px;margin:0;box-sizing:border-box;border-radius:10px}
+.admin-modal .row button.primary{display:flex;align-items:center;justify-content:center;padding:0 16px;font-weight:600}
+.admin-modal .model-select-wrap,.admin-modal .model-select{max-width:none;width:100%}
+.admin-modal .model-select{height:44px;min-height:44px;padding:0 34px 0 12px;border-radius:10px;font-size:.9rem;display:flex;align-items:center}
+.model-picker-shell{z-index:220}
+.model-picker-list{padding:6px;gap:4px}
+.model-picker-option{display:flex;align-items:center;width:100%;min-height:40px;margin:0;padding:8px 12px;border:1px solid transparent;border-radius:10px!important;text-align:left;box-sizing:border-box}
+.model-picker-option+.model-picker-option{border-top-color:transparent}
+.model-picker-option:hover,.model-picker-option:focus-visible{background:var(--accent-soft)!important;color:var(--accent)!important;border-color:var(--accent)!important;outline:none}
+.model-picker-option[aria-selected=true]{background:var(--accent-soft)!important;color:var(--accent)!important;border-color:var(--accent)!important;font-weight:600;box-shadow:none}
 </style></head><body> 
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -1832,11 +1842,11 @@ ${!adminAuth?html`<h2>Admin Login</h2>
 </div>
 ${adminTab==="brands"?html`<section class="admin-section">
 <h3>Brand details</h3><p>Edit the brand name, country, selling points, and comparison display settings.</p>
-${AdminBrandSelect({label:"Choose a brand to edit",value:adminBrand,onChange:function(e){
+<div class="admin-brand-block">${AdminBrandSelect({label:"Choose a brand to edit",value:adminBrand,onChange:function(e){
   var name=e.target.value,selected=brandsData.find(function(b){return b.b===name});
   setAdminBrand(name);setAdminSeries("");setAdminEdit("");setAdminForm({});
   setAdminBrandForm(selected?Object.assign({},selected):{});
-}})}
+}})}</div>
 <div class="row">
 <input placeholder="New brand name" value=${adminNewBrand} onInput=${function(e){setAdminNewBrand(e.target.value)}} />
 <button type="button" class="primary" onClick=${function(){
