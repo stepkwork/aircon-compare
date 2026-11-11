@@ -480,10 +480,18 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 .login-password-label{margin-top:14px}
 .admin-modal .model-select{margin-bottom:0}
 @media(max-width:600px){
-  .wrap{gap:10px}
-  .all-view{margin-top:-27px}
+  .wrap{gap:7px}
+  .all-view{margin-top:0}
   .all-view-toolbar{margin-top:16px}
 }
+
+.admin-btn{display:inline-flex;align-items:center;justify-content:center}
+.admin-btn svg{width:18px;height:18px}
+input[type=checkbox]{appearance:none;-webkit-appearance:none;width:18px;height:18px;border:1.5px solid var(--line);border-radius:4px;background:var(--surface);display:inline-grid;place-content:center;margin:0}
+input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+input[type=checkbox]:checked::after{content:"";width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+input[type=checkbox]:disabled{opacity:.4}
+.admin-empty{margin:12px 0 0;color:var(--muted);font-size:.85rem}
 </style></head><body> 
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -1913,7 +1921,7 @@ return html`<div class="wrap">
       ${hpFilter===null?t.hpAll:(hpFilter+" HP")}
     </button>
     <div class="header-utility-controls">
-      <button type="button" class="admin-btn" onClick=${function(){setShowAdmin(true)}} title="Admin" aria-label="Admin settings">⚙</button>
+      <button type="button" class="admin-btn" onClick=${function(){setShowAdmin(true)}} title="Admin" aria-label="Admin settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3v2.2M12 18.8V21M4.8 4.8l1.6 1.6M17.6 17.6l1.6 1.6M3 12h2.2M18.8 12H21M4.8 19.2l1.6-1.6M17.6 6.4l1.6-1.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
       <button type="button" class="theme-toggle" onClick=${toggleTheme} title=${theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-label=${theme==="dark"?"Switch to light mode":"Switch to dark mode"}>
         ${theme==="dark"?html`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/> </svg>`:html`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.4A8.5 8.5 0 0 1 8.6 3.8 8.5 8.5 0 1 0 20.2 15.4Z" fill="currentColor"/><path d="M15.5 3.5v4m-2-2h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"/></svg>`}
       </button>
@@ -2123,7 +2131,7 @@ ${seriesTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:
 }}>Delete series</button>
 </div>`:null}
 </div>`:null}
-</div>`:html`<p>Select a brand to manage its series.</p>`}
+</div>`:html`<p class="admin-empty">Select a brand to manage its series.</p>`}
 </section>`:null}
 ${adminTab==="models"?html`<section class="admin-section">
 <h3>Models & specifications</h3><p>Choose a brand and series to add models or update their technical details.</p>
@@ -2235,7 +2243,7 @@ ${adminEdit?html`<button type="button" onClick=${function(){
 }}>Delete Model</button>`:null}
 </div>
 </div>
-`:html`<p>Select a brand and series to edit model specifications.</p>`}
+`:html`<p class="admin-empty">Select a brand and series to edit model specifications.</p>`}
 </section>`:null}
 ${adminTab==="modelTable"?html`<section class="admin-section">
 <h3>${t.modelTable}</h3>
