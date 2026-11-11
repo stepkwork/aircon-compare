@@ -2055,7 +2055,9 @@ ${featureTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color
 </section>`:null}
 ${adminTab==="series"?html`<section class="admin-section">
 <h3>Series</h3><p>Add, rename, or remove a series within a brand. Deleting a series also removes its model specifications.</p>
+<div style=${{marginBottom:"12px"}}>
 ${AdminBrandSelect({label:"Brand",value:adminBrand,onChange:function(e){setAdminBrand(e.target.value);setAdminSeries("");setAdminSeriesForm({});setAdminEdit("");setAdminForm({})}})}
+</div>
 ${adminBrand?html`<div class="collapse">
 <button type="button" class="collapse-head" aria-expanded=${seriesPanel==="add"} onClick=${function(){setSeriesPanel(seriesPanel==="add"?"":"add")}}>
 <span>Add Series</span><span class="collapse-arrow">${seriesPanel==="add"?"▴":"▾"}</span>
