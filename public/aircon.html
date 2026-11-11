@@ -517,6 +517,11 @@ input[type=checkbox]:disabled{opacity:.45}
   .spec-power{grid-template-columns:1fr}
   .spec-dimensions input{width:100%}
 }
+
+.admin-modal{position:relative}
+.admin-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.admin-close{width:36px;height:36px;border:1px solid var(--line);border-radius:50%;background:var(--surface);font-size:1.4rem;line-height:1;flex:none}
+.admin-close:hover{border-color:var(--accent);color:var(--accent)}
 </style></head><body> 
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -1957,7 +1962,7 @@ ${view==="all"?allView:cmpView}
 ${showAdmin?html`<div class="admin-overlay" onClick=${function(){setShowAdmin(false)}}>
 <div class="admin-modal" onClick=${function(e){e.stopPropagation()}} onScroll=${function(e){setAdminScrolled(e.currentTarget.scrollTop>24)}}>
 ${adminNotice?html`<div role="status" style=${{marginBottom:"12px",padding:"10px",borderRadius:"8px",background:"var(--accent-soft)",color:"var(--fg)"}}>${adminNotice}</div>`:null}
-${!adminAuth?html`<h2>Admin Login</h2>
+${!adminAuth?html`<div class="admin-head"><h2>Admin Login</h2><button type="button" class="admin-close" aria-label="Close" onClick=${function(){setShowAdmin(false)}}>×</button></div>
 <label class="font-choice-label">Font</label>
 <${AdminPicker} label="Font" value=${fontFamily} options=${window.AIRCON_FONT_OPTIONS.map(function(font){return {value:font,label:font}})} onChange=${function(nextFont){window.setAirconFont(nextFont,true);setFontFamily(nextFont)}}/>
 <label class="font-choice-label login-password-label">Password</label>
@@ -1981,8 +1986,9 @@ ${!adminAuth?html`<h2>Admin Login</h2>
 }}>Login</button>
 <button type="button" onClick=${function(){setShowAdmin(false)}}>Cancel</button>
 </div>
-`:html`<h2>${t.adminDashboard}</h2>
-<p class="admin-subtitle">Manage the comparison catalog. Every save is stored in Cloudflare.</p>
+`:html`<div class="admin-head"><div><h2>${t.adminDashboard}</h2>
+<p class="admin-subtitle">Manage the comparison catalog. Every save is stored in Cloudflare.</p></div>
+<button type="button" class="admin-close" aria-label="Close" onClick=${function(){setShowAdmin(false)}}>×</button></div>
 <div class=${"admin-tabs"+(adminScrolled?" is-scrolled":"")} role="tablist" aria-label="Catalog sections">
 <button type="button" class="admin-menu-btn" aria-label="Open sections" aria-expanded=${adminMenuOpen} onClick=${function(){setAdminMenuOpen(!adminMenuOpen)}}>☰</button>
 <div class=${"admin-tab-list"+(adminMenuOpen||!adminScrolled?"":" hidden")}>
