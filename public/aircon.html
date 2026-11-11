@@ -442,10 +442,10 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 .color-row input[type=color]{width:52px;height:44px;padding:4px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer}
 .hp-pair{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .admin-tabs{display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky}
-.admin-tabs.is-scrolled{justify-content:flex-end;position:sticky}
+.admin-tabs.is-scrolled{justify-content:flex-start;position:sticky}
 .admin-menu-btn{display:none;width:40px;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:1.1rem}
 .admin-tabs.is-scrolled .admin-menu-btn{display:inline-flex;align-items:center;justify-content:center}
-.admin-tabs.is-scrolled .admin-tab-list{display:none;position:absolute;top:54px;right:0;z-index:20;flex-direction:column;gap:6px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 12px 28px rgba(20,12,16,.16)}
+.admin-tabs.is-scrolled .admin-tab-list{display:none;position:absolute;top:54px;left:0;z-index:20;flex-direction:column;gap:6px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 12px 28px rgba(20,12,16,.16)}
 .admin-tabs.is-scrolled .admin-tab-list:not(.hidden){display:flex}
 .admin-tab-list{display:flex;gap:8px;flex-wrap:wrap}
 .spec-section-fields{grid-template-columns:1fr}
