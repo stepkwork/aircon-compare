@@ -50,7 +50,7 @@ secret. Run the schema command once for each new environment/database.
 The admin dashboard's English-to-Chinese translation for selling points and
 additional features uses the Cloudflare Workers AI binding configured in
 `wrangler.jsonc` and the `@cf/meta/m2m100-1.2b` translation model. Requests are sent only
-when an admin clicks **Translate from English** and count toward the Cloudflare
+when an admin clicks **Translate** and count toward the Cloudflare
 account's Workers AI usage.
 Once deployed, attach your existing domain to the Worker in Cloudflare if you
 want the site on that domain instead of the default `workers.dev` address. If
