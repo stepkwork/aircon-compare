@@ -323,6 +323,13 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 :root[data-theme="light"] .admin-modal button:not(.primary):not(.danger) {
   border-color: #cbd2dc;
 }
+:root[data-theme="light"] .admin-tabs button,
+:root[data-theme="light"] .admin-modal button:not(.primary):not(.danger) {
+  border-color: rgba(95, 112, 137, 0.42);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.82),
+    inset 1px 0 rgba(255, 255, 255, 0.35),
+    0 5px 16px rgba(37, 52, 78, 0.07);
+}
 :root[data-theme="light"] .admin-tabs button[aria-selected="true"],
 :root[data-theme="light"] .spec-mode button[aria-pressed="true"] {
   background: #fde8ec;
@@ -348,6 +355,14 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
   :root:not([data-theme="dark"]) .admin-modal button:not(.primary):not(.danger) {
     border-color: #cbd2dc;
   }
+  :root:not([data-theme="dark"]) .admin-tabs button,
+  :root:not([data-theme="dark"]) .admin-modal button:not(.primary):not(.danger) {
+    border-color: rgba(95, 112, 137, 0.42);
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.82),
+      inset 1px 0 rgba(255, 255, 255, 0.35),
+      0 5px 16px rgba(37, 52, 78, 0.07);
+  }
+
   :root:not([data-theme="dark"]) .admin-tabs button[aria-selected="true"],
   :root:not([data-theme="dark"]) .spec-mode button[aria-pressed="true"] {
     background: #fde8ec;
