@@ -486,11 +486,14 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 }
 
 .admin-btn{display:inline-flex;align-items:center;justify-content:center}
-.admin-btn svg{width:18px;height:18px}
-input[type=checkbox]{appearance:none;-webkit-appearance:none;width:18px;height:18px;border:1.5px solid var(--line);border-radius:4px;background:var(--surface);display:inline-grid;place-content:center;margin:0}
+.admin-btn svg{width:16px;height:16px}
+input[type=checkbox]{-webkit-appearance:none;appearance:none;box-sizing:border-box;width:20px;height:20px;min-width:20px;min-height:20px;border:1.5px solid #8b8084;border-radius:5px;background:#fff;display:inline-block;position:relative;vertical-align:middle;margin:0;flex:none}
 input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
-input[type=checkbox]:checked::after{content:"";width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
-input[type=checkbox]:disabled{opacity:.4}
+input[type=checkbox]:checked::after{content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+input[type=checkbox]:disabled{opacity:.45}
+.brand-table .brand-row .compare-col{display:flex;align-items:center;justify-content:flex-end;min-width:28px}
+:root[data-theme="dark"] input[type=checkbox]{background:#16202a;border-color:#6d6266}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) input[type=checkbox]{background:#16202a;border-color:#6d6266}}
 .admin-empty{margin:12px 0 0;color:var(--muted);font-size:.85rem}
 </style></head><body> 
 <div id="root"></div>
@@ -1921,7 +1924,7 @@ return html`<div class="wrap">
       ${hpFilter===null?t.hpAll:(hpFilter+" HP")}
     </button>
     <div class="header-utility-controls">
-      <button type="button" class="admin-btn" onClick=${function(){setShowAdmin(true)}} title="Admin" aria-label="Admin settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3v2.2M12 18.8V21M4.8 4.8l1.6 1.6M17.6 17.6l1.6 1.6M3 12h2.2M18.8 12H21M4.8 19.2l1.6-1.6M17.6 6.4l1.6-1.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <button type="button" class="admin-btn" onClick=${function(){setShowAdmin(true)}} title="Admin" aria-label="Admin settings"><svg viewBox="0 0 640 640" aria-hidden="true"><path fill="currentColor" d="M256 160C256 124.7 284.7 96 320 96C351.7 96 378 119 383.1 149.3C386 166.7 402.5 178.5 420 175.6C437.5 172.7 449.2 156.2 446.3 138.7C436.1 78.1 383.5 32 320 32C249.3 32 192 89.3 192 160L192 224C156.7 224 128 252.7 128 288L128 512C128 547.3 156.7 576 192 576L448 576C483.3 576 512 547.3 512 512L512 288C512 252.7 483.3 224 448 224L256 224L256 160z"/></svg></button>
       <button type="button" class="theme-toggle" onClick=${toggleTheme} title=${theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-label=${theme==="dark"?"Switch to light mode":"Switch to dark mode"}>
         ${theme==="dark"?html`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/> </svg>`:html`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.4A8.5 8.5 0 0 1 8.6 3.8 8.5 8.5 0 1 0 20.2 15.4Z" fill="currentColor"/><path d="M15.5 3.5v4m-2-2h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"/></svg>`}
       </button>
