@@ -2,7 +2,7 @@ import { i as __toESM } from "../_runtime.mjs";
 import { W as require_react, _ as createRootRoute, d as HeadContent, g as createFileRoute, h as lazyRouteComponent, m as Outlet, p as createRouter, u as Scripts, v as useRouter, y as require_jsx_runtime } from "../_libs/@tanstack/react-router+[...].mjs";
 import { t as TriangleAlert } from "../_libs/lucide-react.mjs";
 import { a as union, i as string, n as number, r as object, t as literal } from "../_libs/zod.mjs";
-// node_modules/.nitro/vite/services/ssr/assets/router-BaNp6ULI.js
+// node_modules/.nitro/vite/services/ssr/assets/router-BoCUrpM5.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var FALLBACK_MESSAGE = "An unexpected error occurred. Try reloading the page.";
@@ -330,7 +330,7 @@ function PreviewHostBridge() {
 	}, [router]);
 	return null;
 }
-var styles_default = "/assets/styles-CffRp31Q.css";
+var styles_default = "/assets/styles-DP7kPaXF.css";
 var APP_NAME = "Aircon Comparison";
 var Route$1 = createRootRoute({
 	head: () => ({

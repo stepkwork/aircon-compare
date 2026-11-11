@@ -305,6 +305,13 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 .cmp-scroll::after{content:"";position:absolute;inset:0 0 0 auto;width:2px;background:color-mix(in srgb,var(--fg) 55%,var(--line));pointer-events:none;z-index:5}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .card,:root:not([data-theme="light"]) .filter-panel,:root:not([data-theme="light"]) .admin-modal,:root:not([data-theme="light"]) .admin-section,:root:not([data-theme="light"]) .spec-editor{background-color:rgba(37,37,38,.84);background-image:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.012) 52%,rgba(255,255,255,.025));border-color:#3c3c3c;box-shadow:0 10px 28px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.07)}:root:not([data-theme="light"]) .lang-toggle,:root:not([data-theme="light"]) .hp-cycle,:root:not([data-theme="light"]) .opt-btn,:root:not([data-theme="light"]) .theme-toggle,:root:not([data-theme="light"]) .admin-btn,:root:not([data-theme="light"]) .chip,:root:not([data-theme="light"]) .fchip,:root:not([data-theme="light"]) .compare-mode,:root:not([data-theme="light"]) .model-select,:root:not([data-theme="light"]) .desc-drop,:root:not([data-theme="light"]) .admin-modal input,:root:not([data-theme="light"]) .admin-modal select,:root:not([data-theme="light"]) .admin-modal textarea,:root:not([data-theme="light"]) .admin-modal button:not(.primary):not(.danger){background-color:rgba(45,45,46,.82);background-image:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.012) 52%,rgba(255,255,255,.03));border-color:#454545;box-shadow:inset 0 1px rgba(255,255,255,.07),0 3px 10px rgba(0,0,0,.14)}:root:not([data-theme="light"]) .brand-table .brand-row{background:linear-gradient(145deg,rgba(48,48,49,.92),rgba(37,37,38,.84));border-color:#414141;box-shadow:0 5px 16px rgba(0,0,0,.16),inset 0 1px rgba(255,255,255,.06)}:root:not([data-theme="light"]) thead th,:root:not([data-theme="light"]) .sticky,:root:not([data-theme="light"]) thead .sticky,:root:not([data-theme="light"]) .cmp th.rl{background:rgba(45,45,46,.96)}:root:not([data-theme="light"]) tbody tr:hover td,:root:not([data-theme="light"]) tbody tr:hover th{background:rgba(55,148,255,.11)}:root:not([data-theme="light"]) .leader-cell{background:rgba(55,148,255,.16);color:#9cc8ff}:root:not([data-theme="light"]) .simple-meta{background:rgba(37,37,38,.72);border-color:#3c3c3c}:root:not([data-theme="light"]) .model-picker-shell{background-color:rgba(37,37,38,.97);background-image:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.02));border-color:#505050;box-shadow:0 16px 38px rgba(0,0,0,.42),inset 0 1px rgba(255,255,255,.09)}:root:not([data-theme="light"]) .model-picker-option[aria-selected=true]{background:rgba(55,148,255,.18);border-color:rgba(85,170,255,.72);color:#c6e2ff;box-shadow:0 2px 8px rgba(0,0,0,.16),inset 0 1px rgba(255,255,255,.08)}:root:not([data-theme="light"]) .model-picker-option:hover,:root:not([data-theme="light"]) .model-picker-option:focus-visible{background:rgba(55,148,255,.12)}:root:not([data-theme="light"]) .model-picker-option+.model-picker-option{border-top-color:rgba(180,180,180,.12)}:root:not([data-theme="light"]) .model-select{border-color:#555}:root:not([data-theme="light"]) .model-select:hover,:root:not([data-theme="light"]) .model-select[aria-expanded=true]{border-color:#3794ff;box-shadow:0 0 0 2px rgba(55,148,255,.18)}:root:not([data-theme="light"]) .model-select:focus-visible{border-color:#3794ff;box-shadow:0 0 0 3px rgba(55,148,255,.25)}:root:not([data-theme="light"]) .admin-overlay{background:rgba(0,0,0,.62)}:root:not([data-theme="light"]) .admin-modal .admin-tabs{background:rgba(37,37,38,.96)}:root:not([data-theme="light"]) .admin-modal button.danger{background:rgba(244,71,71,.1);border-color:rgba(244,71,71,.3);color:#f48771}}
 /* Keep the admin dashboard readable against its light grey surfaces. */
+:root[data-theme="light"] .admin-modal .admin-tabs {
+  background: transparent;
+  background-image: none;
+  border-bottom-color: #cbd2dc;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
 :root[data-theme="light"] .admin-modal,
 :root[data-theme="light"] .admin-section,
 :root[data-theme="light"] .spec-editor,
@@ -323,6 +330,13 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
   color: #a10f27;
 }
 @media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .admin-modal .admin-tabs {
+    background: transparent;
+    background-image: none;
+    border-bottom-color: #cbd2dc;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
   :root:not([data-theme="dark"]) .admin-modal,
   :root:not([data-theme="dark"]) .admin-section,
   :root:not([data-theme="dark"]) .spec-editor,
