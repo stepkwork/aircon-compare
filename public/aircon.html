@@ -157,11 +157,11 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0
   body{padding-block:16px calc(12px + env(safe-area-inset-bottom,0px))}
   .filter-panel{max-height:min(48dvh,420px);min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   .filter-panel>.filter-actions{position:sticky;bottom:0;margin:16px -16px -16px;padding:12px 16px 16px;background:var(--surface);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-  body:has(.brand-list-scroll){display:flex;height:100dvh;overflow:hidden}
-  body:has(.brand-list-scroll) #root{flex:1;min-height:0}
-  .wrap:has(.brand-list-scroll){height:100%;min-height:0;gap:37px}
-  .wrap:has(.brand-list-scroll) .card{display:flex;flex:1;flex-direction:column;min-height:0}
-  .brand-list-scroll{flex:1;min-height:0;overflow:auto;max-height:none;padding:4px;overscroll-behavior:contain}
+  body:has(.brand-list-scroll){display:block;height:auto;min-height:100%;overflow:visible}
+  body:has(.brand-list-scroll) #root{display:block;height:auto;min-height:0}
+  .wrap:has(.brand-list-scroll){height:auto;min-height:0;gap:10px}
+  .wrap:has(.brand-list-scroll) .card{display:block;flex:none;height:auto}
+  .brand-list-scroll{flex:none;min-height:0;overflow:visible;max-height:none;padding:4px}
   .brand-table{display:block;width:100%;min-width:0}
   .brand-table thead{display:none}
   .brand-table tbody{display:block}
