@@ -519,10 +519,13 @@ input[type=checkbox]:disabled{opacity:.45}
 }
 
 .admin-modal{position:relative}
-.admin-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.admin-close{position:sticky;top:8px;margin-left:auto;z-index:40;display:flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:#111;font-size:1.25rem;line-height:1;flex:none}
-.admin-head{position:sticky;top:0;z-index:40;background:var(--surface);padding-bottom:8px}
+.admin-head{position:sticky;top:-24px;z-index:50;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:-24px -24px 12px;padding:20px 20px 12px;background:var(--surface)}
+.admin-close{position:static;margin:0;z-index:51;display:flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:#111;flex:none}
+.admin-close svg{width:16px;height:16px;display:block}
 .admin-close:hover{border-color:#111;color:#111}
+@media(max-width:600px){
+  .admin-head{top:-16px;margin:-16px -16px 12px;padding:16px 16px 12px}
+}
 </style></head><body> 
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -1963,7 +1966,7 @@ ${view==="all"?allView:cmpView}
 ${showAdmin?html`<div class="admin-overlay" onClick=${function(){setShowAdmin(false)}}>
 <div class="admin-modal" onClick=${function(e){e.stopPropagation()}} onScroll=${function(e){setAdminScrolled(e.currentTarget.scrollTop>24)}}>
 ${adminNotice?html`<div role="status" style=${{marginBottom:"12px",padding:"10px",borderRadius:"8px",background:"var(--accent-soft)",color:"var(--fg)"}}>${adminNotice}</div>`:null}
-${!adminAuth?html`<div class="admin-head"><h2>Admin Login</h2><button type="button" class="admin-close" aria-label="Close" onClick=${function(){setShowAdmin(false)}}>×</button></div>
+${!adminAuth?html`<div class="admin-head"><h2>Admin Login</h2><button type="button" class="admin-close" aria-label="Close" onClick=${function(){setShowAdmin(false)}}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
 <label class="font-choice-label">Font</label>
 <${AdminPicker} label="Font" value=${fontFamily} options=${window.AIRCON_FONT_OPTIONS.map(function(font){return {value:font,label:font}})} onChange=${function(nextFont){window.setAirconFont(nextFont,true);setFontFamily(nextFont)}}/>
 <label class="font-choice-label login-password-label">Password</label>
@@ -1989,7 +1992,7 @@ ${!adminAuth?html`<div class="admin-head"><h2>Admin Login</h2><button type="butt
 </div>
 `:html`<div class="admin-head"><div><h2>${t.adminDashboard}</h2>
 <p class="admin-subtitle">Manage the comparison catalog. Every save is stored in Cloudflare.</p></div>
-<button type="button" class="admin-close" aria-label="Close" onClick=${function(){setShowAdmin(false)}}>×</button></div>
+<button type="button" class="admin-close" aria-label="Close" onClick=${function(){setShowAdmin(false)}}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
 <div class=${"admin-tabs"+(adminScrolled?" is-scrolled":"")} role="tablist" aria-label="Catalog sections">
 <button type="button" class="admin-menu-btn" aria-label="Open sections" aria-expanded=${adminMenuOpen} onClick=${function(){setAdminMenuOpen(!adminMenuOpen)}}>☰</button>
 <div class=${"admin-tab-list"+(adminMenuOpen||!adminScrolled?"":" hidden")}>
