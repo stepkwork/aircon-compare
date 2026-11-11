@@ -457,7 +457,8 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 .table-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:999px}
 .model-admin-table{min-width:1100px}
 
-.all-view-toolbar{margin-top:10px}
+.all-view{display:flex;flex-direction:column;gap:8px}
+.all-view-toolbar{margin-top:0}
 .color-row{align-items:stretch}
 .color-row input:not([type=color]){height:44px}
 .color-row input[type=color]{width:52px;height:44px;padding:3px;box-sizing:border-box}
@@ -478,9 +479,8 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 .login-password-label{margin-top:14px}
 .admin-modal .model-select{margin-bottom:0}
 @media(max-width:600px){
-  .wrap{gap:10px}
-  .all-view-toolbar{margin-top:6px}
-  .bar{margin-bottom:0}
+  .wrap{gap:8px}
+  .all-view{gap:8px}
 }
 </style></head><body> 
 <div id="root"></div>
@@ -1798,7 +1798,7 @@ var filterPanel=filterOpen?html`<div class="filter-panel">
   </div>
 </div>`:null;
 
-var allView=html`
+var allView=html`<div class="all-view">
 <div class="bar">
 <input type="search" placeholder=${t.search} value=${q} onInput=${function(e){setQ(e.target.value)}} aria-label=${t.search}/>
 <button type="button" class="opt-btn" aria-pressed=${filterOpen} onClick=${function(){setFilterOpen(!filterOpen)}}>${t.options}</button>
@@ -1834,6 +1834,7 @@ ${showModels?html`<td data-label=${t.models}>${ModelDropdown(d)}</td>`:null}
 <button type="button" class="btn-compare" disabled=${!sel.length} onClick=${function(){setView("cmp")}}>
 ${t.compareSelected(sel.length)}
 </button>
+</div>
 </div>`;
 
 var simpleRows=[
