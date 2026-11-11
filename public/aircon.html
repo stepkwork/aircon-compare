@@ -403,6 +403,19 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 .model-picker-option+.model-picker-option{border-top-color:transparent}
 .model-picker-option:hover,.model-picker-option:focus-visible{background:var(--accent-soft)!important;color:var(--accent)!important;border-color:var(--accent)!important;outline:none}
 .model-picker-option[aria-selected=true]{background:var(--accent-soft)!important;color:var(--accent)!important;border-color:var(--accent)!important;font-weight:600;box-shadow:none}
+
+.admin-fields{margin-top:18px}
+.admin-add-model{display:flex;gap:10px;align-items:center;margin-top:12px}
+.admin-add-model input{flex:1;min-width:0;margin:0;height:44px}
+.admin-add-model .model-select-wrap{flex:0 0 128px;width:128px;min-width:128px}
+.admin-add-model .model-select{height:44px}
+.admin-add-model button{flex:0 0 auto;height:44px;min-width:110px;margin:0;white-space:nowrap}
+.spec-input-group{gap:10px;align-items:center}
+.spec-input-group input{flex:1;min-width:0;border-radius:10px!important;height:44px}
+.spec-input-group .model-select-wrap{flex:0 0 120px;width:120px;min-width:120px}
+.spec-input-group .model-select{height:44px;border-radius:10px!important}
+.spec-dimensions{gap:10px}
+.spec-dimensions .model-select-wrap{min-width:88px;width:88px}
 </style></head><body> 
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -1954,8 +1967,18 @@ ${seriesTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:
   setAdminSeries(name);setAdminEdit("");setAdminForm({});setAdminSeriesForm(series?Object.assign({},series):{});
 }}/>
 ${adminSeries?html`<div class="admin-fields">
-<div><label class="admin-field">Series name (English)</label><input value=${adminSeriesForm.nEn||""} onInput=${function(e){setAdminSeriesForm(Object.assign({},adminSeriesForm,{nEn:e.target.value}))}} /></div>
-<div><label class="admin-field">Series name (Chinese)</label><input value=${adminSeriesForm.nCn||""} onInput=${function(e){setAdminSeriesForm(Object.assign({},adminSeriesForm,{nCn:e.target.value}))}} /></div>
+<div>
+<label class="admin-field">Series name (English)</label>
+<input value=${adminSeriesForm.nEn||""} onInput=${function(e){setAdminSeriesForm(Object.assign({},adminSeriesForm,{nEn:e.target.value}));setSeriesTranslateMessage("")}} />
+</div>
+<div>
+<label class="admin-field">Series name (Chinese)</label>
+<input value=${adminSeriesForm.nCn||""} onInput=${function(e){setAdminSeriesForm(Object.assign({},adminSeriesForm,{nCn:e.target.value}));setSeriesTranslateMessage("")}} />
+<div class="row">
+<button type="button" disabled=${translatingSeries||!(adminSeriesForm.nEn||"").trim()} onClick=${function(){translateSeriesName(adminSeriesForm.nEn,function(value){setAdminSeriesForm(Object.assign({},adminSeriesForm,{nCn:value}))})}}>${translatingSeries?"Translating…":"Translate"}</button>
+</div>
+${seriesTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:"var(--muted)",fontSize:".8rem"}}>${seriesTranslateMessage}</p>`:null}
+</div>
 </div>
 <div class="row">
 <button type="button" class="primary" onClick=${function(){
@@ -1991,8 +2014,8 @@ ${adminBrand?html`<div style=${{marginBottom:"12px"}}>
 ${adminBrand&&adminSeries?html`<div style=${{marginBottom:"12px"}}>
 <label style=${{fontSize:".8rem",color:"var(--muted)"}}>Model</label>
 <${AdminPicker} label="Model" value=${adminEdit||""} options=${[{value:"",label:"— Select model —"}].concat(allModelCodes().filter(function(m){return m.brand===adminBrand&&m.series===adminSeries}).map(function(m){return {value:m.code,label:m.hp+"HP · "+m.code+(SPECDATA[m.code]?" ✓":"")}}))} onChange=${function(k){setAdminEdit(k);var model=allModelCodes().find(function(item){return item.code===k});setAdminForm(k?prepareSpecForm(SPECDATA[k],k,model):{});setPriceInput(k?(prepareSpecForm(SPECDATA[k],k,model)._displayPrice||""):"");setSpecErrors({});}}/>
-<div style=${{display:"flex",gap:"8px",marginTop:"6px"}}>
-<input placeholder="New model code" value=${adminNewModel} onInput=${function(e){setAdminNewModel(e.target.value)}} style=${{flex:1}} />
+<div class="admin-add-model">
+<input placeholder="New model code" value=${adminNewModel} onInput=${function(e){setAdminNewModel(e.target.value)}} />
 <${AdminPicker} label="HP" value=${adminNewHp} options=${["0.75","1.0","1.5","2.0","2.5","3.0"].map(function(h){return {value:h,label:h+"HP"}})} onChange=${setAdminNewHp}/>
 <button type="button" onClick=${function(){
   var code=(adminNewModel||"").trim();
