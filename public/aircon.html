@@ -1910,13 +1910,21 @@ ${featureTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color
 ${adminTab==="series"?html`<section class="admin-section">
 <h3>Series</h3><p>Add, rename, or remove a series within a brand. Deleting a series also removes its model specifications.</p>
 ${AdminBrandSelect({label:"Brand",value:adminBrand,onChange:function(e){setAdminBrand(e.target.value);setAdminSeries("");setAdminSeriesForm({});setAdminEdit("");setAdminForm({})}})}
-${adminBrand?html`<label class="admin-field">Add a series (English and Chinese names)</label>
-<div class="row">
+${adminBrand?html`<div class="admin-fields">
 <div>
+<label class="admin-field">Series name (English)</label>
 <input placeholder="Series name (English)" value=${adminNewSeries} onInput=${function(e){setAdminNewSeries(e.target.value);setSeriesTranslateMessage("")}} />
-<button type="button" disabled=${translatingSeries||!adminNewSeries.trim()} onClick=${function(){translateSeriesName(adminNewSeries,setAdminNewSeriesCn)}}>${translatingSeries?"Translating…":"Translate to Chinese"}</button>
 </div>
-<input placeholder="Series name (Chinese)" value=${adminNewSeriesCn} onInput=${function(e){setAdminNewSeriesCn(e.target.value)}} />
+<div>
+<label class="admin-field">Series name (Chinese)</label>
+<input placeholder="Series name (Chinese)" value=${adminNewSeriesCn} onInput=${function(e){setAdminNewSeriesCn(e.target.value);setSeriesTranslateMessage("")}} />
+<div class="row">
+<button type="button" disabled=${translatingSeries||!adminNewSeries.trim()} onClick=${function(){translateSeriesName(adminNewSeries,setAdminNewSeriesCn)}}>${translatingSeries?"Translating…":"Translate"}</button>
+</div>
+${seriesTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:"var(--muted)",fontSize:".8rem"}}>${seriesTranslateMessage}</p>`:null}
+</div>
+</div>
+<div class="row">
 <button type="button" class="primary" onClick=${function(){
   var name=(adminNewSeries||"").trim(),nameCn=(adminNewSeriesCn||"").trim()||name;
   if(!name){alert("Series name required");return;}
