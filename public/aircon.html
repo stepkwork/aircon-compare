@@ -40,7 +40,7 @@ input{font:inherit;color:var(--fg);background:var(--surface);border:1px solid va
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .scroll{overflow:auto;max-width:100%;max-height:78vh}
 table{border-collapse:separate;border-spacing:0;width:100%;min-width:640px;font-size:.9rem}
-th,td{padding:11px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th,td{padding:16px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
 .brand-table .compare-col{width:48px;min-width:48px;max-width:48px;padding:8px 10px;text-align:center;white-space:nowrap}
 thead th{position:sticky;top:0;z-index:3;background:var(--hdr);font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;white-space:nowrap}
 tbody tr:hover td,tbody tr:hover th{background:var(--accent-soft)}
@@ -474,6 +474,14 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 .spec-dimensions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 96px;align-items:end;gap:8px}
 .spec-dimensions .model-select-wrap{align-self:end;width:96px;min-width:96px}
 .spec-savebar{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+
+.login-password-label{margin-top:14px}
+.admin-modal .model-select{margin-bottom:0}
+@media(max-width:600px){
+  .wrap{gap:10px}
+  .all-view-toolbar{margin-top:6px}
+  .bar{margin-bottom:0}
+}
 </style></head><body> 
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -1914,8 +1922,9 @@ ${showAdmin?html`<div class="admin-overlay" onClick=${function(){setShowAdmin(fa
 <div class="admin-modal" onClick=${function(e){e.stopPropagation()}} onScroll=${function(e){setAdminScrolled(e.currentTarget.scrollTop>24)}}>
 ${adminNotice?html`<div role="status" style=${{marginBottom:"12px",padding:"10px",borderRadius:"8px",background:"var(--accent-soft)",color:"var(--fg)"}}>${adminNotice}</div>`:null}
 ${!adminAuth?html`<h2>Admin Login</h2>
-<label class="font-choice-label" for="admin-font-choice">Preview page font</label>
+<label class="font-choice-label">Font</label>
 <${AdminPicker} label="Font" value=${fontFamily} options=${window.AIRCON_FONT_OPTIONS.map(function(font){return {value:font,label:font}})} onChange=${function(nextFont){window.setAirconFont(nextFont,true);setFontFamily(nextFont)}}/>
+<label class="font-choice-label login-password-label">Password</label>
 <input type="password" placeholder="Password" value=${adminPw} onInput=${function(e){setAdminPw(e.target.value)}} />
 <div class="row" style=${{marginTop:"8px"}}>
 <button type="button" class="primary" onClick=${async function(){
