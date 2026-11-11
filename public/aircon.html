@@ -495,6 +495,19 @@ input[type=checkbox]:disabled{opacity:.45}
 :root[data-theme="dark"] input[type=checkbox]{background:#16202a;border-color:#6d6266}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) input[type=checkbox]{background:#16202a;border-color:#6d6266}}
 .admin-empty{margin:12px 0 0;color:var(--muted);font-size:.85rem}
+
+@media(max-width:600px){
+  :root[data-theme="dark"] .admin-tabs button[aria-selected=true]{background:#8ec5ff;border-color:#8ec5ff;color:#102033}
+  .admin-add-model{flex-wrap:wrap}
+  .admin-add-model input{flex:1 1 100%;width:100%}
+  .admin-add-model .model-select-wrap,.admin-add-model button{flex:1 1 0;width:auto;min-width:0}
+  .spec-input-group{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+  .spec-input-group input,.spec-input-group .model-select-wrap{width:100%;min-width:0;flex:none}
+  .spec-input-group input{border-radius:10px!important}
+}
+@media(max-width:600px) and (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .admin-tabs button[aria-selected=true]{background:#8ec5ff;border-color:#8ec5ff;color:#102033}
+}
 </style></head><body> 
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
