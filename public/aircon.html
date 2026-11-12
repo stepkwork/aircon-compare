@@ -2219,7 +2219,7 @@ ${(specEditorMode==="simple"?[{title:"Model",fields:[specField("code","Indoor mo
   var code=(adminForm.code||"").trim(),errors={};
   if(!code)errors.code="Indoor model is required.";
   if(!adminForm.hp)errors.hp="Horsepower is required.";
-  if(adminForm.stars!==undefined&&adminForm.stars!=="&&(!Number.isInteger(Number(adminForm.stars))||Number(adminForm.stars)<1||Number(adminForm.stars)>5))errors.stars="Enter a rating from 1 to 5 stars.";
+  if(adminForm.stars!==undefined&&String(adminForm.stars).length>0&&(!Number.isInteger(Number(adminForm.stars))||Number(adminForm.stars)<1||Number(adminForm.stars)>5))errors.stars="Enter a rating from 1 to 5 stars.";
   ["cap","input","current","airflow","iwt","inoise","owt","onoise","cspf","price","frequency"].forEach(function(key){if(adminForm[key]!==undefined&&adminForm[key]!==""&&(!Number.isFinite(Number(adminForm[key]))||Number(adminForm[key])<0))errors[key]="Enter a valid number of 0 or more."});
   ["idim","odim"].forEach(function(key){var parts=(adminForm[key]||"").split(/[x×]/);if(parts.some(function(part){return part!==""&&(!Number.isFinite(Number(part))||Number(part)<0)}))errors[key]="Dimensions must be non-negative numbers."});
   if(Object.keys(errors).length){setSpecErrors(errors);var firstError=Object.keys(errors)[0],firstControl=document.getElementById("spec-"+firstError);if(firstControl)firstControl.focus();return;}
