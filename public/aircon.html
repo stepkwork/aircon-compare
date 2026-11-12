@@ -1752,8 +1752,9 @@ function prepareSpecForm(spec,code,model){
   if(hasPersistedPrice)d._displayPrice=String(d.price);
   if(d.priceCurrency){d.priceUnit=d.priceCurrency}
   function numericText(value,scale){var parsed=parseFloat(value);return Number.isFinite(parsed)?String(parsed*(scale||1)):''}
-  d.cap=numericText(d.cap);if(d.input!=null&&!d.inputUnit){d.input=numericText(d.input,0.001);d.inputUnit='kW'}else if(d.input!=null)d.input=numericText(d.input);
-  d.current=numericText(d.current);if(!d.airflow&&d.iaf)d.airflow=numericText(d.iaf);d.inoise=numericText(d.inoise);d.onoise=numericText(d.onoise);d.iwt=numericText(d.iwt);d.owt=numericText(d.owt);d.cspf=numericText(d.cspf);
+  function specText(value,scale){if(value==null||value==='')return '';var raw=String(value).trim();return raw!==''&&Number.isFinite(Number(raw))?String(Number(raw)*(scale||1)):String(value)}
+  d.cap=specText(d.cap);if(d.input!=null&&!d.inputUnit){d.input=specText(d.input,0.001);d.inputUnit='kW'}else if(d.input!=null)d.input=specText(d.input);
+  d.current=specText(d.current);if(!d.airflow&&d.iaf)d.airflow=specText(d.iaf);d.inoise=specText(d.inoise);d.onoise=specText(d.onoise);d.iwt=specText(d.iwt);d.owt=specText(d.owt);d.cspf=specText(d.cspf);
   if(!hasPersistedPrice&&d.priceRange&&/^(budget|mid|premium)$/.test(d.priceRange)){d.price='';d._displayPrice=''}else if(!hasPersistedPrice&&d.priceRange){d._priceNeedsParse=true;d.price=numericText(d.priceRange.replace(/[^0-9.]/g,''))}
   if(!Array.isArray(d.features)){d.features=[];if(d.wifi===true)d.features.push('Wi-Fi');if(d.selfCleaning===true)d.features.push('Self-cleaning');if(d.airPurification===true)d.features.push('Air purification')}
   if(!hasPersistedPrice&&d.priceRange&&!/^(budget|mid|premium)$/.test(d.priceRange)){var savedPrice=d.priceRange.match(/^(RM|SGD|USD)\s+([\d.]+)$/);if(savedPrice){d.priceCurrency=savedPrice[1];d.priceUnit=savedPrice[1];d.price=savedPrice[2];d._displayPrice=savedPrice[2];d._priceNeedsParse=true }}
@@ -2218,12 +2219,11 @@ ${(specEditorMode==="simple"?[{title:"Model",fields:[specField("code","Indoor mo
   if(!code)errors.code="Indoor model is required.";
   if(!adminForm.hp)errors.hp="Horsepower is required.";
   if(adminForm.stars!==undefined&&String(adminForm.stars).length>0&&(!Number.isInteger(Number(adminForm.stars))||Number(adminForm.stars)<1||Number(adminForm.stars)>5))errors.stars="Enter a rating from 1 to 5 stars.";
-  ["cap","input","current","airflow","iwt","inoise","owt","onoise","cspf","price","frequency"].forEach(function(key){if(adminForm[key]!==undefined&&adminForm[key]!==""&&(!Number.isFinite(Number(adminForm[key]))||Number(adminForm[key])<0))errors[key]="Enter a valid number of 0 or more."});
   ["idim","odim"].forEach(function(key){var parts=(adminForm[key]||"").split(/[x×]/);if(parts.some(function(part){return part!==""&&(!Number.isFinite(Number(part))||Number(part)<0)}))errors[key]="Dimensions must be non-negative numbers."});
   if(Object.keys(errors).length){setSpecErrors(errors);var firstError=Object.keys(errors)[0],firstControl=document.getElementById("spec-"+firstError);if(firstControl)firstControl.focus();return;}
   setSpecErrors({});
   var savedForm=Object.assign({},adminForm);
-  function convert(key,unitKey,factors,defaultUnit){if(savedForm[key]!==undefined&&savedForm[key]!==""){var n=Number(savedForm[key]),unit=savedForm[unitKey]||defaultUnit;savedForm[key]=String(n*(factors[unit]||1));}savedForm[unitKey]=defaultUnit;}
+  function convert(key,unitKey,factors,defaultUnit){if(savedForm[key]!==undefined&&savedForm[key]!==""){var raw=String(savedForm[key]).trim(),n=Number(raw),unit=savedForm[unitKey]||defaultUnit;if(raw!==""&&Number.isFinite(n))savedForm[key]=String(n*(factors[unit]||1));else savedForm[key]=String(savedForm[key]);}savedForm[unitKey]=defaultUnit;}
   ["cap","input","iwt","owt","airflow"].forEach(function(key){savedForm[key+"SelectedUnit"]=savedForm[key+"Unit"]||({cap:"BTU/hr",input:"kW",iwt:"kg",owt:"kg",airflow:"m³/h"}[key])});
   ["cap","input","iwt","owt","airflow"].forEach(function(key){if(savedForm[key+"Unit"]===undefined)savedForm[key+"Unit"]={cap:"BTU/hr",input:"kW",iwt:"kg",owt:"kg",airflow:"m³/h"}[key]});
   convert("cap","capUnit",{"BTU/hr":1,"kW":3412.142,"HP":9000},"BTU/hr");convert("input","inputUnit",{kW:1,W:.001},"kW");convert("iwt","iwtUnit",{kg:1,lb:.45359237},"kg");convert("owt","owtUnit",{kg:1,lb:.45359237},"kg");convert("airflow","airflowUnit",{"m³/h":1,"L/s":3.6,CFM:1.69901},"m³/h");
