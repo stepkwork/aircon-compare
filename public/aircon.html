@@ -55,7 +55,7 @@ tbody th{font-weight:700}
 .simple-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 14px;color:var(--muted);font-size:.8rem}
 .leader-key{display:inline-flex;align-items:center;gap:7px}.leader-key i{width:12px;height:12px;border-radius:3px;background:var(--leader-bg);border:1px solid var(--leader-fg)}
 .compare-mode{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
-.compare-mode .chip{border:0}.simple-status{white-space:nowrap}.simple-status.muted{color:var(--muted);font-weight:400}
+.compare-mode .chip{border:0}.simple-status{white-space:normal;overflow-wrap:break-word;word-break:break-word}.simple-status.muted{color:var(--muted);font-weight:400}
 .comparison-toolbar{display:flex;align-items:center;gap:8px}
 .comparison-toolbar-controls{display:flex;flex:1;min-width:0;flex-direction:row;align-items:center;justify-content:flex-end;gap:8px}
 .comparison-toolbar .compare-mode{justify-content:center}
@@ -491,7 +491,8 @@ input[type=checkbox]{-webkit-appearance:none;appearance:none;box-sizing:border-b
 input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
 input[type=checkbox]:checked::after{content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
 input[type=checkbox]:disabled{opacity:.45}
-.brand-table .brand-row .compare-col{display:flex;align-items:center;justify-content:flex-end;min-width:28px}
+.brand-table .brand-row .compare-col{vertical-align:middle;text-align:center;min-width:28px}
+@media(max-width:600px){.brand-table .brand-row .compare-col{display:flex;align-items:center;justify-content:flex-end}}
 :root[data-theme="dark"] input[type=checkbox]{background:#16202a;border-color:#6d6266}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) input[type=checkbox]{background:#16202a;border-color:#6d6266}}
 .admin-empty{margin:12px 0 0;color:var(--muted);font-size:.85rem}
