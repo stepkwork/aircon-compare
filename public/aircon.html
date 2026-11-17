@@ -1789,6 +1789,11 @@ function prepareSpecForm(spec,code,model){
   if(d.power&&!d.voltage){var voltageMatch=d.power.match(/(\d{3}(?:-\d{3})?)/);if(voltageMatch)d.voltage=voltageMatch[1];var frequencyMatch=d.power.match(/(50|60)\s*Hz/i);if(frequencyMatch)d.frequency=frequencyMatch[1]}
   d.priceUnit=d.priceCurrency||'RM';d.frequency=d.frequency||'50';return d;
 }
+function adminSeriesOptions(){
+  var list=((modelsData[adminBrand]&&modelsData[adminBrand].series)||[]).map(function(s){return s.nEn});
+  list.sort(function(a,b){return String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:"base"})});
+  return [{value:"",label:"— Select series —"}].concat(list.map(function(name){return {value:name,label:name}}));
+}
 function copySpecChoices(){
   var rank=function(m){return m.brand===adminBrand&&m.series===adminSeries?0:(m.brand===adminBrand?1:2)};
   var list=allModelCodes().filter(function(m){return m.code!==adminEdit&&SPECDATA[m.code]});
@@ -2174,7 +2179,7 @@ ${seriesTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:
 </button>
 ${seriesPanel==="edit"?html`<div class="collapse-body">
 <label class="admin-field">Choose a series to edit</label>
-<${AdminPicker} label="Choose a series to edit" value=${adminSeries||""} options=${[{value:"",label:"— Select series —"}].concat((modelsData[adminBrand]&&modelsData[adminBrand].series||[]).map(function(s){return {value:s.nEn,label:s.nEn}}))} onChange=${function(name){
+<${AdminPicker} label="Choose a series to edit" value=${adminSeries||""} options=${adminSeriesOptions()} onChange=${function(name){
   var series=(modelsData[adminBrand]&&modelsData[adminBrand].series||[]).find(function(s){return s.nEn===name});
   setAdminSeries(name);setAdminEdit("");setAdminForm({});setAdminSeriesForm(series?Object.assign({},series):{});
 }}/>
@@ -2223,7 +2228,7 @@ ${AdminBrandSelect({label:"Brand",value:adminBrand,onChange:function(e){setAdmin
 </div>
 ${adminBrand?html`<div style=${{marginBottom:"12px"}}>
 <label style=${{fontSize:".8rem",color:"var(--muted)"}}>Series</label>
-<${AdminPicker} label="Series" value=${adminSeries||""} options=${[{value:"",label:"— Select series —"}].concat((modelsData[adminBrand]&&modelsData[adminBrand].series||[]).map(function(s){return {value:s.nEn,label:s.nEn}}))} onChange=${function(value){setAdminSeries(value);setAdminEdit("");setAdminForm({});setSpecErrors({});setPriceInput("");}}/>
+<${AdminPicker} label="Series" value=${adminSeries||""} options=${adminSeriesOptions()} onChange=${function(value){setAdminSeries(value);setAdminEdit("");setAdminForm({});setSpecErrors({});setPriceInput("");}}/>
 </div>`:null}
 ${adminBrand&&adminSeries?html`<div style=${{marginBottom:"12px"}}>
 <label style=${{fontSize:".8rem",color:"var(--muted)"}}>Model</label>
