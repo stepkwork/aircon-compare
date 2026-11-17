@@ -2246,7 +2246,7 @@ ${seriesTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:
 </div>`:null}
 </div>`:html`<p class="admin-empty">Select a brand to manage its series.</p>`}
 </section>`:null}
-${adminTab==="models"?html`<section class="admin-section">
+${adminTab==="models"?html`<section class="admin-section" id="admin-models-section">
 <h3>Models & specifications</h3><p>Choose a brand and series to add models or update their technical details.</p>
 <div style=${{marginBottom:"12px"}}>
 ${AdminBrandSelect({label:"Brand",value:adminBrand,onChange:function(e){setAdminBrand(e.target.value);setAdminSeries("");setAdminEdit("");setAdminForm({});setSpecErrors({});setPriceInput("");}})}
@@ -2328,10 +2328,15 @@ ${(specEditorMode==="simple"?[{title:"Model",fields:[specField("code","Indoor mo
   SPECDATA=nextSpecs;
   setSpecData(nextSpecs);
   commitModels(nextModels);
-  var modalEl=document.querySelector(".admin-modal"),keepTop=modalEl?modalEl.scrollTop:0;
-  var reloaded=prepareSpecForm(nextSpecs[code],code,{out:(adminForm.outModel||"").trim(),hp:Number(adminForm.hp)});
-  setAdminEdit(code);setAdminForm(reloaded);setPriceInput(reloaded._displayPrice||"");setSpecErrors({});
-  if(modalEl)window.requestAnimationFrame(function(){modalEl.scrollTop=keepTop});
+  setAdminForm({});setSpecErrors({});setAdminEdit("");
+  window.requestAnimationFrame(function(){
+    var modalEl=document.querySelector(".admin-modal"),sec=document.getElementById("admin-models-section");
+    if(!modalEl||!sec)return;
+    var bar=modalEl.querySelector(".admin-tabs"),barH=bar?bar.getBoundingClientRect().height:0;
+    var top=sec.getBoundingClientRect().top-modalEl.getBoundingClientRect().top+modalEl.scrollTop-barH-8;
+    var calm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    modalEl.scrollTo({top:Math.max(0,top),behavior:calm?"auto":"smooth"});
+  });
   persistAdminData(brandsData,nextModels,nextSpecs).then(function(){
     alert("Saved to Cloudflare: "+code);
   }).catch(function(err){
