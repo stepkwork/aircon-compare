@@ -1328,6 +1328,16 @@ useEffect(function(){
   return function(){window.removeEventListener("scroll",onScroll);document.removeEventListener("scroll",onScroll,true)};
 },[]);
 useEffect(function(){setShowBackTop(furthestScroll()>300)});
+function scrollToModelsSection(){
+  window.requestAnimationFrame(function(){
+    var modalEl=document.querySelector(".admin-modal"),sec=document.getElementById("admin-models-section");
+    if(!modalEl||!sec)return;
+    var bar=modalEl.querySelector(".admin-tabs"),barH=bar?bar.getBoundingClientRect().height:0;
+    var top=sec.getBoundingClientRect().top-modalEl.getBoundingClientRect().top+modalEl.scrollTop-barH-8;
+    var calm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    modalEl.scrollTo({top:Math.max(0,top),behavior:calm?"auto":"smooth"});
+  });
+}
 function scrollToTop(){
   var calm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,mode=calm?"auto":"smooth";
   document.querySelectorAll(".scroll").forEach(function(el){if(el.scrollTop>0)el.scrollTo({top:0,behavior:mode})});
@@ -2329,14 +2339,7 @@ ${(specEditorMode==="simple"?[{title:"Model",fields:[specField("code","Indoor mo
   setSpecData(nextSpecs);
   commitModels(nextModels);
   setAdminForm({});setSpecErrors({});setAdminEdit("");
-  window.requestAnimationFrame(function(){
-    var modalEl=document.querySelector(".admin-modal"),sec=document.getElementById("admin-models-section");
-    if(!modalEl||!sec)return;
-    var bar=modalEl.querySelector(".admin-tabs"),barH=bar?bar.getBoundingClientRect().height:0;
-    var top=sec.getBoundingClientRect().top-modalEl.getBoundingClientRect().top+modalEl.scrollTop-barH-8;
-    var calm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    modalEl.scrollTo({top:Math.max(0,top),behavior:calm?"auto":"smooth"});
-  });
+  scrollToModelsSection();
   persistAdminData(brandsData,nextModels,nextSpecs).then(function(){
     alert("Saved to Cloudflare: "+code);
   }).catch(function(err){
@@ -2355,7 +2358,8 @@ ${adminEdit?html`<button type="button" onClick=${function(){
     setPriceInput("");setSpecErrors({});
     SPECDATA=nextSpecs;setSpecData(nextSpecs);
     commitModels(next);
-    setAdminForm({});setAdminEdit("");setAdminSeries("");setAdminBrand("");
+    setAdminForm({});setAdminEdit("");
+    scrollToModelsSection();
     persistAdminData(brandsData,next,nextSpecs).then(function(){
       alert("Deleted and saved to Cloudflare");
     }).catch(function(err){
