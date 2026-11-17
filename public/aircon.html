@@ -14,6 +14,11 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 var(--font);padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
 .wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.back-top{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;width:46px;height:46px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid color-mix(in srgb,var(--fg) 20%,transparent);background:color-mix(in srgb,var(--bg) 90%,transparent);color:var(--fg);box-shadow:0 8px 24px rgba(0,0,0,.2);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);cursor:pointer;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .2s,transform .2s,visibility .2s,border-color .15s,color .15s}
+.back-top.show{opacity:1;visibility:visible;transform:none}
+.back-top:hover{border-color:var(--accent);color:var(--accent)}
+.back-top:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.back-top{transition:none}}
 .header-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
 .header-text{flex:1;min-width:200px}
 .brand-logo{display:block;width:clamp(128px,38vw,164px);height:auto;max-height:none;object-fit:contain;object-position:left center;margin:0 0 3px}
@@ -1309,6 +1314,16 @@ var adminNewModelState=useState(""),adminNewModel=adminNewModelState[0],setAdmin
 var adminNewHpState=useState("1.0"),adminNewHp=adminNewHpState[0],setAdminNewHp=adminNewHpState[1];
 var copySourceState=useState(""),copySource=copySourceState[0],setCopySource=copySourceState[1];
 var copyNoteState=useState(""),copyNote=copyNoteState[0],setCopyNote=copyNoteState[1];
+var backTopState=useState(false),showBackTop=backTopState[0],setShowBackTop=backTopState[1];
+useEffect(function(){
+  var onScroll=function(){setShowBackTop(window.scrollY>300)};
+  onScroll();window.addEventListener("scroll",onScroll,{passive:true});
+  return function(){window.removeEventListener("scroll",onScroll)};
+},[]);
+function scrollToTop(){
+  var calm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.scrollTo({top:0,behavior:calm?"auto":"smooth"});
+}
 var adminNewBrandState=useState(""),adminNewBrand=adminNewBrandState[0],setAdminNewBrand=adminNewBrandState[1];
 var adminNewSeriesCnState=useState(""),adminNewSeriesCn=adminNewSeriesCnState[0],setAdminNewSeriesCn=adminNewSeriesCnState[1];
 var adminBrandFormState=useState({}),adminBrandForm=adminBrandFormState[0],setAdminBrandForm=adminBrandFormState[1];
@@ -1986,6 +2001,7 @@ ${brandsData.map(function(d){
 ${chosen.length?(compareMode==="simple"?simpleView:detailedView):html`<div class="card"><div class="empty">${t.pickBrands}</div></div>`}`;
 
 return html`<div class="wrap">
+<button type="button" class=${"back-top"+(showBackTop?" show":"")} aria-label="Back to top" title="Back to top" tabindex=${showBackTop?0:-1} onClick=${scrollToTop}><svg viewBox="0 0 24 24" aria-hidden="true" width="20" height="20"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4"/></svg></button>
 <div class="header-row">
   <div class="header-text">
     <img class="brand-logo" src="toshiba-logo.png" alt="Toshiba" width="1241" height="235" />
