@@ -2291,10 +2291,10 @@ ${adminBrand&&adminSeries?html`<div style=${{marginBottom:"12px"}}>
 }}>Add Model</button>
 </div>
 </div>`:null}
-${adminBrand&&adminSeries?html`<h3>Model specifications</h3>
+${adminBrand&&adminSeries?html`<h3>Modification Breakdown</h3>
 <div class="spec-editor">
 <div class="spec-editor-head">
-  <div><h4>Model specification details</h4><p class="spec-mode-help">Simple keeps the core model details handy; Detailed includes electrical, unit, and warranty specifications.</p></div>
+  <div><h4>Details</h4><p class="spec-mode-help">Simple keeps the core model details handy; Detailed includes electrical, unit, and warranty specifications.</p></div>
   <div class="spec-mode" role="group" aria-label="Specification editor mode">
     <button type="button" aria-pressed=${specEditorMode==="simple"} onClick=${function(){setSpecEditorMode("simple")}}>${t.simpleEditor}</button>
     <button type="button" aria-pressed=${specEditorMode==="detailed"} onClick=${function(){setSpecEditorMode("detailed")}}>${t.detailedEditor}</button>
