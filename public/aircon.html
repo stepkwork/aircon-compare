@@ -398,7 +398,7 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 }
 /* Structured model specification form */
 .spec-editor{padding:20px;background:var(--hdr);border-radius:18px}
-.spec-editor-head{margin-bottom:18px}
+.spec-editor-head{margin-bottom:6px}
 .spec-form-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
 .spec-section{min-width:0;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:0 5px 18px rgba(32,24,28,.045)}
 .spec-section h5{margin:0 0 14px;font-size:.78rem;text-transform:uppercase;letter-spacing:.075em;color:var(--accent)}
@@ -1847,8 +1847,8 @@ function copySpecsFrom(srcCode){
 }
 function SpecCopyBar(){
   var choices=copySpecChoices(),valid=!!copySource&&copySource!==adminEdit&&choices.some(function(o){return o.value===copySource});
-  var help=copyNote||(adminEdit?"Fills this model's form with the selected model's details. This model's codes and HP are kept. Nothing is saved until you press Save Model.":"Select a model above first, then choose which model to copy from.");
-  return html`<div class="spec-copy"><div class="spec-copy-pick"><label class="admin-field">Copy details from another model</label><${AdminPicker} label="Copy from" value=${valid?copySource:""} options=${choices} onChange=${function(v){setCopySource(v);setCopyNote("")}}/></div><button type="button" class="spec-copy-btn" disabled=${!adminEdit||!valid} onClick=${function(){copySpecsFrom(copySource)}}>Copy details</button><p class="spec-copy-help" role="status">${help}</p></div>`;
+  var help=copyNote||(adminEdit?"":"Select a model above first, then choose which model to copy from.");
+  return html`<div class="spec-copy"><div class="spec-copy-pick"><label class="admin-field">Copy details from another model</label><${AdminPicker} label="Copy from" value=${valid?copySource:""} options=${choices} onChange=${function(v){setCopySource(v);setCopyNote("")}}/></div><button type="button" class="spec-copy-btn" disabled=${!adminEdit||!valid} onClick=${function(){copySpecsFrom(copySource)}}>Copy details</button>${help?html`<p class="spec-copy-help" role="status">${help}</p>`:null}</div>`;
 }
 function specField(field,label,options){options=options||{};var id="spec-"+field,error=specErrors[field],required=options.required===true,value=adminForm[field]==null?"":adminForm[field];return html`<div class=${"spec-field"+(options.wide?" wide":"")}><label class="admin-field" for=${id}>${label}${required?html`<span class="required-mark" aria-hidden="true">*</span>`:null}</label><input id=${id} type="text" inputmode=${options.type==="number"?"decimal":null} placeholder=${options.placeholder||""} value=${String(value)} aria-required=${required?"true":null} aria-invalid=${error?"true":"false"} aria-describedby=${error?id+"-error":null} onKeyDown=${function(e){if(e.key==="Enter")e.preventDefault()}} onInput=${function(e){updateSpec(field,e.target.value)}} />${error?html`<span id=${id+"-error"} class="spec-error" role="alert">${error}</span>`:null}</div>`}
 function specSelect(field,label,options,required){var id="spec-"+field,error=specErrors[field],value=adminForm[field]==null?"":String(adminForm[field]);return html`<div class="spec-field"><label class="admin-field" for=${id}>${label}${required?html`<span class="required-mark" aria-hidden="true">*</span>`:null}</label><${AdminPicker} label=${label} value=${value||""} options=${[{value:"",label:"Choose…"}].concat(options.map(function(option){return {value:option,label:option}}))} onChange=${function(next){updateSpec(field,next)}}/>${error?html`<span id=${id+"-error"} class="spec-error" role="alert">${error}</span>`:null}</div>`}
@@ -2291,10 +2291,9 @@ ${adminBrand&&adminSeries?html`<div style=${{marginBottom:"12px"}}>
 }}>Add Model</button>
 </div>
 </div>`:null}
-${adminBrand&&adminSeries?html`<h3>Modification Breakdown</h3>
+${adminBrand&&adminSeries?html`<h3>Specification Breakdown</h3>
 <div class="spec-editor">
 <div class="spec-editor-head">
-  <div><h4>Details</h4><p class="spec-mode-help">Simple keeps the core model details handy; Detailed includes electrical, unit, and warranty specifications.</p></div>
   <div class="spec-mode" role="group" aria-label="Specification editor mode">
     <button type="button" aria-pressed=${specEditorMode==="simple"} onClick=${function(){setSpecEditorMode("simple")}}>${t.simpleEditor}</button>
     <button type="button" aria-pressed=${specEditorMode==="detailed"} onClick=${function(){setSpecEditorMode("detailed")}}>${t.detailedEditor}</button>
