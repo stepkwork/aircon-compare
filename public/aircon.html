@@ -1315,14 +1315,23 @@ var adminNewHpState=useState("1.0"),adminNewHp=adminNewHpState[0],setAdminNewHp=
 var copySourceState=useState(""),copySource=copySourceState[0],setCopySource=copySourceState[1];
 var copyNoteState=useState(""),copyNote=copyNoteState[0],setCopyNote=copyNoteState[1];
 var backTopState=useState(false),showBackTop=backTopState[0],setShowBackTop=backTopState[1];
+function furthestScroll(){
+  var far=window.scrollY||0;
+  document.querySelectorAll(".scroll").forEach(function(el){if(el.scrollTop>far)far=el.scrollTop});
+  return far;
+}
 useEffect(function(){
-  var onScroll=function(){setShowBackTop(window.scrollY>300)};
-  onScroll();window.addEventListener("scroll",onScroll,{passive:true});
-  return function(){window.removeEventListener("scroll",onScroll)};
+  var onScroll=function(){setShowBackTop(furthestScroll()>300)};
+  onScroll();
+  window.addEventListener("scroll",onScroll,{passive:true});
+  document.addEventListener("scroll",onScroll,{passive:true,capture:true});
+  return function(){window.removeEventListener("scroll",onScroll);document.removeEventListener("scroll",onScroll,true)};
 },[]);
+useEffect(function(){setShowBackTop(furthestScroll()>300)});
 function scrollToTop(){
-  var calm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  window.scrollTo({top:0,behavior:calm?"auto":"smooth"});
+  var calm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,mode=calm?"auto":"smooth";
+  document.querySelectorAll(".scroll").forEach(function(el){if(el.scrollTop>0)el.scrollTo({top:0,behavior:mode})});
+  window.scrollTo({top:0,behavior:mode});
 }
 var adminNewBrandState=useState(""),adminNewBrand=adminNewBrandState[0],setAdminNewBrand=adminNewBrandState[1];
 var adminNewSeriesCnState=useState(""),adminNewSeriesCn=adminNewSeriesCnState[0],setAdminNewSeriesCn=adminNewSeriesCnState[1];
