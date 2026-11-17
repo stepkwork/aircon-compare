@@ -460,6 +460,9 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 .collapse{border:1px solid var(--line);border-radius:12px;margin:14px 0;overflow:hidden}
 .collapse-head{display:flex;width:100%;align-items:center;justify-content:space-between;padding:12px 14px;border:0;background:var(--hdr);font-weight:600}
 .collapse-arrow{color:var(--muted)}
+.collapse .collapse-head[aria-expanded="true"]{background:#d23a52 !important;border-color:#d23a52 !important;color:#fff !important}
+.collapse .collapse-head[aria-expanded="true"]:hover{background:#c22f47 !important;border-color:#c22f47 !important}
+.collapse .collapse-head[aria-expanded="true"] .collapse-arrow{color:#fff}
 .collapse-body{padding:14px}
 .collapse-body .admin-fields{margin-top:0}
 .spec-input-group input{flex:1 1 180px;min-width:140px}
