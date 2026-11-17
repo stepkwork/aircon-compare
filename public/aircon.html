@@ -111,6 +111,12 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0
 .admin-close-bar{position:sticky;top:-14px;z-index:30;height:0;display:flex;justify-content:flex-end;margin:-14px -14px 14px 0;pointer-events:none}
 .admin-modal .admin-close{pointer-events:auto;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;min-width:34px;padding:0;border-radius:50%;color:var(--fg);line-height:1}
 .admin-modal .admin-close:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.spec-copy{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end;margin:0 0 16px;padding:12px 14px;border:1px dashed var(--line);border-radius:14px}
+.spec-copy-pick{flex:1 1 260px;min-width:0}
+.spec-copy-pick .admin-field{display:block;margin-bottom:4px}
+.admin-modal .spec-copy-btn{flex:0 0 auto;height:40px;white-space:nowrap}
+.admin-modal .spec-copy-btn:disabled{opacity:.5;cursor:not-allowed}
+.spec-copy-help{flex:1 0 100%;margin:0;font-size:.78rem;color:var(--muted)}
 .admin-modal .admin-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .admin-subtitle{color:var(--muted);font-size:.85rem;margin:0 0 16px}
 .admin-tabs{display:flex;gap:8px;position:sticky;top:-24px;z-index:5;background:var(--surface);padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:16px}
@@ -1301,6 +1307,8 @@ var adminSeriesState=useState(""),adminSeries=adminSeriesState[0],setAdminSeries
 var adminNewSeriesState=useState(""),adminNewSeries=adminNewSeriesState[0],setAdminNewSeries=adminNewSeriesState[1];
 var adminNewModelState=useState(""),adminNewModel=adminNewModelState[0],setAdminNewModel=adminNewModelState[1];
 var adminNewHpState=useState("1.0"),adminNewHp=adminNewHpState[0],setAdminNewHp=adminNewHpState[1];
+var copySourceState=useState(""),copySource=copySourceState[0],setCopySource=copySourceState[1];
+var copyNoteState=useState(""),copyNote=copyNoteState[0],setCopyNote=copyNoteState[1];
 var adminNewBrandState=useState(""),adminNewBrand=adminNewBrandState[0],setAdminNewBrand=adminNewBrandState[1];
 var adminNewSeriesCnState=useState(""),adminNewSeriesCn=adminNewSeriesCnState[0],setAdminNewSeriesCn=adminNewSeriesCnState[1];
 var adminBrandFormState=useState({}),adminBrandForm=adminBrandFormState[0],setAdminBrandForm=adminBrandFormState[1];
@@ -1781,6 +1789,28 @@ function prepareSpecForm(spec,code,model){
   if(d.power&&!d.voltage){var voltageMatch=d.power.match(/(\d{3}(?:-\d{3})?)/);if(voltageMatch)d.voltage=voltageMatch[1];var frequencyMatch=d.power.match(/(50|60)\s*Hz/i);if(frequencyMatch)d.frequency=frequencyMatch[1]}
   d.priceUnit=d.priceCurrency||'RM';d.frequency=d.frequency||'50';return d;
 }
+function copySpecChoices(){
+  var rank=function(m){return m.brand===adminBrand&&m.series===adminSeries?0:(m.brand===adminBrand?1:2)};
+  var list=allModelCodes().filter(function(m){return m.code!==adminEdit&&SPECDATA[m.code]});
+  list.sort(function(a,b){return rank(a)-rank(b)});
+  return [{value:"",label:"— Select model to copy from —"}].concat(list.map(function(m){return {value:m.code,label:m.brand+" · "+m.series+" · "+m.hp+"HP · "+m.code}}));
+}
+function copySpecsFrom(srcCode){
+  var src=SPECDATA[srcCode];if(!src||!adminEdit)return;
+  var srcModel=allModelCodes().find(function(m){return m.code===srcCode});
+  var filled=prepareSpecForm(src,srcCode,srcModel);
+  var next=Object.assign({},filled,{code:adminForm.code,outModel:adminForm.outModel,hp:adminForm.hp});
+  if(adminForm.img!==undefined)next.img=adminForm.img;else delete next.img;
+  next.features=Array.isArray(filled.features)?filled.features.slice():[];
+  setAdminForm(next);setPriceInput(filled._displayPrice||"");setSpecErrors({});
+  setCopyNote("Copied from "+srcCode+". Check the details, then press Save Model.");
+  window.setTimeout(function(){setCopyNote("")},6000);
+}
+function SpecCopyBar(){
+  var choices=copySpecChoices(),valid=!!copySource&&copySource!==adminEdit&&choices.some(function(o){return o.value===copySource});
+  var help=copyNote||(adminEdit?"Fills this model's form with the selected model's details. This model's codes and HP are kept. Nothing is saved until you press Save Model.":"Select a model above first, then choose which model to copy from.");
+  return html`<div class="spec-copy"><div class="spec-copy-pick"><label class="admin-field">Copy details from another model</label><${AdminPicker} label="Copy from" value=${valid?copySource:""} options=${choices} onChange=${function(v){setCopySource(v);setCopyNote("")}}/></div><button type="button" class="spec-copy-btn" disabled=${!adminEdit||!valid} onClick=${function(){copySpecsFrom(copySource)}}>Copy details</button><p class="spec-copy-help" role="status">${help}</p></div>`;
+}
 function specField(field,label,options){options=options||{};var id="spec-"+field,error=specErrors[field],required=options.required===true,value=adminForm[field]==null?"":adminForm[field];return html`<div class=${"spec-field"+(options.wide?" wide":"")}><label class="admin-field" for=${id}>${label}${required?html`<span class="required-mark" aria-hidden="true">*</span>`:null}</label><input id=${id} type="text" inputmode=${options.type==="number"?"decimal":null} placeholder=${options.placeholder||""} value=${String(value)} aria-required=${required?"true":null} aria-invalid=${error?"true":"false"} aria-describedby=${error?id+"-error":null} onKeyDown=${function(e){if(e.key==="Enter")e.preventDefault()}} onInput=${function(e){updateSpec(field,e.target.value)}} />${error?html`<span id=${id+"-error"} class="spec-error" role="alert">${error}</span>`:null}</div>`}
 function specSelect(field,label,options,required){var id="spec-"+field,error=specErrors[field],value=adminForm[field]==null?"":String(adminForm[field]);return html`<div class="spec-field"><label class="admin-field" for=${id}>${label}${required?html`<span class="required-mark" aria-hidden="true">*</span>`:null}</label><${AdminPicker} label=${label} value=${value||""} options=${[{value:"",label:"Choose…"}].concat(options.map(function(option){return {value:option,label:option}}))} onChange=${function(next){updateSpec(field,next)}}/>${error?html`<span id=${id+"-error"} class="spec-error" role="alert">${error}</span>`:null}</div>`}
 function specUnitField(field,label,units,defaultUnit,placeholder,wide){var value=adminForm[field]==null?"":adminForm[field],unitField=field+"Unit",unit=adminForm[unitField]||defaultUnit,id="spec-"+field,error=specErrors[field];return html`<div class=${"spec-field"+(wide?" wide":"")}><label class="admin-field" for=${id}>${label}</label><div class="spec-input-group"><input id=${id} type="text" inputmode="decimal" placeholder=${placeholder} value=${value} aria-invalid=${error?"true":"false"} aria-describedby=${error?id+"-error":null} onKeyDown=${function(e){if(e.key==="Enter")e.preventDefault()}} onInput=${function(e){updateSpec(field,e.target.value)}} /><${AdminPicker} label=${label+" unit"} value=${unit} options=${units.map(function(u){return {value:u,label:u}})} onChange=${function(next){updateSpec(unitField,next)}}/></div>${error?html`<span id=${id+"-error"} class="spec-error" role="alert">${error}</span>`:null}</div>`}
@@ -2230,6 +2260,7 @@ ${adminBrand&&adminSeries?html`<h3>Model specifications</h3>
     <button type="button" aria-pressed=${specEditorMode==="detailed"} onClick=${function(){setSpecEditorMode("detailed")}}>${t.detailedEditor}</button>
   </div>
 </div>
+${SpecCopyBar()}
 <div class="spec-form-sections">
 ${(specEditorMode==="simple"?[{title:"Model",fields:[specField("code","Indoor model",{required:true,placeholder:"e.g. FTKM25T"}),specField("outModel","Outdoor model",{placeholder:"e.g. RKM25T"}),specSelect("hp","Horsepower",["1.0","1.5","2.0","2.5","3.0","4.0"].concat(adminForm.hp&&["1.0","1.5","2.0","2.5","3.0","4.0"].indexOf(String(adminForm.hp))<0?[String(adminForm.hp)]:[]),true)]},{title:"Performance",fields:[specUnitField("cap","Cooling capacity",["BTU/hr","kW","HP"],"BTU/hr","e.g. 12,000"),specField("cspf","CSPF",{type:"number",step:"0.01",placeholder:"e.g. 5.20"}),specField("stars","Energy Rating (Stars)",{type:"number",max:5,step:1,placeholder:"1–5 stars"})]},{title:"Other",fields:[SpecPriceField(),SpecFeatures()]}]:[{title:"Model",fields:[specField("code","Indoor model",{required:true,placeholder:"e.g. FTKM25T"}),specField("outModel","Outdoor model",{placeholder:"e.g. RKM25T"}),specSelect("hp","Horsepower",["1.0","1.5","2.0","2.5","3.0","4.0"].concat(adminForm.hp&&["1.0","1.5","2.0","2.5","3.0","4.0"].indexOf(String(adminForm.hp))<0?[String(adminForm.hp)]:[]),true)]},{title:"Electrical",fields:[html`<fieldset class="spec-field wide" style=${{border:0,padding:0,margin:0}}><legend class="admin-field" style=${{fontSize:".78rem",fontWeight:600,color:"var(--fg)",marginBottom:"6px"}}>Power supply</legend><div class="spec-power"><div><label for="spec-voltage">Voltage (V)</label><input id="spec-voltage" placeholder="e.g. 220-240" value=${adminForm.voltage||""} onKeyDown=${function(e){if(e.key==="Enter")e.preventDefault()}} onInput=${function(e){updateSpec("voltage",e.target.value)}} /></div><div><label for="spec-frequency">Frequency (Hz)</label><input id="spec-frequency" type="text" inputmode="decimal" placeholder="50" value=${String(adminForm.frequency||"50")} onKeyDown=${function(e){if(e.key==="Enter")e.preventDefault()}} onInput=${function(e){updateSpec("frequency",e.target.value)}} /></div><div><label for="spec-phase">Ph</label><input id="spec-phase" type="text" placeholder="e.g. 1" value=${adminForm.phase||""} onKeyDown=${function(e){if(e.key==="Enter")e.preventDefault()}} onInput=${function(e){updateSpec("phase",e.target.value)}} /></div></div></fieldset>`,specUnitField("input","Cooling input",["kW","W"],"kW","e.g. 0.88"),specUnitField("current","Cooling current",["A"],"A","e.g. 3.8")]},{title:"Performance",fields:[specUnitField("cap","Cooling capacity",["BTU/hr","kW","HP"],"BTU/hr","e.g. 12,000"),specField("cspf","CSPF",{type:"number",step:"0.01",placeholder:"e.g. 5.20"}),specField("stars","Energy Rating (Stars)",{type:"number",max:5,step:1,placeholder:"1–5 stars"}),specUnitField("airflow","Airflow",["m³/h","L/s","CFM"],"m³/h","e.g. 630")]},{title:"Indoor unit",fields:[specDimensionField("idim","Dimensions"),specUnitField("iwt","Weight",["kg","lb"],"kg","e.g. 9.8"),specUnitField("inoise","Noise",["dB(A)"],"dB(A)","e.g. 39.5")]},{title:"Outdoor unit",fields:[specDimensionField("odim","Dimensions"),specUnitField("owt","Weight",["kg","lb"],"kg","e.g. 28"),specUnitField("onoise","Noise",["dB(A)"],"dB(A)","e.g. 52")]},{title:"Other",fields:[specSelect("ref","Refrigerant",["R32","R410A","R22","Other"]),specField("refOther","Other refrigerant",{placeholder:"Enter refrigerant"}),SpecFeatures(),specField("warranty","Warranty",{placeholder:"e.g. 5 years"}),SpecPriceField()]}]).map(function(section){return html`<section class="spec-section"><h5>${section.title}</h5><div class="spec-section-fields">${section.fields}</div></section>`})}
 </div>
@@ -2267,7 +2298,10 @@ ${(specEditorMode==="simple"?[{title:"Model",fields:[specField("code","Indoor mo
   SPECDATA=nextSpecs;
   setSpecData(nextSpecs);
   commitModels(nextModels);
-  setAdminForm({});setSpecErrors({});setAdminEdit("");
+  var modalEl=document.querySelector(".admin-modal"),keepTop=modalEl?modalEl.scrollTop:0;
+  var reloaded=prepareSpecForm(nextSpecs[code],code,{out:(adminForm.outModel||"").trim(),hp:Number(adminForm.hp)});
+  setAdminEdit(code);setAdminForm(reloaded);setPriceInput(reloaded._displayPrice||"");setSpecErrors({});
+  if(modalEl)window.requestAnimationFrame(function(){modalEl.scrollTop=keepTop});
   persistAdminData(brandsData,nextModels,nextSpecs).then(function(){
     alert("Saved to Cloudflare: "+code);
   }).catch(function(err){
