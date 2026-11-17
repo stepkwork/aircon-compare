@@ -71,6 +71,20 @@ test("requires same-origin admin login and persists protected data", async () =>
   );
   assert.equal(wrongOrigin.status, 403);
 
+  const remotePreviewLogin = await worker.fetch(
+    request("/api/admin/login", {
+      method: "POST",
+      headers: {
+        origin: "http://127.0.0.1:8080",
+        "sec-fetch-site": "same-origin",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ password: "test-admin-password" }),
+    }),
+    env,
+  );
+  assert.equal(remotePreviewLogin.status, 200);
+
   const login = await worker.fetch(
     request("/api/admin/login", {
       method: "POST",

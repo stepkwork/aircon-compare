@@ -78,7 +78,12 @@ async function hasAdminSession(request, secret) {
 }
 
 function hasSameOrigin(request) {
-  return request.headers.get("origin") === new URL(request.url).origin;
+  const origin = request.headers.get("origin");
+  // Wrangler remote previews rewrite request.url, but preserve browser Fetch Metadata.
+  return (
+    origin === new URL(request.url).origin ||
+    (origin !== null && request.headers.get("sec-fetch-site") === "same-origin")
+  );
 }
 
 function setSessionCookie(value, maxAge) {
