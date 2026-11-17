@@ -2087,7 +2087,7 @@ ${!adminAuth?html`<h2>Admin Login</h2>
 <div class=${"admin-tab-list"+(adminMenuOpen||!adminScrolled?"":" hidden")}>
 <button type="button" role="tab" aria-selected=${adminTab==="brands"} onClick=${function(){setAdminTab("brands");setAdminMenuOpen(false)}}>Brands</button>
 <button type="button" role="tab" aria-selected=${adminTab==="series"} onClick=${function(){setAdminTab("series");setAdminMenuOpen(false)}}>Series</button>
-<button type="button" role="tab" aria-selected=${adminTab==="models"} onClick=${function(){setAdminTab("models");setAdminMenuOpen(false)}}>Models & specifications</button>
+<button type="button" role="tab" aria-selected=${adminTab==="models"} onClick=${function(){setAdminTab("models");setAdminMenuOpen(false)}}>Models & Specifications</button>
 <button type="button" role="tab" aria-selected=${adminTab==="modelTable"} onClick=${function(){setAdminTab("modelTable");setAdminMenuOpen(false)}}>${t.modelTable}</button>
 </div>
 </div>
@@ -2260,7 +2260,7 @@ ${seriesTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:
 </div>`:html`<p class="admin-empty">Select a brand to manage its series.</p>`}
 </section>`:null}
 ${adminTab==="models"?html`<section class="admin-section" id="admin-models-section">
-<h3>Models & specifications</h3><p>Choose a brand and series to add models or update their technical details.</p>
+<h3>Models & Specifications</h3><p>Choose a brand and series to add models or update their technical details.</p>
 <div style=${{marginBottom:"12px"}}>
 ${AdminBrandSelect({label:"Brand",value:adminBrand,onChange:function(e){setAdminBrand(e.target.value);setAdminSeries("");setAdminEdit("");setAdminForm({});setSpecErrors({});setPriceInput("");}})}
 </div>
