@@ -456,6 +456,7 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 
 .admin-fields{align-items:start}
 .admin-fields>div{min-width:0}
+.admin-fields>.brand-collapse{grid-column:1/-1;margin:6px 0}
 .country-picker{position:relative}
 .country-picker .model-select{display:flex;align-items:center;gap:8px}
 .flag{width:20px;height:14px;object-fit:cover;border-radius:2px;flex:none}
@@ -1380,6 +1381,7 @@ var adminTabState=useState("brands"),adminTab=adminTabState[0],setAdminTab=admin
 var adminScrolledState=useState(false),adminScrolled=adminScrolledState[0],setAdminScrolled=adminScrolledState[1];
 var adminMenuOpenState=useState(false),adminMenuOpen=adminMenuOpenState[0],setAdminMenuOpen=adminMenuOpenState[1];
 var seriesPanelState=useState(""),seriesPanel=seriesPanelState[0],setSeriesPanel=seriesPanelState[1];
+var brandPanelState=useState(""),brandPanel=brandPanelState[0],setBrandPanel=brandPanelState[1];
 var brandSearchState=useState(""),brandSearch=brandSearchState[0],setBrandSearch=brandSearchState[1];
 var brandFilterSearchState=useState(""),brandFilterSearch=brandFilterSearchState[0],setBrandFilterSearch=brandFilterSearchState[1];
 var modelTableSearchState=useState(""),modelTableSearch=modelTableSearchState[0],setModelTableSearch=modelTableSearchState[1];
@@ -2140,6 +2142,11 @@ ${adminTab==="brands"?html`<section class="admin-section">
 ${adminBrand?html`<div class="admin-fields">
 <div><label class="admin-field">Brand name</label><input value=${adminBrandForm.b||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{b:e.target.value}))}} /></div>
 <div><label class="admin-field">Country / region</label><${CountryPicker} value=${adminBrandForm.o||""} onChange=${function(value){setAdminBrandForm(Object.assign({},adminBrandForm,{o:value}))}} /></div>
+<div class="collapse brand-collapse">
+<button type="button" class="collapse-head" aria-expanded=${brandPanel==="selling"} onClick=${function(){setBrandPanel(brandPanel==="selling"?"":"selling")}}>
+<span>Main selling point</span><span class="collapse-arrow">${brandPanel==="selling"?"▴":"▾"}</span>
+</button>
+${brandPanel==="selling"?html`<div class="collapse-body"><div class="admin-fields">
 <div><label class="admin-field">Main selling point (English)</label><textarea maxlength="2000" value=${adminBrandForm.sEn||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{sEn:e.target.value}));setTranslateMessage("")}} /></div>
 <div>
 <label class="admin-field">Main selling point (Chinese)</label>
@@ -2150,6 +2157,13 @@ ${adminBrand?html`<div class="admin-fields">
 <p style=${{margin:"0 0 10px",color:"var(--muted)",fontSize:".78rem"}}></p>
 ${translateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:"var(--muted)",fontSize:".8rem"}}>${translateMessage}</p>`:null}
 </div>
+</div></div>`:null}
+</div>
+<div class="collapse brand-collapse">
+<button type="button" class="collapse-head" aria-expanded=${brandPanel==="feature"} onClick=${function(){setBrandPanel(brandPanel==="feature"?"":"feature")}}>
+<span>Additional feature</span><span class="collapse-arrow">${brandPanel==="feature"?"▴":"▾"}</span>
+</button>
+${brandPanel==="feature"?html`<div class="collapse-body"><div class="admin-fields">
 <div><label class="admin-field">Additional feature (English)</label><textarea maxlength="2000" value=${adminBrandForm.kEn||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{kEn:e.target.value}));setFeatureTranslateMessage("")}} /></div>
 <div>
 <label class="admin-field">Additional feature (Chinese)</label>
@@ -2160,6 +2174,13 @@ ${translateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:"var(-
 <p style=${{margin:"0 0 10px",color:"var(--muted)",fontSize:".78rem"}}></p>
 ${featureTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color:"var(--muted)",fontSize:".8rem"}}>${featureTranslateMessage}</p>`:null}
 </div>
+</div></div>`:null}
+</div>
+<div class="collapse brand-collapse">
+<button type="button" class="collapse-head" aria-expanded=${brandPanel==="appearance"} onClick=${function(){setBrandPanel(brandPanel==="appearance"?"":"appearance")}}>
+<span>Brand color and HP range</span><span class="collapse-arrow">${brandPanel==="appearance"?"▴":"▾"}</span>
+</button>
+${brandPanel==="appearance"?html`<div class="collapse-body"><div class="admin-fields">
 <div class="wide"><label class="admin-field">Brand color (hex; optional second color after |)</label>
 <div class="color-row">
 <input value=${adminBrandForm.c||""} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{c:e.target.value}))}} />
@@ -2169,6 +2190,7 @@ ${featureTranslateMessage?html`<p role="status" style=${{margin:"0 0 10px",color
 <div><label class="admin-field">Minimum HP</label><input type="text" inputmode="decimal" value=${String(adminBrandForm.lo||"")} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{lo:e.target.value}))}} /></div>
 <div><label class="admin-field">Maximum HP</label><input type="text" inputmode="decimal" value=${String(adminBrandForm.hi||"")} onInput=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{hi:e.target.value}))}} /></div>
 </div>
+</div></div>`:null}
 </div>
 <label class="admin-field"><input type="checkbox" checked=${adminBrandForm.inv!==false} onChange=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{inv:e.target.checked}))}} style=${{width:"auto",marginRight:"8px"}} />Brand offers inverter models</label>
 <div class="row">
