@@ -508,6 +508,9 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 .color-row{align-items:stretch}
 .color-row input:not([type=color]){height:44px}
 .color-row input[type=color]{width:52px;height:44px;padding:3px;box-sizing:border-box}
+.color-row input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+.color-row input[type=color]::-webkit-color-swatch{border:0;border-radius:7px}
+.color-row input[type=color]::-moz-color-swatch{border:0;border-radius:7px}
 .hp-pair{margin-top:18px}
 .admin-tabs.is-scrolled{border-bottom:0;margin-bottom:8px;padding:8px 0}
 .collapse-body .admin-field{margin:0 0 8px}
