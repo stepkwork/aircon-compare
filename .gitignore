@@ -5,3 +5,6 @@ node_modules/
 .env.*
 
 .dev.vars
+
+# Cloudflare Wrangler temporary files
+.wrangler/
