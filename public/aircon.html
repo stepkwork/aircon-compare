@@ -575,7 +575,8 @@ input[type=checkbox]:disabled{opacity:.45}
   :root:not([data-theme="light"]) .admin-modal{background:#252526;background-image:none;backdrop-filter:none;-webkit-backdrop-filter:none}
   :root:not([data-theme="light"]) .admin-modal .admin-tabs,:root:not([data-theme="light"]) .admin-modal:has(.admin-tabs.is-scrolled)::before{background:#252526;background-image:none;backdrop-filter:none;-webkit-backdrop-filter:none}
 }
-.admin-modal:has(.admin-tabs.is-scrolled)::before{content:"";position:sticky;top:-24px;z-index:4;display:block;height:80px;margin-bottom:-80px;background:#fff;background-image:none;backdrop-filter:none;-webkit-backdrop-filter:none;pointer-events:none}
+.admin-modal:has(.admin-tabs.is-scrolled)::before{content:"";position:sticky;top:-24px;z-index:4;display:block;height:80px;margin:0 -24px -80px;background:#fff;background-image:none;backdrop-filter:none;-webkit-backdrop-filter:none;pointer-events:none}
+@media(max-width:600px){.admin-modal:has(.admin-tabs.is-scrolled)::before{margin:0 -16px -80px}}
 
 /* Hide native number-input steppers so they don't take space in text fields. */
 /* Numeric-looking admin values are plain text inputs to accept free-form strings. */
