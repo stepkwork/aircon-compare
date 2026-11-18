@@ -2221,7 +2221,7 @@ ${brandPanel==="appearance"?html`<div class="collapse-body"><div class="admin-fi
   setAdminBrand("");setAdminBrandForm({});setAdminSeries("");setAdminEdit("");setAdminForm({});
   persistAdminData(nextBrands,nextModels,nextSpecs).then(function(){alert("Brand and its catalog entries deleted")}).catch(function(err){alert("Brand was deleted in this page but could not be saved to Cloudflare: "+err.message)});
 }}>Delete brand</button>
-</div>`:null}
+</div></div>`:null}
 </section>`:null}
 ${adminTab==="series"?html`<section class="admin-section">
 <h3>Series</h3><p>Add, rename, or remove a series within a brand. Deleting a series also removes its model specifications.</p>
