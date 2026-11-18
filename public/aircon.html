@@ -475,7 +475,7 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 .collapse .collapse-head[aria-expanded="true"] .collapse-arrow{color:#fff}
 .collapse-body{padding:14px}
 .collapse-body .admin-fields{margin-top:0}
-.admin-modal .admin-fields .admin-field.brand-footer{margin-top:24px}
+.admin-modal .admin-fields .brand-footer{margin-top:24px}
 .collapse-body>.admin-fields:not(:first-child){margin-top:18px}
 .spec-input-group input{flex:1 1 180px;min-width:140px}
 .spec-prefix{display:flex;align-items:center;justify-content:center;min-width:52px;height:44px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--hdr);color:var(--muted);font-weight:600}
@@ -2195,7 +2195,7 @@ ${brandPanel==="appearance"?html`<div class="collapse-body"><div class="admin-fi
 </div></div>`:null}
 </div>
 <label class="admin-field brand-footer"><input type="checkbox" checked=${adminBrandForm.inv!==false} onChange=${function(e){setAdminBrandForm(Object.assign({},adminBrandForm,{inv:e.target.checked}))}} style=${{width:"auto",marginRight:"8px"}} />Brand offers inverter models</label>
-<div class="row">
+<div class="row brand-footer">
 <button type="button" class="primary" onClick=${function(){
   var oldName=adminBrand,name=(adminBrandForm.b||"").trim();
   var minHp=Number(adminBrandForm.lo),maxHp=Number(adminBrandForm.hi);
