@@ -473,6 +473,11 @@ body{background-image:radial-gradient(ellipse at 4% 12%,rgba(255,255,255,.75),tr
 .collapse .collapse-head[aria-expanded="true"]{background:#ff0000 !important;border-color:#ff0000 !important;color:#fff !important}
 .collapse .collapse-head[aria-expanded="true"]:hover{background:#ff0000 !important;border-color:#ff0000 !important}
 .collapse .collapse-head[aria-expanded="true"] .collapse-arrow{color:#fff}
+:root[data-theme="light"] .admin-modal .collapse{border-color:rgba(95,112,137,.42)}
+:root[data-theme="dark"] .collapse .collapse-head[aria-expanded="true"]{background:#3794ff !important;border-color:#3794ff !important}
+:root[data-theme="dark"] .collapse .collapse-head[aria-expanded="true"]:hover{background:#2f86e8 !important;border-color:#2f86e8 !important}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]) .admin-modal .collapse{border-color:rgba(95,112,137,.42)}}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .collapse .collapse-head[aria-expanded="true"]{background:#3794ff !important;border-color:#3794ff !important}:root:not([data-theme="light"]) .collapse .collapse-head[aria-expanded="true"]:hover{background:#2f86e8 !important;border-color:#2f86e8 !important}}
 .collapse-body{padding:14px}
 .collapse-body .admin-fields{margin-top:0}
 .admin-modal .admin-fields .brand-footer{margin-top:24px}
