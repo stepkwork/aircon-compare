@@ -126,16 +126,23 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0
 .admin-modal .spec-copy-btn{flex:0 0 auto;height:40px;white-space:nowrap}
 .admin-modal .spec-copy-btn:disabled{opacity:.5;cursor:not-allowed}
 .spec-copy-help{flex:1 0 100%;margin:0;font-size:.78rem;color:var(--muted)}
-.spec-auto{margin:0 0 16px;border:1px dashed var(--line);border-radius:14px;padding:6px 14px}
-.admin-modal .spec-auto-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;border:0;background:transparent;box-shadow:none;padding:8px 0;font-weight:600;font-size:.9rem;cursor:pointer;color:var(--fg)}
-.admin-modal .spec-auto-toggle:disabled{opacity:.5;cursor:not-allowed}
-.admin-modal .spec-auto .spec-auto-toggle{padding:10px 12px !important}
-.spec-auto-body{padding-left:12px;padding-right:12px}
-.spec-auto-body{display:grid;gap:10px;padding:6px 12px 12px}
-.spec-auto-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.spec-auto-row input[type=url]{flex:1 1 240px;min-width:0}
-.spec-auto-file{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted);flex:1 1 260px}
-.spec-auto-msg{margin:0;font-size:.82rem;line-height:1.4}
+.spec-auto{margin:0 0 16px;border:1px dashed var(--line);border-radius:14px;padding:4px 16px}
+.admin-modal .spec-auto .spec-auto-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;border:0 !important;background:none !important;box-shadow:none !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;border-radius:0 !important;padding:12px 0 !important;font-weight:600;font-size:.9rem;cursor:pointer;color:var(--fg);text-align:left}
+.admin-modal .spec-auto .spec-auto-toggle:disabled{opacity:.5;cursor:not-allowed}
+.spec-auto-body{display:grid;gap:14px;padding:4px 0 16px;border-top:1px solid var(--line);padding-top:16px}
+.spec-auto-group{display:grid;gap:6px}
+.spec-auto-group .admin-field{margin:0}
+.spec-auto-row{display:flex;gap:10px;align-items:stretch}
+.spec-auto-row input{flex:1 1 auto;min-width:0;margin:0}
+.admin-modal .spec-auto-row .spec-copy-btn{height:auto;min-height:40px;padding:0 18px}
+.spec-auto-or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.06em}
+.spec-auto-or::before,.spec-auto-or::after{content:"";flex:1;height:1px;background:var(--line)}
+.admin-modal .spec-auto-file-input{width:100%;margin:0;padding:6px;font-size:.85rem;color:var(--muted)}
+.spec-auto-file-input::file-selector-button{margin:0 12px 0 0;padding:7px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);font:inherit;font-size:.85rem;cursor:pointer}
+.spec-auto-note{margin:0;font-size:.78rem;line-height:1.45;color:var(--muted)}
+.spec-auto-msg{margin:0;padding:10px 12px;border-radius:10px;font-size:.82rem;line-height:1.45;background:var(--hdr)}
+.spec-auto-msg.ok{color:var(--fg)}
+.spec-auto-msg.bad{color:#ff0000;background:var(--accent-soft)}
 .spec-auto-msg.ok{color:var(--fg)}
 .spec-auto-msg.bad{color:#ff0000}
 .admin-modal .admin-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -1946,7 +1953,7 @@ function autofillFromFile(file){
 }
 function SpecAutofill(){
   var url=autoUrl.trim();
-  return html`<div class="spec-auto"><button type="button" class="spec-auto-toggle" aria-expanded=${autoOpen} disabled=${!adminEdit} onClick=${function(){setAutoOpen(!autoOpen)}}>Auto-fill from link or image (optional)<span aria-hidden="true">${autoOpen?"▴":"▾"}</span></button>${!adminEdit?html`<p class="spec-copy-help">Select a model above first.</p>`:null}${autoOpen&&adminEdit?html`<div class="spec-auto-body"><div class="spec-auto-row"><input type="url" aria-label="Product page link" placeholder="Paste a product page link (https://…)" value=${autoUrl} disabled=${autoBusy} onInput=${function(e){setAutoUrl(e.target.value)}} onKeyDown=${function(e){if(e.key==="Enter"){e.preventDefault();if(url&&!autoBusy)runAutofillRequest({url:url})}}} /><button type="button" class="spec-copy-btn" disabled=${autoBusy||!url} onClick=${function(){runAutofillRequest({url:url})}}>${autoBusy?"Reading…":"Read link"}</button></div><div class="spec-auto-row"><label class="spec-auto-file"><span>or upload a screenshot or photo (JPG, PNG, WebP)</span><input type="file" aria-label="Upload image or PDF" accept="image/jpeg,image/png,image/webp" disabled=${autoBusy} onChange=${function(e){var f=e.target.files&&e.target.files[0];e.target.value="";autofillFromFile(f)}} /></label></div><p class="spec-copy-help">Only details clearly shown in the source are filled; anything unclear is left blank. Nothing is saved until you press Save Model.</p>${autoMsg?html`<p class=${"spec-auto-msg "+(autoMsg.ok?"ok":"bad")} role="status">${autoMsg.text}${autoMsg.warnings.length?" "+autoMsg.warnings.join(" "):""}</p>`:null}</div>`:null}</div>`;
+  return html`<div class="spec-auto"><button type="button" class="spec-auto-toggle" aria-expanded=${autoOpen} disabled=${!adminEdit} onClick=${function(){setAutoOpen(!autoOpen)}}>Auto-fill from link or image (optional)<span aria-hidden="true">${autoOpen?"▴":"▾"}</span></button>${!adminEdit?html`<p class="spec-copy-help">Select a model above first.</p>`:null}${autoOpen&&adminEdit?html`<div class="spec-auto-body"><div class="spec-auto-group"><label class="admin-field" for="spec-auto-url">Product page link</label><div class="spec-auto-row"><input id="spec-auto-url" type="url" placeholder="https://…" value=${autoUrl} disabled=${autoBusy} onInput=${function(e){setAutoUrl(e.target.value)}} onKeyDown=${function(e){if(e.key==="Enter"){e.preventDefault();if(url&&!autoBusy)runAutofillRequest({url:url})}}} /><button type="button" class="spec-copy-btn" disabled=${autoBusy||!url} onClick=${function(){runAutofillRequest({url:url})}}>${autoBusy?"Reading…":"Read link"}</button></div></div><div class="spec-auto-or" aria-hidden="true"><span>or</span></div><div class="spec-auto-group"><label class="admin-field" for="spec-auto-file">Screenshot or photo (JPG, PNG, WebP)</label><input id="spec-auto-file" class="spec-auto-file-input" type="file" accept="image/jpeg,image/png,image/webp" disabled=${autoBusy} onChange=${function(e){var f=e.target.files&&e.target.files[0];e.target.value="";autofillFromFile(f)}} /></div><p class="spec-auto-note">Only details clearly shown in the source are filled; anything unclear is left blank. Nothing is saved until you press Save Model.</p>${autoMsg?html`<p class=${"spec-auto-msg "+(autoMsg.ok?"ok":"bad")} role="status">${autoMsg.text}${autoMsg.warnings.length?" "+autoMsg.warnings.join(" "):""}</p>`:null}</div>`:null}</div>`;
 }
 function SpecCopyBar(){
   var choices=copySpecChoices(),valid=!!copySource&&copySource!==adminEdit&&choices.some(function(o){return o.value===copySource});
