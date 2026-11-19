@@ -612,6 +612,9 @@ input[type=checkbox]:disabled{opacity:.45}
 /* Hide native number-input steppers so they don't take space in text fields. */
 /* Numeric-looking admin values are plain text inputs to accept free-form strings. */
 
+
+:root[data-theme="dark"] .admin-modal .admin-tabs button[aria-selected="true"],:root[data-theme="dark"] .admin-modal .spec-mode button[aria-pressed="true"]{background:rgba(55,148,255,.24) !important;background-image:none !important;border-color:#3794ff !important;color:#8ec5ff !important;font-weight:600}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .admin-modal .admin-tabs button[aria-selected="true"],:root:not([data-theme="light"]) .admin-modal .spec-mode button[aria-pressed="true"]{background:rgba(55,148,255,.24) !important;background-image:none !important;border-color:#3794ff !important;color:#8ec5ff !important;font-weight:600}}
 </style></head><body>
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
