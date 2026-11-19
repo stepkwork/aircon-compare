@@ -6,9 +6,10 @@ const MAX_TRANSLATION_REQUEST_BYTES = 16_000;
 const MAX_AUTOFILL_REQUEST_BYTES = 8_000_000;
 const MAX_AUTOFILL_PAGE_BYTES = 1_500_000;
 const MAX_AUTOFILL_TEXT_CHARS = 30_000;
-const AUTOFILL_MODEL = "claude-sonnet-5-5";
+const AUTOFILL_TEXT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+const AUTOFILL_VISION_MODEL = "@cf/meta/llama-3.2-11b-vision-instruct";
 const AUTOFILL_FEATURES = ["Wi-Fi", "Self-cleaning", "Air purification", "Inverter", "Sleep mode", "Eco mode", "Voice control"];
-const AUTOFILL_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
+const AUTOFILL_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
@@ -272,7 +273,7 @@ async function fetchPageText(startUrl) {
     if (!response.ok) throw new AutofillError(`The page could not be opened (HTTP ${response.status}).`, 422);
     const type = response.headers.get("content-type") || "";
     if (!/text\/html|text\/plain|application\/xhtml/i.test(type)) {
-      throw new AutofillError("That link is not a web page. Upload it as an image or PDF instead.", 422);
+      throw new AutofillError("That link is not a web page. Upload it as an image instead.", 422);
     }
     const reader = response.body.getReader();
     const chunks = [];
@@ -361,27 +362,49 @@ function mapAutofill(raw) {
   return { data, warnings };
 }
 
-async function runAutofill(env, content) {
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": env.ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: AUTOFILL_MODEL,
-      max_tokens: 1500,
-      messages: [{ role: "user", content }],
-    }),
-    signal: AbortSignal.timeout(45_000),
-  });
-  if (!response.ok) {
-    console.error("[aircon-compare] Autofill model error:", response.status, await response.text());
+function aiText(result) {
+  const out = result && (result.response ?? result.result?.response ?? result);
+  return typeof out === "string" ? out : out && typeof out === "object" ? JSON.stringify(out) : "";
+}
+
+async function runAutofill(env, input) {
+  let text;
+  try {
+    if (input.image) {
+      const run = () =>
+        env.AI.run(AUTOFILL_VISION_MODEL, {
+          messages: [{
+            role: "user",
+            content: [
+              { type: "text", text: AUTOFILL_PROMPT },
+              { type: "image_url", image_url: { url: `data:${input.image.mime};base64,${input.image.data}` } },
+            ],
+          }],
+          max_tokens: 1500,
+          temperature: 0,
+        });
+      let result;
+      try {
+        result = await run();
+      } catch (error) {
+        // Meta's vision model needs its licence accepted once per account.
+        if (!/agree|licen[cs]e|5016/i.test(String(error?.message || error))) throw error;
+        await env.AI.run(AUTOFILL_VISION_MODEL, { prompt: "agree" });
+        result = await run();
+      }
+      text = aiText(result);
+    } else {
+      const result = await env.AI.run(AUTOFILL_TEXT_MODEL, {
+        messages: [{ role: "user", content: `${AUTOFILL_PROMPT}\n\nPAGE CONTENT:\n${input.text}` }],
+        max_tokens: 1500,
+        temperature: 0,
+      });
+      text = aiText(result);
+    }
+  } catch (error) {
+    console.error("[aircon-compare] Autofill model error:", error);
     throw new AutofillError("The recognition service failed. Please try again.", 502);
   }
-  const result = await response.json();
-  const text = (result.content || []).filter((block) => block.type === "text").map((block) => block.text).join("");
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) throw new AutofillError("Nothing could be read from that content.", 422);
   try {
@@ -396,9 +419,7 @@ async function autofillSpecs(request, env) {
     return json({ error: "Unauthorized" }, 401);
   }
   if (!hasSameOrigin(request)) return json({ error: "Forbidden" }, 403);
-  if (!env.ANTHROPIC_API_KEY) {
-    return json({ error: "Auto-fill is not set up yet (missing ANTHROPIC_API_KEY)." }, 503);
-  }
+  if (!env.AI) return json({ error: "Cloudflare Workers AI is not configured" }, 503);
   if (Number(request.headers.get("content-length") || 0) > MAX_AUTOFILL_REQUEST_BYTES) {
     return json({ error: "The file is too large (limit about 5 MB)." }, 413);
   }
@@ -416,12 +437,9 @@ async function autofillSpecs(request, env) {
     if (body.file) {
       const { mime, data } = body.file;
       if (!AUTOFILL_MIME_TYPES.includes(mime) || typeof data !== "string" || !/^[A-Za-z0-9+/=]+$/.test(data)) {
-        return json({ error: "Upload a JPG, PNG, WebP, GIF or PDF file." }, 400);
+        return json({ error: "Upload a JPG, PNG or WebP image." }, 400);
       }
-      const block = mime === "application/pdf"
-        ? { type: "document", source: { type: "base64", media_type: mime, data } }
-        : { type: "image", source: { type: "base64", media_type: mime, data } };
-      content = [block, { type: "text", text: AUTOFILL_PROMPT }];
+      content = { image: { mime, data } };
     } else {
       const url = parseAutofillUrl(body.url);
       if (!url) return json({ error: "Enter a valid public web address (https://…)." }, 400);
@@ -429,7 +447,7 @@ async function autofillSpecs(request, env) {
       if (text.length < 200) {
         return json({ error: "That page has too little readable text (it may load its details with JavaScript). Upload a screenshot instead." }, 422);
       }
-      content = [{ type: "text", text: `${AUTOFILL_PROMPT}\n\nPAGE CONTENT:\n${text}` }];
+      content = { text };
     }
 
     const { data, warnings } = await runAutofill(env, content);
