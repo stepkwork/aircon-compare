@@ -3,6 +3,12 @@ const SESSION_SECONDS = 60 * 60 * 8;
 const MAX_DATA_BYTES = 1_000_000;
 const MAX_TRANSLATION_LENGTH = 2_000;
 const MAX_TRANSLATION_REQUEST_BYTES = 16_000;
+const MAX_AUTOFILL_REQUEST_BYTES = 8_000_000;
+const MAX_AUTOFILL_PAGE_BYTES = 1_500_000;
+const MAX_AUTOFILL_TEXT_CHARS = 30_000;
+const AUTOFILL_MODEL = "claude-sonnet-5-5";
+const AUTOFILL_FEATURES = ["Wi-Fi", "Self-cleaning", "Air purification", "Inverter", "Sleep mode", "Eco mode", "Voice control"];
+const AUTOFILL_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
 
 function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
@@ -176,6 +182,268 @@ async function translateSellingPoint(request, env) {
   }
 }
 
+const AUTOFILL_PROMPT = `Extract air conditioner specifications for ONE model from the provided content.
+Return ONLY a JSON object, no markdown, no explanation.
+Use null for anything not clearly stated in the content. NEVER guess, infer or calculate missing values.
+If the content lists several models, extract only the first model shown.
+
+{
+  "indoor_model": string|null,
+  "outdoor_model": string|null,
+  "horsepower": number|null,
+  "voltage": string|null,
+  "frequency": number|null,
+  "phase": number|null,
+  "cooling_input_kw": number|null,
+  "cooling_current_a": number|null,
+  "cooling_capacity_btu": number|null,
+  "cspf": number|null,
+  "energy_stars": number|null,
+  "airflow_m3h": number|null,
+  "indoor": { "w": number|null, "d": number|null, "h": number|null, "weight_kg": number|null, "noise_db": number|null },
+  "outdoor": { "w": number|null, "d": number|null, "h": number|null, "weight_kg": number|null, "noise_db": number|null },
+  "refrigerant": string|null,
+  "features": string[],
+  "warranty": string|null,
+  "price": number|null
+}
+
+Rules: voltage as written (e.g. "220-240"); cooling capacity in BTU/hr; cooling input in kW; dimensions in mm (width, depth, height);
+weights in kg; noise in dB(A) (use the highest value if a range); airflow in m3/h; energy_stars 1-5;
+features only from: ${AUTOFILL_FEATURES.join(", ")}; price as a number without currency.`;
+
+function isBlockedHost(hostname) {
+  const host = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || host.endsWith(".internal")) {
+    return true;
+  }
+  if (host.includes(":")) return true; // IPv6 literals are not supported
+  const octets = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (octets) {
+    const [a, b] = [Number(octets[1]), Number(octets[2])];
+    return (
+      a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || a >= 224
+    );
+  }
+  return !host.includes(".");
+}
+
+function parseAutofillUrl(value) {
+  let url;
+  try {
+    url = new URL(String(value || "").trim());
+  } catch {
+    return null;
+  }
+  if (!/^https?:$/.test(url.protocol) || url.username || url.password || isBlockedHost(url.hostname)) {
+    return null;
+  }
+  return url;
+}
+
+function htmlToText(html) {
+  return html
+    .replace(/<(script|style|noscript|svg|nav|footer|header|iframe)\b[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<\/(tr|li|p|div|h[1-6]|table|section|dt|dd)>|<br\s*\/?>/gi, "\n")
+    .replace(/<\/(td|th)>/gi, " | ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/[ \t\r\f]+/g, " ").replace(/ ?\n ?/g, "\n").replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+async function fetchPageText(startUrl) {
+  let url = startUrl;
+  for (let hop = 0; hop < 4; hop++) {
+    const response = await fetch(url.href, {
+      redirect: "manual",
+      headers: { "user-agent": "Mozilla/5.0 (compatible; AirconCompareAutofill/1.0)", accept: "text/html,*/*;q=0.8" },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (response.status >= 300 && response.status < 400 && response.headers.get("location")) {
+      const next = parseAutofillUrl(new URL(response.headers.get("location"), url).href);
+      if (!next) throw new AutofillError("The page redirects to an address that is not allowed.", 422);
+      url = next;
+      continue;
+    }
+    if (!response.ok) throw new AutofillError(`The page could not be opened (HTTP ${response.status}).`, 422);
+    const type = response.headers.get("content-type") || "";
+    if (!/text\/html|text\/plain|application\/xhtml/i.test(type)) {
+      throw new AutofillError("That link is not a web page. Upload it as an image or PDF instead.", 422);
+    }
+    const reader = response.body.getReader();
+    const chunks = [];
+    let size = 0;
+    while (size < MAX_AUTOFILL_PAGE_BYTES) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      size += value.byteLength;
+    }
+    reader.cancel().catch(() => {});
+    const bytes = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+    return htmlToText(new TextDecoder().decode(bytes)).slice(0, MAX_AUTOFILL_TEXT_CHARS);
+  }
+  throw new AutofillError("The page redirects too many times.", 422);
+}
+
+class AutofillError extends Error {
+  constructor(message, status = 400) {
+    super(message);
+    this.status = status;
+  }
+}
+
+function pickText(value, max = 120) {
+  if (typeof value !== "string") return null;
+  const text = value.trim().slice(0, max);
+  return text || null;
+}
+
+function pickNumber(value, min, max) {
+  const number = typeof value === "string" ? Number(value.replace(/,/g, "")) : value;
+  return typeof number === "number" && Number.isFinite(number) && number >= min && number <= max ? number : null;
+}
+
+// Turns the model output into the admin form's field names. Anything missing or
+// implausible is dropped so the form never receives a guessed value.
+function mapAutofill(raw) {
+  const data = {};
+  const warnings = [];
+  const set = (key, value) => { if (value !== null && value !== undefined) data[key] = String(value); };
+  const src = raw && typeof raw === "object" ? raw : {};
+
+  set("code", pickText(src.indoor_model));
+  set("outModel", pickText(src.outdoor_model));
+  const hp = pickNumber(src.horsepower, 0.5, 10);
+  if (hp !== null) set("hp", hp.toFixed(1));
+  set("voltage", pickText(src.voltage, 20));
+  set("frequency", pickNumber(src.frequency, 40, 70));
+  set("phase", pickNumber(src.phase, 1, 3));
+
+  const input = pickNumber(src.cooling_input_kw, 0.05, 50);
+  if (input !== null) { set("input", input); data.inputUnit = "kW"; }
+  set("current", pickNumber(src.cooling_current_a, 0.1, 100));
+  const cap = pickNumber(src.cooling_capacity_btu, 5000, 60000);
+  if (cap !== null) { set("cap", cap); data.capUnit = "BTU/hr"; }
+  else if (src.cooling_capacity_btu != null) warnings.push("Cooling capacity looked wrong, so it was left blank.");
+  set("cspf", pickNumber(src.cspf, 1, 12));
+  const stars = pickNumber(src.energy_stars, 1, 5);
+  if (stars !== null) set("stars", Math.round(stars));
+  const airflow = pickNumber(src.airflow_m3h, 50, 10000);
+  if (airflow !== null) { set("airflow", airflow); data.airflowUnit = "m³/h"; }
+
+  for (const [from, dim, wt, noise] of [["indoor", "idim", "iwt", "inoise"], ["outdoor", "odim", "owt", "onoise"]]) {
+    const unit = src[from] && typeof src[from] === "object" ? src[from] : {};
+    const parts = ["w", "d", "h"].map((axis) => pickNumber(unit[axis], 50, 3000));
+    if (parts.every((part) => part !== null)) { data[dim] = parts.join("x"); data[dim + "Unit"] = "mm"; }
+    set(wt, pickNumber(unit.weight_kg, 1, 300));
+    set(noise, pickNumber(unit.noise_db, 10, 100));
+  }
+
+  const refrigerant = pickText(src.refrigerant, 20);
+  if (refrigerant) {
+    const known = ["R32", "R410A", "R22"].find((name) => name === refrigerant.toUpperCase().replace(/[\s-]/g, ""));
+    if (known) data.ref = known;
+    else { data.ref = "Other"; data.refOther = refrigerant; }
+  }
+  if (Array.isArray(src.features)) {
+    const features = AUTOFILL_FEATURES.filter((name) => src.features.includes(name));
+    if (features.length) data.features = features;
+  }
+  set("warranty", pickText(src.warranty, 80));
+  set("price", pickNumber(src.price, 1, 1_000_000));
+  return { data, warnings };
+}
+
+async function runAutofill(env, content) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": env.ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: AUTOFILL_MODEL,
+      max_tokens: 1500,
+      messages: [{ role: "user", content }],
+    }),
+    signal: AbortSignal.timeout(45_000),
+  });
+  if (!response.ok) {
+    console.error("[aircon-compare] Autofill model error:", response.status, await response.text());
+    throw new AutofillError("The recognition service failed. Please try again.", 502);
+  }
+  const result = await response.json();
+  const text = (result.content || []).filter((block) => block.type === "text").map((block) => block.text).join("");
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new AutofillError("Nothing could be read from that content.", 422);
+  try {
+    return mapAutofill(JSON.parse(match[0]));
+  } catch {
+    throw new AutofillError("Nothing could be read from that content.", 422);
+  }
+}
+
+async function autofillSpecs(request, env) {
+  if (!env.SESSION_SECRET || !(await hasAdminSession(request, env.SESSION_SECRET))) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+  if (!hasSameOrigin(request)) return json({ error: "Forbidden" }, 403);
+  if (!env.ANTHROPIC_API_KEY) {
+    return json({ error: "Auto-fill is not set up yet (missing ANTHROPIC_API_KEY)." }, 503);
+  }
+  if (Number(request.headers.get("content-length") || 0) > MAX_AUTOFILL_REQUEST_BYTES) {
+    return json({ error: "The file is too large (limit about 5 MB)." }, 413);
+  }
+
+  try {
+    const rawBody = await request.text();
+    if (rawBody.length > MAX_AUTOFILL_REQUEST_BYTES) {
+      return json({ error: "The file is too large (limit about 5 MB)." }, 413);
+    }
+    let body;
+    try { body = JSON.parse(rawBody); } catch { return json({ error: "Invalid JSON" }, 400); }
+    if (!body || typeof body !== "object") return json({ error: "Invalid request" }, 400);
+
+    let content;
+    if (body.file) {
+      const { mime, data } = body.file;
+      if (!AUTOFILL_MIME_TYPES.includes(mime) || typeof data !== "string" || !/^[A-Za-z0-9+/=]+$/.test(data)) {
+        return json({ error: "Upload a JPG, PNG, WebP, GIF or PDF file." }, 400);
+      }
+      const block = mime === "application/pdf"
+        ? { type: "document", source: { type: "base64", media_type: mime, data } }
+        : { type: "image", source: { type: "base64", media_type: mime, data } };
+      content = [block, { type: "text", text: AUTOFILL_PROMPT }];
+    } else {
+      const url = parseAutofillUrl(body.url);
+      if (!url) return json({ error: "Enter a valid public web address (https://…)." }, 400);
+      const text = await fetchPageText(url);
+      if (text.length < 200) {
+        return json({ error: "That page has too little readable text (it may load its details with JavaScript). Upload a screenshot instead." }, 422);
+      }
+      content = [{ type: "text", text: `${AUTOFILL_PROMPT}\n\nPAGE CONTENT:\n${text}` }];
+    }
+
+    const { data, warnings } = await runAutofill(env, content);
+    if (!Object.keys(data).length) {
+      return json({ error: "No specifications could be recognised, so nothing was filled." }, 422);
+    }
+    return json({ data, warnings });
+  } catch (error) {
+    if (error instanceof AutofillError) return json({ error: error.message }, error.status);
+    console.error("[aircon-compare] Autofill failed:", error);
+    return json({ error: "Auto-fill failed. Please try again." }, 502);
+  }
+}
+
 async function handleApi(request, env) {
   const { pathname } = new URL(request.url);
 
@@ -190,6 +458,10 @@ async function handleApi(request, env) {
 
   if (pathname === "/api/admin/translate" && request.method === "POST") {
     return translateSellingPoint(request, env);
+  }
+
+  if (pathname === "/api/admin/autofill" && request.method === "POST") {
+    return autofillSpecs(request, env);
   }
 
   if (pathname === "/api/admin/logout" && request.method === "POST") {
