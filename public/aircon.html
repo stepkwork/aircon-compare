@@ -126,6 +126,18 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0
 .admin-modal .spec-copy-btn{flex:0 0 auto;height:40px;white-space:nowrap}
 .admin-modal .spec-copy-btn:disabled{opacity:.5;cursor:not-allowed}
 .spec-copy-help{flex:1 0 100%;margin:0;font-size:.78rem;color:var(--muted)}
+.spec-auto{margin:0 0 16px;border:1px dashed var(--line);border-radius:14px;padding:6px 14px}
+.admin-modal .spec-auto-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;border:0;background:transparent;box-shadow:none;padding:8px 0;font-weight:600;font-size:.9rem;cursor:pointer;color:var(--fg)}
+.admin-modal .spec-auto-toggle:disabled{opacity:.5;cursor:not-allowed}
+.admin-modal .spec-auto .spec-auto-toggle{padding:10px 12px !important}
+.spec-auto-body{padding-left:12px;padding-right:12px}
+.spec-auto-body{display:grid;gap:10px;padding:6px 12px 12px}
+.spec-auto-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spec-auto-row input[type=url]{flex:1 1 240px;min-width:0}
+.spec-auto-file{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted);flex:1 1 260px}
+.spec-auto-msg{margin:0;font-size:.82rem;line-height:1.4}
+.spec-auto-msg.ok{color:var(--fg)}
+.spec-auto-msg.bad{color:#ff0000}
 .admin-modal .admin-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .admin-subtitle{color:var(--muted);font-size:.85rem;margin:0 0 16px}
 .admin-tabs{display:flex;gap:8px;position:sticky;top:-24px;z-index:5;background:var(--surface);padding:10px 0;border-bottom:1px solid #cbd0d6;margin-bottom:16px}
@@ -1355,6 +1367,10 @@ var adminNewModelState=useState(""),adminNewModel=adminNewModelState[0],setAdmin
 var adminNewHpState=useState("1.0"),adminNewHp=adminNewHpState[0],setAdminNewHp=adminNewHpState[1];
 var copySourceState=useState(""),copySource=copySourceState[0],setCopySource=copySourceState[1];
 var copyNoteState=useState(""),copyNote=copyNoteState[0],setCopyNote=copyNoteState[1];
+var autoOpenState=useState(false),autoOpen=autoOpenState[0],setAutoOpen=autoOpenState[1];
+var autoUrlState=useState(""),autoUrl=autoUrlState[0],setAutoUrl=autoUrlState[1];
+var autoBusyState=useState(false),autoBusy=autoBusyState[0],setAutoBusy=autoBusyState[1];
+var autoMsgState=useState(null),autoMsg=autoMsgState[0],setAutoMsg=autoMsgState[1];
 var backTopState=useState(false),showBackTop=backTopState[0],setShowBackTop=backTopState[1];
 function furthestScroll(){
   var far=window.scrollY||0;
@@ -1887,6 +1903,50 @@ function copySpecsFrom(srcCode){
   setCopyNote("Copied from "+srcCode+". Check the details, then press Save Model.");
   window.setTimeout(function(){setCopyNote("")},6000);
 }
+function applyAutofill(data){
+  var keep={code:1,hp:1},count=0;
+  setAdminForm(function(current){
+    var next=Object.assign({},current);
+    Object.keys(data).forEach(function(key){
+      if(keep[key]||data[key]==null||data[key]==="")return;
+      if(key==="features"){var merged=(Array.isArray(next.features)?next.features:[]).slice();data.features.forEach(function(f){if(merged.indexOf(f)<0)merged.push(f)});next.features=merged;count++;return}
+      next[key]=data[key];if(!/Unit$/.test(key))count++;
+    });
+    if(data.price!=null){next._displayPrice=data.price;next._priceNeedsParse=false;next.priceUnit=next.priceUnit||"RM"}
+    return next;
+  });
+  if(data.price!=null)setPriceInput(String(data.price));
+  setSpecErrors({});
+  return count;
+}
+async function runAutofillRequest(payload){
+  setAutoBusy(true);setAutoMsg(null);
+  try{
+    var response=await fetch("/api/admin/autofill",{method:"POST",headers:{"content-type":"application/json"},credentials:"same-origin",body:JSON.stringify(payload)});
+    var result=await response.json().catch(function(){return {}});
+    if(!response.ok)throw new Error(result.error||"Auto-fill failed. Please try again.");
+    var count=applyAutofill(result.data||{});
+    var note="Filled "+count+" field"+(count===1?"":"s")+". Anything not found was left as it was. Check every value, then press Save Model.";
+    if(result.data&&result.data.code&&adminForm.code&&result.data.code.toLowerCase()!==String(adminForm.code).toLowerCase())note+=" The source shows model "+result.data.code+" (this form's model code was kept).";
+    if(specEditorMode==="simple")note+=" Switch to Detailed to see every filled field.";
+    setAutoMsg({ok:true,text:note,warnings:result.warnings||[]});
+  }catch(error){setAutoMsg({ok:false,text:error.message||"Auto-fill failed. Please try again.",warnings:[]})}
+  finally{setAutoBusy(false)}
+}
+function autofillFromFile(file){
+  if(!file)return;
+  var allowed=["image/jpeg","image/png","image/webp"];
+  if(allowed.indexOf(file.type)<0){setAutoMsg({ok:false,text:"Upload a JPG, PNG or WebP image (PDFs are not supported — screenshot the page instead).",warnings:[]});return}
+  if(file.size>5*1024*1024){setAutoMsg({ok:false,text:"That file is over 5 MB. Use a smaller image.",warnings:[]});return}
+  var reader=new FileReader();
+  reader.onload=function(){var text=String(reader.result||"");runAutofillRequest({file:{mime:file.type,data:text.slice(text.indexOf(",")+1)}})};
+  reader.onerror=function(){setAutoMsg({ok:false,text:"The file could not be read.",warnings:[]})};
+  reader.readAsDataURL(file);
+}
+function SpecAutofill(){
+  var url=autoUrl.trim();
+  return html`<div class="spec-auto"><button type="button" class="spec-auto-toggle" aria-expanded=${autoOpen} disabled=${!adminEdit} onClick=${function(){setAutoOpen(!autoOpen)}}>Auto-fill from link or image (optional)<span aria-hidden="true">${autoOpen?"▴":"▾"}</span></button>${!adminEdit?html`<p class="spec-copy-help">Select a model above first.</p>`:null}${autoOpen&&adminEdit?html`<div class="spec-auto-body"><div class="spec-auto-row"><input type="url" aria-label="Product page link" placeholder="Paste a product page link (https://…)" value=${autoUrl} disabled=${autoBusy} onInput=${function(e){setAutoUrl(e.target.value)}} onKeyDown=${function(e){if(e.key==="Enter"){e.preventDefault();if(url&&!autoBusy)runAutofillRequest({url:url})}}} /><button type="button" class="spec-copy-btn" disabled=${autoBusy||!url} onClick=${function(){runAutofillRequest({url:url})}}>${autoBusy?"Reading…":"Read link"}</button></div><div class="spec-auto-row"><label class="spec-auto-file"><span>or upload a screenshot or photo (JPG, PNG, WebP)</span><input type="file" aria-label="Upload image or PDF" accept="image/jpeg,image/png,image/webp" disabled=${autoBusy} onChange=${function(e){var f=e.target.files&&e.target.files[0];e.target.value="";autofillFromFile(f)}} /></label></div><p class="spec-copy-help">Only details clearly shown in the source are filled; anything unclear is left blank. Nothing is saved until you press Save Model.</p>${autoMsg?html`<p class=${"spec-auto-msg "+(autoMsg.ok?"ok":"bad")} role="status">${autoMsg.text}${autoMsg.warnings.length?" "+autoMsg.warnings.join(" "):""}</p>`:null}</div>`:null}</div>`;
+}
 function SpecCopyBar(){
   var choices=copySpecChoices(),valid=!!copySource&&copySource!==adminEdit&&choices.some(function(o){return o.value===copySource});
   var help=copyNote||(adminEdit?"":"Select a model above first, then choose which model to copy from.");
@@ -2363,6 +2423,7 @@ ${adminBrand&&adminSeries?html`<h3>Specification Breakdown</h3>
   </div>
 </div>
 ${SpecCopyBar()}
+${SpecAutofill()}
 <div class="spec-form-sections">
 ${(specEditorMode==="simple"?[{title:"Model",fields:[specField("code","Indoor model",{required:true,placeholder:"e.g. FTKM25T"}),specField("outModel","Outdoor model",{placeholder:"e.g. RKM25T"}),specSelect("hp","Horsepower",["1.0","1.5","2.0","2.5","3.0","4.0"].concat(adminForm.hp&&["1.0","1.5","2.0","2.5","3.0","4.0"].indexOf(String(adminForm.hp))<0?[String(adminForm.hp)]:[]),true)]},{title:"Performance",fields:[specUnitField("cap","Cooling capacity",["BTU/hr","kW","HP"],"BTU/hr","e.g. 12,000"),specField("cspf","CSPF",{type:"number",step:"0.01",placeholder:"e.g. 5.20"}),specField("stars","Energy Rating (Stars)",{type:"number",max:5,step:1,placeholder:"1–5 stars"})]},{title:"Other",fields:[SpecPriceField(),SpecFeatures()]}]:[{title:"Model",fields:[specField("code","Indoor model",{required:true,placeholder:"e.g. FTKM25T"}),specField("outModel","Outdoor model",{placeholder:"e.g. RKM25T"}),specSelect("hp","Horsepower",["1.0","1.5","2.0","2.5","3.0","4.0"].concat(adminForm.hp&&["1.0","1.5","2.0","2.5","3.0","4.0"].indexOf(String(adminForm.hp))<0?[String(adminForm.hp)]:[]),true)]},{title:"Electrical",fields:[html`<fieldset class="spec-field wide" style=${{border:0,padding:0,margin:0}}><legend class="admin-field" style=${{fontSize:".78rem",fontWeight:600,color:"var(--fg)",marginBottom:"6px"}}>Power supply</legend><div class="spec-power"><div><label for="spec-voltage">Voltage (V)</label><input id="spec-voltage" placeholder="e.g. 220-240" value=${adminForm.voltage||""} onKeyDown=${function(e){if(e.key==="Enter")e.preventDefault()}} onInput=${function(e){updateSpec("voltage",e.target.value)}} /></div><div><label for="spec-frequency">Frequency (Hz)</label><input id="spec-frequency" type="text" inputmode="decimal" placeholder="50" value=${String(adminForm.frequency||"50")} onKeyDown=${function(e){if(e.key==="Enter")e.preventDefault()}} onInput=${function(e){updateSpec("frequency",e.target.value)}} /></div><div><label for="spec-phase">Ph</label><input id="spec-phase" type="text" placeholder="e.g. 1" value=${adminForm.phase||""} onKeyDown=${function(e){if(e.key==="Enter")e.preventDefault()}} onInput=${function(e){updateSpec("phase",e.target.value)}} /></div></div></fieldset>`,specUnitField("input","Cooling input",["kW","W"],"kW","e.g. 0.88"),specUnitField("current","Cooling current",["A"],"A","e.g. 3.8")]},{title:"Performance",fields:[specUnitField("cap","Cooling capacity",["BTU/hr","kW","HP"],"BTU/hr","e.g. 12,000"),specField("cspf","CSPF",{type:"number",step:"0.01",placeholder:"e.g. 5.20"}),specField("stars","Energy Rating (Stars)",{type:"number",max:5,step:1,placeholder:"1–5 stars"}),specUnitField("airflow","Airflow",["m³/h","L/s","CFM"],"m³/h","e.g. 630")]},{title:"Indoor unit",fields:[specDimensionField("idim","Dimensions"),specUnitField("iwt","Weight",["kg","lb"],"kg","e.g. 9.8"),specUnitField("inoise","Noise",["dB(A)"],"dB(A)","e.g. 39.5")]},{title:"Outdoor unit",fields:[specDimensionField("odim","Dimensions"),specUnitField("owt","Weight",["kg","lb"],"kg","e.g. 28"),specUnitField("onoise","Noise",["dB(A)"],"dB(A)","e.g. 52")]},{title:"Other",fields:[specSelect("ref","Refrigerant",["R32","R410A","R22","Other"]),specField("refOther","Other refrigerant",{placeholder:"Enter refrigerant"}),SpecFeatures(),specField("warranty","Warranty",{placeholder:"e.g. 5 years"}),SpecPriceField()]}]).map(function(section){return html`<section class="spec-section"><h5>${section.title}</h5><div class="spec-section-fields">${section.fields}</div></section>`})}
 </div>
