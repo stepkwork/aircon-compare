@@ -1928,6 +1928,8 @@ function applyAutofill(data){
   return count;
 }
 async function runAutofillRequest(payload){
+  var targetModel=[String(adminForm.code||"").trim(),adminForm.hp?String(adminForm.hp)+"HP":""].filter(Boolean).join(" / ");
+  if(targetModel)payload=Object.assign({},payload,{target:targetModel});
   setAutoBusy(true);setAutoMsg(null);
   try{
     var response=await fetch("/api/admin/autofill",{method:"POST",headers:{"content-type":"application/json"},credentials:"same-origin",body:JSON.stringify(payload)});

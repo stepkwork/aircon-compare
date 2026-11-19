@@ -186,7 +186,7 @@ async function translateSellingPoint(request, env) {
 const AUTOFILL_PROMPT = `Extract air conditioner specifications for ONE model from the provided content.
 Return ONLY a JSON object, no markdown, no explanation.
 Use null for anything not clearly stated in the content. NEVER guess, infer or calculate missing values.
-If the content lists several models, extract only the first model shown.
+If the content lists several models and no target model is given below, extract only the first model shown.
 
 {
   "indoor_model": string|null,
@@ -210,6 +210,7 @@ If the content lists several models, extract only the first model shown.
 }
 
 Rules: voltage as written (e.g. "220-240"); cooling capacity in BTU/hr; cooling input in kW; dimensions in mm (width, depth, height);
+cooling input must be converted to kW if the source gives watts (1090 W = 1.09);
 weights in kg: net_weight_kg and gross_weight_kg when the source labels them, otherwise only weight_kg;
 noise_db is a list of every dB(A) value shown for that unit in the order given (e.g. [38, 35, 32] for high/medium/low speed), or [] if none; airflow in m3/h; energy_stars 1-5;
 features only from: ${AUTOFILL_FEATURES.join(", ")}; price as a number without currency.`;
@@ -375,6 +376,14 @@ function aiText(result) {
   return typeof out === "string" ? out : out && typeof out === "object" ? JSON.stringify(out) : "";
 }
 
+function targetHint(target) {
+  if (!target) return "";
+  return `\n\nThe content may be a table with several models in columns.
+Extract ONLY the column for this model: "${target}". Match by model code first, otherwise by horsepower
+(1.0HP is about 9,000-9,500 BTU/hr, 1.5HP about 12,000-13,000, 2.0HP about 18,000-19,000, 2.5HP about 22,000-24,000).
+Never mix values from different columns. If you cannot tell which column is the target, return null for every field.`;
+}
+
 async function runAutofill(env, input) {
   let text;
   try {
@@ -384,7 +393,7 @@ async function runAutofill(env, input) {
           messages: [{
             role: "user",
             content: [
-              { type: "text", text: AUTOFILL_PROMPT },
+              { type: "text", text: AUTOFILL_PROMPT + targetHint(input.target) },
               { type: "image_url", image_url: { url: `data:${input.image.mime};base64,${input.image.data}` } },
             ],
           }],
@@ -403,7 +412,7 @@ async function runAutofill(env, input) {
       text = aiText(result);
     } else {
       const result = await env.AI.run(AUTOFILL_TEXT_MODEL, {
-        messages: [{ role: "user", content: `${AUTOFILL_PROMPT}\n\nPAGE CONTENT:\n${input.text}` }],
+        messages: [{ role: "user", content: `${AUTOFILL_PROMPT}${targetHint(input.target)}\n\nPAGE CONTENT:\n${input.text}` }],
         max_tokens: 1500,
         temperature: 0,
       });
@@ -441,13 +450,14 @@ async function autofillSpecs(request, env) {
     try { body = JSON.parse(rawBody); } catch { return json({ error: "Invalid JSON" }, 400); }
     if (!body || typeof body !== "object") return json({ error: "Invalid request" }, 400);
 
+    const target = pickText(body.target, 120);
     let content;
     if (body.file) {
       const { mime, data } = body.file;
       if (!AUTOFILL_MIME_TYPES.includes(mime) || typeof data !== "string" || !/^[A-Za-z0-9+/=]+$/.test(data)) {
         return json({ error: "Upload a JPG, PNG or WebP image." }, 400);
       }
-      content = { image: { mime, data } };
+      content = { image: { mime, data }, target };
     } else {
       const url = parseAutofillUrl(body.url);
       if (!url) return json({ error: "Enter a valid public web address (https://…)." }, 400);
@@ -455,7 +465,7 @@ async function autofillSpecs(request, env) {
       if (text.length < 200) {
         return json({ error: "That page has too little readable text (it may load its details with JavaScript). Upload a screenshot instead." }, 422);
       }
-      content = { text };
+      content = { text, target };
     }
 
     const { data, warnings } = await runAutofill(env, content);
