@@ -1642,7 +1642,7 @@ function ModelPicker(props){
       var maxHeight=Math.max(80,Math.min(280,available));
       var width=Math.min(rect.width,window.innerWidth-16);
       var left=Math.max(8,Math.min(rect.left,window.innerWidth-width-8));
-      setPosition({top:placeAbove?Math.max(8,rect.top-maxHeight-4):rect.bottom+4,left:left,width:width,maxHeight:maxHeight});
+      setPosition(placeAbove?{top:"auto",bottom:window.innerHeight-rect.top+4,left:left,width:width,maxHeight:maxHeight}:{top:rect.bottom+4,bottom:"auto",left:left,width:width,maxHeight:maxHeight});
     }
     function onPointerDown(event){
       if(triggerRef.current&&triggerRef.current.contains(event.target)) return;
@@ -1651,11 +1651,12 @@ function ModelPicker(props){
     }
     updatePosition();
     window.addEventListener("resize",updatePosition);
-    window.addEventListener("scroll",updatePosition,true);
+    function onScroll(event){if(menuRef.current&&event.target instanceof Node&&menuRef.current.contains(event.target))return;setOpen(false)}
+    window.addEventListener("scroll",onScroll,true);
     document.addEventListener("pointerdown",onPointerDown);
     return function(){
       window.removeEventListener("resize",updatePosition);
-      window.removeEventListener("scroll",updatePosition,true);
+      window.removeEventListener("scroll",onScroll,true);
       document.removeEventListener("pointerdown",onPointerDown);
     };
   },[open,portalTarget]);
