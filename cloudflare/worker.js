@@ -201,8 +201,8 @@ If the content lists several models, extract only the first model shown.
   "cspf": number|null,
   "energy_stars": number|null,
   "airflow_m3h": number|null,
-  "indoor": { "w": number|null, "d": number|null, "h": number|null, "weight_kg": number|null, "noise_db": number|null },
-  "outdoor": { "w": number|null, "d": number|null, "h": number|null, "weight_kg": number|null, "noise_db": number|null },
+  "indoor": { "w": number|null, "d": number|null, "h": number|null, "net_weight_kg": number|null, "gross_weight_kg": number|null, "weight_kg": number|null, "noise_db": number[] },
+  "outdoor": { "w": number|null, "d": number|null, "h": number|null, "net_weight_kg": number|null, "gross_weight_kg": number|null, "weight_kg": number|null, "noise_db": number[] },
   "refrigerant": string|null,
   "features": string[],
   "warranty": string|null,
@@ -210,7 +210,8 @@ If the content lists several models, extract only the first model shown.
 }
 
 Rules: voltage as written (e.g. "220-240"); cooling capacity in BTU/hr; cooling input in kW; dimensions in mm (width, depth, height);
-weights in kg; noise in dB(A) (use the highest value if a range); airflow in m3/h; energy_stars 1-5;
+weights in kg: net_weight_kg and gross_weight_kg when the source labels them, otherwise only weight_kg;
+noise_db is a list of every dB(A) value shown for that unit in the order given (e.g. [38, 35, 32] for high/medium/low speed), or [] if none; airflow in m3/h; energy_stars 1-5;
 features only from: ${AUTOFILL_FEATURES.join(", ")}; price as a number without currency.`;
 
 function isBlockedHost(hostname) {
@@ -343,8 +344,15 @@ function mapAutofill(raw) {
     const unit = src[from] && typeof src[from] === "object" ? src[from] : {};
     const parts = ["w", "d", "h"].map((axis) => pickNumber(unit[axis], 50, 3000));
     if (parts.every((part) => part !== null)) { data[dim] = parts.join("x"); data[dim + "Unit"] = "mm"; }
-    set(wt, pickNumber(unit.weight_kg, 1, 300));
-    set(noise, pickNumber(unit.noise_db, 10, 100));
+    const net = pickNumber(unit.net_weight_kg, 1, 300);
+    const gross = pickNumber(unit.gross_weight_kg, 1, 300);
+    if (net !== null && gross !== null) set(wt, `${net}/${gross}`);
+    else set(wt, net ?? gross ?? pickNumber(unit.weight_kg, 1, 300));
+    const levels = (Array.isArray(unit.noise_db) ? unit.noise_db : [unit.noise_db])
+      .map((value) => pickNumber(value, 10, 100))
+      .filter((value) => value !== null)
+      .slice(0, 4);
+    if (levels.length) set(noise, levels.join("/"));
   }
 
   const refrigerant = pickText(src.refrigerant, 20);
