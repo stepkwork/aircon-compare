@@ -1669,7 +1669,7 @@ function ModelPicker(props){
   },[open,portalTarget]);
   useEffect(function(){
     if(open&&portalTarget){
-      var index=Math.max(0,Math.min(props.value,props.options.length-1));
+      var index=props.openAtTop?0:Math.max(0,Math.min(props.value,props.options.length-1));
       setActiveIndex(index);
       if(optionRefs.current[index]){
         optionRefs.current[index].focus();
@@ -1750,7 +1750,7 @@ function AdminPicker(props){
   var options=props.options||[];
   var idx=options.findIndex(function(option){return option.value===props.value});
   if(idx<0) idx=0;
-  return html`<${ModelPicker} label=${props.label} value=${idx} options=${options} onChange=${props.onChange}/>`;
+  return html`<${ModelPicker} label=${props.label} value=${idx} options=${options} onChange=${props.onChange} openAtTop=${props.openAtTop}/>`;
 }
 function SeriesModelPick(props){
   var seriesList=props.seriesList, lang=props.lang, t=props.t, hpFilter=props.hpFilter;
@@ -1960,7 +1960,7 @@ function SpecAutofill(){
 function SpecCopyBar(){
   var choices=copySpecChoices(),valid=!!copySource&&copySource!==adminEdit&&choices.some(function(o){return o.value===copySource});
   var help=copyNote||(adminEdit?"":"Select a model above first, then choose which model to copy from.");
-  return html`<div class="spec-copy"><div class="spec-copy-pick"><label class="admin-field">Copy details from another model</label><${AdminPicker} label="Copy from" value=${valid?copySource:""} options=${choices} onChange=${function(v){setCopySource(v);setCopyNote("")}}/></div><button type="button" class="spec-copy-btn" disabled=${!adminEdit||!valid} onClick=${function(){copySpecsFrom(copySource)}}>Copy details</button>${help?html`<p class="spec-copy-help" role="status">${help}</p>`:null}</div>`;
+  return html`<div class="spec-copy"><div class="spec-copy-pick"><label class="admin-field">Copy details from another model</label><${AdminPicker} label="Copy from" openAtTop=${true} value=${valid?copySource:""} options=${choices} onChange=${function(v){setCopySource(v);setCopyNote("")}}/></div><button type="button" class="spec-copy-btn" disabled=${!adminEdit||!valid} onClick=${function(){copySpecsFrom(copySource)}}>Copy details</button>${help?html`<p class="spec-copy-help" role="status">${help}</p>`:null}</div>`;
 }
 function specField(field,label,options){options=options||{};var id="spec-"+field,error=specErrors[field],required=options.required===true,value=adminForm[field]==null?"":adminForm[field];return html`<div class=${"spec-field"+(options.wide?" wide":"")}><label class="admin-field" for=${id}>${label}${required?html`<span class="required-mark" aria-hidden="true">*</span>`:null}</label><input id=${id} type="text" inputmode=${options.type==="number"?"decimal":null} placeholder=${options.placeholder||""} value=${String(value)} aria-required=${required?"true":null} aria-invalid=${error?"true":"false"} aria-describedby=${error?id+"-error":null} onKeyDown=${function(e){if(e.key==="Enter")e.preventDefault()}} onInput=${function(e){updateSpec(field,e.target.value)}} />${error?html`<span id=${id+"-error"} class="spec-error" role="alert">${error}</span>`:null}</div>`}
 function specSelect(field,label,options,required){var id="spec-"+field,error=specErrors[field],value=adminForm[field]==null?"":String(adminForm[field]);return html`<div class="spec-field"><label class="admin-field" for=${id}>${label}${required?html`<span class="required-mark" aria-hidden="true">*</span>`:null}</label><${AdminPicker} label=${label} value=${value||""} options=${[{value:"",label:"Choose…"}].concat(options.map(function(option){return {value:option,label:option}}))} onChange=${function(next){updateSpec(field,next)}}/>${error?html`<span id=${id+"-error"} class="spec-error" role="alert">${error}</span>`:null}</div>`}
