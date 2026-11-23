@@ -458,6 +458,12 @@ async function autofillSpecs(request, env) {
         return json({ error: "Upload a JPG, PNG or WebP image." }, 400);
       }
       content = { image: { mime, data }, target };
+    } else if (typeof body.text === "string") {
+      const text = body.text.trim().slice(0, MAX_AUTOFILL_TEXT_CHARS);
+      if (text.length < 60) {
+        return json({ error: "That file has too little readable text. Upload a screenshot of the spec table instead." }, 422);
+      }
+      content = { text, target };
     } else {
       const url = parseAutofillUrl(body.url);
       if (!url) return json({ error: "Enter a valid public web address (https://…)." }, 400);

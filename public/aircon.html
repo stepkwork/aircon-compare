@@ -1946,11 +1946,68 @@ async function runAutofillRequest(payload){
   }catch(error){setAutoMsg({ok:false,text:error.message||"Auto-fill failed. Please try again.",warnings:[]})}
   finally{setAutoBusy(false)}
 }
+var PDFJS_BASE="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+function loadPdfJs(){
+  return new Promise(function(resolve,reject){
+    function ready(){
+      var lib=window.pdfjsLib;
+      if(!lib){return false}
+      if(!lib.GlobalWorkerOptions.workerSrc&&!lib.GlobalWorkerOptions.workerPort){
+        fetch(PDFJS_BASE+"pdf.worker.min.js").then(function(r){return r.text()}).then(function(code){
+          lib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([code],{type:"text/javascript"}));resolve(lib);
+        }).catch(function(){lib.GlobalWorkerOptions.workerSrc=PDFJS_BASE+"pdf.worker.min.js";resolve(lib)});
+      }else resolve(lib);
+      return true;
+    }
+    if(ready())return;
+    var tag=document.createElement("script");tag.src=PDFJS_BASE+"pdf.min.js";
+    tag.onerror=function(){reject(new Error("The PDF reader could not be loaded. Check your connection, or upload a screenshot instead."))};
+    tag.onload=function(){var tries=0;(function wait(){if(ready())return;if(++tries>50)return reject(new Error("The PDF reader could not be loaded."));setTimeout(wait,100)})()};
+    document.head.appendChild(tag);
+  });
+}
+async function pdfToInput(file){
+  var lib=await loadPdfJs();
+  var pdf=await lib.getDocument({data:await file.arrayBuffer()}).promise;
+  var pages=Math.min(pdf.numPages,8),chunks=[];
+  for(var n=1;n<=pages;n++){
+    var content=await (await pdf.getPage(n)).getTextContent(),rows=[];
+    content.items.forEach(function(item){
+      if(!item.str||!item.str.trim())return;
+      var y=item.transform[5],x=item.transform[4],row=rows.find(function(r){return Math.abs(r.y-y)<3});
+      if(!row){row={y:y,items:[]};rows.push(row)}
+      row.items.push({x:x,w:item.width||0,str:item.str.trim()});
+    });
+    rows.sort(function(a,b){return b.y-a.y});
+    chunks.push(rows.map(function(row){
+      row.items.sort(function(a,b){return a.x-b.x});
+      return row.items.reduce(function(line,item,i){
+        if(!i)return item.str;
+        var prev=row.items[i-1];return line+(item.x-(prev.x+prev.w)>8?" | ":" ")+item.str;
+      },"");
+    }).join("\n"));
+  }
+  var text=chunks.join("\n\n").trim();
+  if(text.replace(/[\s|]/g,"").length>=80)return {text:text.slice(0,30000)};
+  var page=await pdf.getPage(1),base=page.getViewport({scale:1}),scale=Math.min(3,1800/Math.max(base.width,base.height));
+  var viewport=page.getViewport({scale:scale}),canvas=document.createElement("canvas");
+  canvas.width=Math.round(viewport.width);canvas.height=Math.round(viewport.height);
+  var ctx=canvas.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
+  await page.render({canvasContext:ctx,viewport:viewport}).promise;
+  var url=canvas.toDataURL("image/jpeg",0.85);
+  return {file:{mime:"image/jpeg",data:url.slice(url.indexOf(",")+1)}};
+}
 function autofillFromFile(file){
   if(!file)return;
+  var isPdf=file.type==="application/pdf"||/\.pdf$/i.test(file.name||"");
   var allowed=["image/jpeg","image/png","image/webp"];
-  if(allowed.indexOf(file.type)<0){setAutoMsg({ok:false,text:"Upload a JPG, PNG or WebP image (PDFs are not supported — screenshot the page instead).",warnings:[]});return}
-  if(file.size>5*1024*1024){setAutoMsg({ok:false,text:"That file is over 5 MB. Use a smaller image.",warnings:[]});return}
+  if(!isPdf&&allowed.indexOf(file.type)<0){setAutoMsg({ok:false,text:"Upload a JPG, PNG or WebP image, or a PDF.",warnings:[]});return}
+  if(file.size>(isPdf?15:5)*1024*1024){setAutoMsg({ok:false,text:"That file is over "+(isPdf?15:5)+" MB. Use a smaller file.",warnings:[]});return}
+  if(isPdf){
+    setAutoBusy(true);setAutoMsg({ok:true,text:"Reading the PDF…",warnings:[]});
+    pdfToInput(file).then(function(input){runAutofillRequest(input)}).catch(function(error){setAutoBusy(false);setAutoMsg({ok:false,text:(error&&error.message)||"The PDF could not be read.",warnings:[]})});
+    return;
+  }
   var reader=new FileReader();
   reader.onload=function(){var text=String(reader.result||"");runAutofillRequest({file:{mime:file.type,data:text.slice(text.indexOf(",")+1)}})};
   reader.onerror=function(){setAutoMsg({ok:false,text:"The file could not be read.",warnings:[]})};
@@ -1958,7 +2015,7 @@ function autofillFromFile(file){
 }
 function SpecAutofill(){
   var url=autoUrl.trim();
-  return html`<div class="spec-auto"><button type="button" class="spec-auto-toggle" aria-expanded=${autoOpen} disabled=${!adminEdit} onClick=${function(){setAutoOpen(!autoOpen)}}>Auto-fill from link or image (optional)<span aria-hidden="true">${autoOpen?"▴":"▾"}</span></button>${!adminEdit?html`<p class="spec-copy-help">Select a model above first.</p>`:null}${autoOpen&&adminEdit?html`<div class="spec-auto-body"><div class="spec-auto-group"><label class="admin-field" for="spec-auto-url">Product page link</label><div class="spec-auto-row"><input id="spec-auto-url" type="url" placeholder="https://…" value=${autoUrl} disabled=${autoBusy} onInput=${function(e){setAutoUrl(e.target.value)}} onKeyDown=${function(e){if(e.key==="Enter"){e.preventDefault();if(url&&!autoBusy)runAutofillRequest({url:url})}}} /><button type="button" class="spec-copy-btn" disabled=${autoBusy||!url} onClick=${function(){runAutofillRequest({url:url})}}>${autoBusy?"Reading…":"Read link"}</button></div></div><div class="spec-auto-or" aria-hidden="true"><span>or</span></div><div class="spec-auto-group"><label class="admin-field" for="spec-auto-file">Screenshot or photo (JPG, PNG, WebP)</label><input id="spec-auto-file" class="spec-auto-file-input" type="file" accept="image/jpeg,image/png,image/webp" disabled=${autoBusy} onChange=${function(e){var f=e.target.files&&e.target.files[0];e.target.value="";autofillFromFile(f)}} /></div><p class="spec-auto-note">Only details clearly shown in the source are filled; anything unclear is left blank. Nothing is saved until you press Save Model.</p>${autoMsg?html`<p class=${"spec-auto-msg "+(autoMsg.ok?"ok":"bad")} role="status">${autoMsg.text}${autoMsg.warnings.length?" "+autoMsg.warnings.join(" "):""}</p>`:null}</div>`:null}</div>`;
+  return html`<div class="spec-auto"><button type="button" class="spec-auto-toggle" aria-expanded=${autoOpen} disabled=${!adminEdit} onClick=${function(){setAutoOpen(!autoOpen)}}>Auto-fill from link or image (optional)<span aria-hidden="true">${autoOpen?"▴":"▾"}</span></button>${!adminEdit?html`<p class="spec-copy-help">Select a model above first.</p>`:null}${autoOpen&&adminEdit?html`<div class="spec-auto-body"><div class="spec-auto-group"><label class="admin-field" for="spec-auto-url">Product page link</label><div class="spec-auto-row"><input id="spec-auto-url" type="url" placeholder="https://…" value=${autoUrl} disabled=${autoBusy} onInput=${function(e){setAutoUrl(e.target.value)}} onKeyDown=${function(e){if(e.key==="Enter"){e.preventDefault();if(url&&!autoBusy)runAutofillRequest({url:url})}}} /><button type="button" class="spec-copy-btn" disabled=${autoBusy||!url} onClick=${function(){runAutofillRequest({url:url})}}>${autoBusy?"Reading…":"Read link"}</button></div></div><div class="spec-auto-or" aria-hidden="true"><span>or</span></div><div class="spec-auto-group"><label class="admin-field" for="spec-auto-file">Screenshot, photo or PDF brochure</label><input id="spec-auto-file" class="spec-auto-file-input" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled=${autoBusy} onChange=${function(e){var f=e.target.files&&e.target.files[0];e.target.value="";autofillFromFile(f)}} /></div><p class="spec-auto-note">Only details clearly shown in the source are filled; anything unclear is left blank. Nothing is saved until you press Save Model.</p>${autoMsg?html`<p class=${"spec-auto-msg "+(autoMsg.ok?"ok":"bad")} role="status">${autoMsg.text}${autoMsg.warnings.length?" "+autoMsg.warnings.join(" "):""}</p>`:null}</div>`:null}</div>`;
 }
 function SpecCopyBar(){
   var choices=copySpecChoices(),valid=!!copySource&&copySource!==adminEdit&&choices.some(function(o){return o.value===copySource});
