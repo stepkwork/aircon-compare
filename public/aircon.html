@@ -619,6 +619,37 @@ input[type=checkbox]:disabled{opacity:.45}
 
 :root[data-theme="dark"] .admin-modal .admin-tabs button[aria-selected="true"],:root[data-theme="dark"] .admin-modal .spec-mode button[aria-pressed="true"]{background:rgba(55,148,255,.24) !important;background-image:none !important;border-color:#3794ff !important;color:#8ec5ff !important;font-weight:600}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .admin-modal .admin-tabs button[aria-selected="true"],:root:not([data-theme="light"]) .admin-modal .spec-mode button[aria-pressed="true"]{background:rgba(55,148,255,.24) !important;background-image:none !important;border-color:#3794ff !important;color:#8ec5ff !important;font-weight:600}}
+.tracker-sum{margin:0 0 12px;font-size:.9rem;color:var(--muted);line-height:1.45}
+.tracker-filters{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.admin-modal .tracker-filters button{padding:7px 14px;font-size:.85rem}
+.admin-modal .tracker-filters button[aria-pressed="true"]{background:#ffe5e5 !important;border-color:#ff0000 !important;color:#ff0000 !important;font-weight:600}
+:root[data-theme="dark"] .admin-modal .tracker-filters button[aria-pressed="true"]{background:rgba(55,148,255,.24) !important;border-color:#3794ff !important;color:#8ec5ff !important}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .admin-modal .tracker-filters button[aria-pressed="true"]{background:rgba(55,148,255,.24) !important;border-color:#3794ff !important;color:#8ec5ff !important}}
+.tracker-list{display:grid;gap:10px}
+.tracker-card{border:1px solid var(--line);border-radius:14px;padding:0 14px}
+.tracker-card summary{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px 10px;align-items:center;padding:12px 0;cursor:pointer;list-style:none}
+.tracker-card summary::-webkit-details-marker{display:none}
+.tracker-dot{width:12px;height:12px;border-radius:50%;grid-row:1}
+.tracker-name{font-weight:600;overflow-wrap:anywhere}
+.tracker-badge{font-size:.74rem;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap;background:var(--hdr);color:var(--muted)}
+.tracker-badge.done{background:#e3f6e8;color:#14753a}
+.tracker-badge.progress{background:#fff3d6;color:#8a5a00}
+:root[data-theme="dark"] .tracker-badge.done{background:rgba(63,185,80,.2);color:#6fdc86}
+:root[data-theme="dark"] .tracker-badge.progress{background:rgba(255,190,60,.18);color:#ffcf66}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .tracker-badge.done{background:rgba(63,185,80,.2);color:#6fdc86}:root:not([data-theme="light"]) .tracker-badge.progress{background:rgba(255,190,60,.18);color:#ffcf66}}
+.tracker-count{grid-column:2;font-size:.8rem;color:var(--muted)}
+.tracker-bar{grid-column:2;height:8px;border-radius:999px;background:var(--hdr);overflow:hidden;border:1px solid var(--line)}
+.tracker-bar i{display:block;height:100%;background:#ff0000;border-radius:999px}
+:root[data-theme="dark"] .tracker-bar i{background:#3794ff}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .tracker-bar i{background:#3794ff}}
+.tracker-card.done .tracker-bar i{background:#2ea44f}
+.tracker-pct{grid-column:3;grid-row:2;font-size:.8rem;font-weight:600}
+.tracker-body{border-top:1px solid var(--line);padding:10px 0 12px;display:grid;gap:10px}
+.tracker-series h4{margin:0 0 4px;font-size:.85rem}
+.tracker-series p,.tracker-body>p{margin:0 0 3px;font-size:.8rem;line-height:1.4;color:var(--muted)}
+.tracker-series p.ok strong{color:#14753a}
+.tracker-series p.miss strong{color:var(--fg)}
+.tracker-empty{margin:0;color:var(--muted);font-size:.9rem}
 </style></head><body>
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -1385,6 +1416,7 @@ var autoOpenState=useState(false),autoOpen=autoOpenState[0],setAutoOpen=autoOpen
 var autoUrlState=useState(""),autoUrl=autoUrlState[0],setAutoUrl=autoUrlState[1];
 var autoBusyState=useState(false),autoBusy=autoBusyState[0],setAutoBusy=autoBusyState[1];
 var autoMsgState=useState(null),autoMsg=autoMsgState[0],setAutoMsg=autoMsgState[1];
+var trackFilterState=useState("all"),trackFilter=trackFilterState[0],setTrackFilter=trackFilterState[1];
 var autoPasteState=useState(""),autoPaste=autoPasteState[0],setAutoPaste=autoPasteState[1];
 var autoPendingState=useState(null),autoPending=autoPendingState[0],setAutoPending=autoPendingState[1];
 var autoLogState=useState([]),autoLog=autoLogState[0],setAutoLog=autoLogState[1];
@@ -1923,6 +1955,27 @@ function copySpecsFrom(srcCode){
   window.setTimeout(function(){setCopyNote("")},6000);
 }
 var AUTO_FEATURES=["Wi-Fi","Self-cleaning","Air purification","Inverter","Sleep mode","Eco mode","Voice control"];
+var TRACK_FIELDS=[["cap","Cooling capacity"],["input","Cooling input"],["current","Cooling current"],["cspf","CSPF"],["stars","Energy rating"],["power","Power supply"],["ref","Refrigerant"],["airflow","Airflow"],["idim","Indoor dimensions"],["iwt","Indoor weight"],["inoise","Indoor noise"],["odim","Outdoor dimensions"],["owt","Outdoor weight"],["onoise","Outdoor noise"]];
+function trackingBoard(){
+  function has(d,key){
+    var v=key==="power"?(d.voltage||d.power):key==="airflow"?(d.airflow||d.iaf):d[key];
+    return v!=null&&String(v).trim()!==""&&String(v).trim()!=="—";
+  }
+  return brandsData.map(function(brand){
+    var group=modelsData[brand.b]||{series:[]},seriesList=[],total=0,complete=0,points=0;
+    (group.series||[]).forEach(function(series){
+      var rows=(series.models||[]).map(function(model){
+        var d=specData[model.in]||{},missing=TRACK_FIELDS.filter(function(f){return !has(d,f[0])}).map(function(f){return f[1]});
+        total++;points+=TRACK_FIELDS.length-missing.length;if(!missing.length)complete++;
+        return {code:model.in,hp:model.hp,missing:missing};
+      });
+      seriesList.push({name:series.nEn,rows:rows});
+    });
+    var percent=total?Math.round(points/(total*TRACK_FIELDS.length)*100):0;
+    var status=!total?"empty":complete===total?"done":points?"progress":"todo";
+    return {name:brand.b,color:String(brand.c||"#888").split("|")[0],series:seriesList,total:total,complete:complete,percent:percent,status:status};
+  });
+}
 function parsePastedSpecs(text){
   var lines=String(text||"").replace(/\r/g,"").split("\n"),rows=[];
   lines.forEach(function(line){
@@ -2408,6 +2461,7 @@ ${!adminAuth?html`<h2>Admin Login</h2>
 <button type="button" role="tab" aria-selected=${adminTab==="brands"} onClick=${function(){setAdminTab("brands");setAdminMenuOpen(false)}}>Brands</button>
 <button type="button" role="tab" aria-selected=${adminTab==="series"} onClick=${function(){setAdminTab("series");setAdminMenuOpen(false)}}>Series</button>
 <button type="button" role="tab" aria-selected=${adminTab==="models"} onClick=${function(){setAdminTab("models");setAdminMenuOpen(false)}}>Models & Specifications</button>
+<button type="button" role="tab" aria-selected=${adminTab==="tracker"} onClick=${function(){setAdminTab("tracker");setAdminMenuOpen(false)}}>Progress</button>
 <button type="button" role="tab" aria-selected=${adminTab==="modelTable"} onClick=${function(){setAdminTab("modelTable");setAdminMenuOpen(false)}}>${t.modelTable}</button>
 </div>
 </div>
@@ -2714,6 +2768,11 @@ ${adminEdit?html`<button type="button" onClick=${function(){
 </div>
 `:html`<p class="admin-empty">Select a brand and series to edit model specifications.</p>`}
 </section>`:null}
+${adminTab==="tracker"?(function(){
+  var board=trackingBoard(),done=board.filter(function(b){return b.status==="done"}).length,labels={done:"Completed",progress:"In progress",todo:"Not started",empty:"No models"};
+  var counts={all:board.length,done:done,progress:board.filter(function(b){return b.status==="progress"}).length,todo:board.filter(function(b){return b.status==="todo"||b.status==="empty"}).length};
+  var shown=board.filter(function(b){return trackFilter==="all"||(trackFilter==="todo"?(b.status==="todo"||b.status==="empty"):b.status===trackFilter)});
+  return html`<section class="admin-section tracker"><h3>Progress Tracker</h3><p class="tracker-sum"><strong>${done} of ${board.length}</strong> brands completed. A model counts as complete when all ${TRACK_FIELDS.length} core specifications are filled in (electrical, performance, indoor and outdoor unit, refrigerant).</p><div class="tracker-filters" role="group" aria-label="Filter brands">${[["all","All"],["done","Completed"],["progress","In progress"],["todo","Not started"]].map(function(f){return html`<button type="button" aria-pressed=${trackFilter===f[0]} onClick=${function(){setTrackFilter(f[0])}}>${f[1]} (${counts[f[0]]})</button>`})}</div><div class="tracker-list">${shown.map(function(b){return html`<details class=${"tracker-card "+b.status}><summary><span class="tracker-dot" style=${{background:b.color}}></span><span class="tracker-name">${b.name}</span><span class=${"tracker-badge "+b.status}>${labels[b.status]}</span><span class="tracker-count">${b.total?b.complete+" / "+b.total+" models":"0 models"}</span><span class="tracker-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow=${b.percent} aria-label=${b.name+" progress"}><i style=${{width:b.percent+"%"}}></i></span><span class="tracker-pct">${b.percent}%</span></summary><div class="tracker-body">${b.series.length?b.series.map(function(s){return html`<div class="tracker-series"><h4>${s.name}</h4>${s.rows.length?s.rows.map(function(r){return html`<p class=${r.missing.length?"miss":"ok"}><strong>${r.code} · ${r.hp}HP</strong> ${r.missing.length===TRACK_FIELDS.length?"No specifications yet":r.missing.length?"Missing: "+r.missing.join(", "):"Complete"}</p>`}):html`<p class="miss">No models added yet</p>`}</div>`}):html`<p class="miss">No series or models added yet</p>`}</div></details>`})}${shown.length?null:html`<p class="tracker-empty">No brands in this group.</p>`}</div></section>`})():null}
 ${adminTab==="modelTable"?html`<section class="admin-section">
 <h3>${t.modelTable}</h3>
 <p>Browse every catalog model and its simple comparison details. Use Edit to open a model in the specification editor.</p>
