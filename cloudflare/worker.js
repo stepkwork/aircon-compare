@@ -384,51 +384,91 @@ Extract ONLY the column for this model: "${target}". Match by model code first, 
 Never mix values from different columns. If you cannot tell which column is the target, return null for every field.`;
 }
 
-async function runAutofill(env, input) {
-  let text;
-  try {
-    if (input.image) {
-      const run = () =>
-        env.AI.run(AUTOFILL_VISION_MODEL, {
-          messages: [{
-            role: "user",
-            content: [
-              { type: "text", text: AUTOFILL_PROMPT + targetHint(input.target) },
-              { type: "image_url", image_url: { url: `data:${input.image.mime};base64,${input.image.data}` } },
-            ],
-          }],
-          max_tokens: 1500,
-          temperature: 0,
-        });
-      let result;
+// Pulls the first JSON object out of a model reply, tolerating code fences,
+// trailing commas, comments and a reply cut off before its closing braces.
+function parseModelJson(text) {
+  const start = text.indexOf("{");
+  if (start < 0) return null;
+  let body = text.slice(start).replace(/```/g, "");
+  const attempts = [];
+  const end = body.lastIndexOf("}");
+  if (end >= 0) attempts.push(body.slice(0, end + 1));
+  attempts.push(body);
+  for (const candidate of attempts) {
+    let cleaned = candidate.replace(/^\s*\/\/.*$/gm, "").replace(/,\s*([}\]])/g, "$1");
+    for (const variant of [cleaned, closeJson(cleaned)]) {
       try {
-        result = await run();
-      } catch (error) {
-        // Meta's vision model needs its licence accepted once per account.
-        if (!/agree|licen[cs]e|5016/i.test(String(error?.message || error))) throw error;
-        await env.AI.run(AUTOFILL_VISION_MODEL, { prompt: "agree" });
-        result = await run();
-      }
-      text = aiText(result);
-    } else {
-      const result = await env.AI.run(AUTOFILL_TEXT_MODEL, {
-        messages: [{ role: "user", content: `${AUTOFILL_PROMPT}${targetHint(input.target)}\n\nPAGE CONTENT:\n${input.text}` }],
-        max_tokens: 1500,
+        const parsed = JSON.parse(variant);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
+      } catch { /* try the next variant */ }
+    }
+  }
+  return null;
+}
+
+function closeJson(text) {
+  const stack = [];
+  let inString = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) { if (ch === "\\") i++; else if (ch === '"') inString = false; continue; }
+    if (ch === '"') inString = true;
+    else if (ch === "{" || ch === "[") stack.push(ch === "{" ? "}" : "]");
+    else if (ch === "}" || ch === "]") stack.pop();
+  }
+  let out = inString ? text + '"' : text;
+  out = out.replace(/,\s*("[^"]*"\s*:?\s*)?$/, "");
+  return out + stack.reverse().join("");
+}
+
+async function callAutofillModel(env, input, retry) {
+  const prompt = AUTOFILL_PROMPT + targetHint(input.target) +
+    (retry ? "\n\nYour previous reply was not valid JSON. Reply with ONLY the JSON object, nothing else." : "");
+  if (input.image) {
+    const run = () =>
+      env.AI.run(AUTOFILL_VISION_MODEL, {
+        messages: [{
+          role: "user",
+          content: [
+            { type: "text", text: prompt },
+            { type: "image_url", image_url: { url: `data:${input.image.mime};base64,${input.image.data}` } },
+          ],
+        }],
+        max_tokens: 2500,
         temperature: 0,
       });
-      text = aiText(result);
+    try {
+      return aiText(await run());
+    } catch (error) {
+      // Meta's vision model needs its licence accepted once per account.
+      if (!/agree|licen[cs]e|5016/i.test(String(error?.message || error))) throw error;
+      await env.AI.run(AUTOFILL_VISION_MODEL, { prompt: "agree" });
+      return aiText(await run());
+    }
+  }
+  return aiText(await env.AI.run(AUTOFILL_TEXT_MODEL, {
+    messages: [{ role: "user", content: `${prompt}\n\nPAGE CONTENT:\n${input.text}` }],
+    max_tokens: 2500,
+    temperature: 0,
+  }));
+}
+
+async function runAutofill(env, input) {
+  let parsed = null;
+  try {
+    for (let attempt = 0; attempt < 2 && !parsed; attempt++) {
+      const text = await callAutofillModel(env, input, attempt > 0);
+      parsed = parseModelJson(text);
+      if (!parsed) console.error("[aircon-compare] Autofill reply was not JSON:", text.slice(0, 500));
     }
   } catch (error) {
     console.error("[aircon-compare] Autofill model error:", error);
     throw new AutofillError("The recognition service failed. Please try again.", 502);
   }
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) throw new AutofillError("Nothing could be read from that content.", 422);
-  try {
-    return mapAutofill(JSON.parse(match[0]));
-  } catch {
-    throw new AutofillError("Nothing could be read from that content.", 422);
+  if (!parsed) {
+    throw new AutofillError("The AI could not read specifications from that file. Try a clearer screenshot of the spec table, or fill the form in by hand.", 422);
   }
+  return mapAutofill(parsed);
 }
 
 async function autofillSpecs(request, env) {

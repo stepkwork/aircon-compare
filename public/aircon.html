@@ -1937,13 +1937,14 @@ async function runAutofillRequest(payload){
   try{
     var response=await fetch("/api/admin/autofill",{method:"POST",headers:{"content-type":"application/json"},credentials:"same-origin",body:JSON.stringify(payload)});
     var result=await response.json().catch(function(){return {}});
-    if(!response.ok)throw new Error(result.error||"Auto-fill failed. Please try again.");
+    if(!response.ok){var failure=new Error(result.error||"Auto-fill failed. Please try again.");failure.status=response.status;throw failure}
     var count=applyAutofill(result.data||{});
     var note="Filled "+count+" field"+(count===1?"":"s")+". Anything not found was left as it was. Check every value, then press Save Model.";
     if(result.data&&result.data.code&&adminForm.code&&result.data.code.toLowerCase()!==String(adminForm.code).toLowerCase())note+=" The source shows model "+result.data.code+" (this form's model code was kept).";
     if(specEditorMode==="simple")note+=" Switch to Detailed to see every filled field.";
     setAutoMsg({ok:true,text:note,warnings:result.warnings||[]});
-  }catch(error){setAutoMsg({ok:false,text:error.message||"Auto-fill failed. Please try again.",warnings:[]})}
+    return {ok:true};
+  }catch(error){setAutoMsg({ok:false,text:error.message||"Auto-fill failed. Please try again.",warnings:[]});return {ok:false,status:error.status}}
   finally{setAutoBusy(false)}
 }
 var PDFJS_BASE="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
@@ -1988,7 +1989,8 @@ async function pdfToInput(file){
     }).join("\n"));
   }
   var text=chunks.join("\n\n").trim();
-  if(text.replace(/[\s|]/g,"").length>=80)return {text:text.slice(0,30000)};
+  var hasText=text.replace(/[\s|]/g,"").length>=80;
+  async function pageImage(){
   var page=await pdf.getPage(1),base=page.getViewport({scale:1}),scale=Math.min(3,1800/Math.max(base.width,base.height));
   var viewport=page.getViewport({scale:scale}),canvas=document.createElement("canvas");
   canvas.width=Math.round(viewport.width);canvas.height=Math.round(viewport.height);
@@ -1996,6 +1998,9 @@ async function pdfToInput(file){
   await page.render({canvasContext:ctx,viewport:viewport}).promise;
   var url=canvas.toDataURL("image/jpeg",0.85);
   return {file:{mime:"image/jpeg",data:url.slice(url.indexOf(",")+1)}};
+  }
+  if(hasText)return {text:text.slice(0,30000),image:pageImage};
+  return pageImage();
 }
 function autofillFromFile(file){
   if(!file)return;
@@ -2005,7 +2010,10 @@ function autofillFromFile(file){
   if(file.size>(isPdf?15:5)*1024*1024){setAutoMsg({ok:false,text:"That file is over "+(isPdf?15:5)+" MB. Use a smaller file.",warnings:[]});return}
   if(isPdf){
     setAutoBusy(true);setAutoMsg({ok:true,text:"Reading the PDF…",warnings:[]});
-    pdfToInput(file).then(function(input){runAutofillRequest(input)}).catch(function(error){setAutoBusy(false);setAutoMsg({ok:false,text:(error&&error.message)||"The PDF could not be read.",warnings:[]})});
+    pdfToInput(file).then(async function(input){
+      if(input.text){var out=await runAutofillRequest({text:input.text});if(!out.ok&&out.status===422){setAutoMsg({ok:true,text:"The PDF text could not be used, trying page 1 as an image…",warnings:[]});await runAutofillRequest(await input.image())}}
+      else await runAutofillRequest(input);
+    }).catch(function(error){setAutoBusy(false);setAutoMsg({ok:false,text:(error&&error.message)||"The PDF could not be read.",warnings:[]})});
     return;
   }
   var reader=new FileReader();
