@@ -143,6 +143,8 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0
 .spec-auto-msg{margin:0;padding:10px 12px;border-radius:10px;font-size:.82rem;line-height:1.45;background:var(--hdr)}
 .spec-auto-msg.ok{color:var(--fg)}
 .spec-auto-msg.bad{color:#ff0000;background:var(--accent-soft)}
+.spec-auto-log summary{cursor:pointer;font-size:.8rem;color:var(--muted)}
+.spec-auto-log pre{margin:8px 0;padding:10px 12px;border-radius:10px;background:var(--hdr);font-size:.74rem;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;user-select:text}
 .spec-auto-msg.ok{color:var(--fg)}
 .spec-auto-msg.bad{color:#ff0000}
 .admin-modal .admin-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -1381,6 +1383,8 @@ var autoOpenState=useState(false),autoOpen=autoOpenState[0],setAutoOpen=autoOpen
 var autoUrlState=useState(""),autoUrl=autoUrlState[0],setAutoUrl=autoUrlState[1];
 var autoBusyState=useState(false),autoBusy=autoBusyState[0],setAutoBusy=autoBusyState[1];
 var autoMsgState=useState(null),autoMsg=autoMsgState[0],setAutoMsg=autoMsgState[1];
+var autoLogState=useState([]),autoLog=autoLogState[0],setAutoLog=autoLogState[1];
+function logAuto(line){setAutoLog(function(list){return list.concat(new Date().toLocaleTimeString()+"  "+line)})}
 var backTopState=useState(false),showBackTop=backTopState[0],setShowBackTop=backTopState[1];
 function furthestScroll(){
   var far=window.scrollY||0;
@@ -1934,17 +1938,19 @@ async function runAutofillRequest(payload,progress){
   var targetModel=[String(adminForm.code||"").trim(),adminForm.hp?String(adminForm.hp)+"HP":""].filter(Boolean).join(" / ");
   if(targetModel)payload=Object.assign({},payload,{target:targetModel});
   setAutoBusy(true);setAutoMsg(progress?{ok:true,text:progress,warnings:[]}:null);
+  logAuto("Sending "+(payload.text?"text ("+payload.text.length+" characters)":payload.file?"image "+payload.file.mime+" (~"+Math.round(payload.file.data.length*0.75/1024)+" KB)":"link "+payload.url)+(payload.target?" for model \""+payload.target+"\"":""));
   try{
     var response=await fetch("/api/admin/autofill",{method:"POST",headers:{"content-type":"application/json"},credentials:"same-origin",body:JSON.stringify(payload)});
     var result=await response.json().catch(function(){return {}});
-    if(!response.ok){var failure=new Error(result.error||"Auto-fill failed. Please try again.");failure.status=response.status;throw failure}
+    if(!response.ok){logAuto("Server said "+response.status+": "+(result.error||"(no message)")+(result.detail?"\n    "+result.detail:""));var failure=new Error(result.error||"Auto-fill failed. Please try again.");failure.status=response.status;throw failure}
+    logAuto("Server returned: "+Object.keys(result.data||{}).join(", "));
     var count=applyAutofill(result.data||{});
     var note="Filled "+count+" field"+(count===1?"":"s")+". Anything not found was left as it was. Check every value, then press Save Model.";
     if(result.data&&result.data.code&&adminForm.code&&result.data.code.toLowerCase()!==String(adminForm.code).toLowerCase())note+=" The source shows model "+result.data.code+" (this form's model code was kept).";
     if(specEditorMode==="simple")note+=" Switch to Detailed to see every filled field.";
     setAutoMsg({ok:true,text:note,warnings:result.warnings||[]});
     return {ok:true};
-  }catch(error){setAutoMsg({ok:false,text:error.message||"Auto-fill failed. Please try again.",warnings:[]});return {ok:false,status:error.status}}
+  }catch(error){if(!error.status)logAuto("Request failed: "+(error.message||error));setAutoMsg({ok:false,text:error.message||"Auto-fill failed. Please try again.",warnings:[]});return {ok:false,status:error.status}}
   finally{setAutoBusy(false)}
 }
 var PDFJS_BASE="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
@@ -1989,6 +1995,7 @@ async function pdfToInput(file){
     }).join("\n"));
   }
   var text=chunks.join("\n\n").trim();
+  logAuto("PDF: "+pdf.numPages+" page(s), "+text.replace(/\s/g,"").length+" characters of selectable text"+(text.replace(/[\s|]/g,"").length>=80?"":" (too little, so it will be read as images)"));
   var hasText=text.replace(/[\s|]/g,"").length>=80;
   // Renders pages (top and bottom halves, so small print stays legible) for image reading.
   function imageSlices(){
@@ -2023,6 +2030,7 @@ async function runPdfSlices(slices){
 }
 function autofillFromFile(file){
   if(!file)return;
+  setAutoLog([]);logAuto("File: "+file.name+" ("+Math.round(file.size/1024)+" KB, "+(file.type||"unknown type")+")");
   var isPdf=file.type==="application/pdf"||/\.pdf$/i.test(file.name||"");
   var allowed=["image/jpeg","image/png","image/webp"];
   if(!isPdf&&allowed.indexOf(file.type)<0){setAutoMsg({ok:false,text:"Upload a JPG, PNG or WebP image, or a PDF.",warnings:[]});return}
@@ -2042,7 +2050,7 @@ function autofillFromFile(file){
 }
 function SpecAutofill(){
   var url=autoUrl.trim();
-  return html`<div class="spec-auto"><button type="button" class="spec-auto-toggle" aria-expanded=${autoOpen} disabled=${!adminEdit} onClick=${function(){setAutoOpen(!autoOpen)}}>Auto-fill from link or image (optional)<span aria-hidden="true">${autoOpen?"▴":"▾"}</span></button>${!adminEdit?html`<p class="spec-copy-help">Select a model above first.</p>`:null}${autoOpen&&adminEdit?html`<div class="spec-auto-body"><div class="spec-auto-group"><label class="admin-field" for="spec-auto-url">Product page link</label><div class="spec-auto-row"><input id="spec-auto-url" type="url" placeholder="https://…" value=${autoUrl} disabled=${autoBusy} onInput=${function(e){setAutoUrl(e.target.value)}} onKeyDown=${function(e){if(e.key==="Enter"){e.preventDefault();if(url&&!autoBusy)runAutofillRequest({url:url})}}} /><button type="button" class="spec-copy-btn" disabled=${autoBusy||!url} onClick=${function(){runAutofillRequest({url:url})}}>${autoBusy?"Reading…":"Read link"}</button></div></div><div class="spec-auto-or" aria-hidden="true"><span>or</span></div><div class="spec-auto-group"><label class="admin-field" for="spec-auto-file">Screenshot, photo or PDF brochure</label><input id="spec-auto-file" class="spec-auto-file-input" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled=${autoBusy} onChange=${function(e){var f=e.target.files&&e.target.files[0];e.target.value="";autofillFromFile(f)}} /></div><p class="spec-auto-note">Only details clearly shown in the source are filled; anything unclear is left blank. Nothing is saved until you press Save Model.</p>${autoMsg?html`<p class=${"spec-auto-msg "+(autoMsg.ok?"ok":"bad")} role="status">${autoMsg.text}${autoMsg.warnings.length?" "+autoMsg.warnings.join(" "):""}</p>`:null}</div>`:null}</div>`;
+  return html`<div class="spec-auto"><button type="button" class="spec-auto-toggle" aria-expanded=${autoOpen} disabled=${!adminEdit} onClick=${function(){setAutoOpen(!autoOpen)}}>Auto-fill from link or image (optional)<span aria-hidden="true">${autoOpen?"▴":"▾"}</span></button>${!adminEdit?html`<p class="spec-copy-help">Select a model above first.</p>`:null}${autoOpen&&adminEdit?html`<div class="spec-auto-body"><div class="spec-auto-group"><label class="admin-field" for="spec-auto-url">Product page link</label><div class="spec-auto-row"><input id="spec-auto-url" type="url" placeholder="https://…" value=${autoUrl} disabled=${autoBusy} onInput=${function(e){setAutoUrl(e.target.value)}} onKeyDown=${function(e){if(e.key==="Enter"){e.preventDefault();if(url&&!autoBusy){setAutoLog([]);runAutofillRequest({url:url})}}}} /><button type="button" class="spec-copy-btn" disabled=${autoBusy||!url} onClick=${function(){setAutoLog([]);runAutofillRequest({url:url})}}>${autoBusy?"Reading…":"Read link"}</button></div></div><div class="spec-auto-or" aria-hidden="true"><span>or</span></div><div class="spec-auto-group"><label class="admin-field" for="spec-auto-file">Screenshot, photo or PDF brochure</label><input id="spec-auto-file" class="spec-auto-file-input" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled=${autoBusy} onChange=${function(e){var f=e.target.files&&e.target.files[0];e.target.value="";autofillFromFile(f)}} /></div><p class="spec-auto-note">Only details clearly shown in the source are filled; anything unclear is left blank. Nothing is saved until you press Save Model.</p>${autoMsg?html`<p class=${"spec-auto-msg "+(autoMsg.ok?"ok":"bad")} role="status">${autoMsg.text}${autoMsg.warnings.length?" "+autoMsg.warnings.join(" "):""}</p>`:null}${autoLog.length?html`<details class="spec-auto-log" open=${autoMsg&&!autoMsg.ok}><summary>Details for troubleshooting</summary><pre>${autoLog.join("\n")}</pre><button type="button" class="spec-copy-btn" onClick=${function(){try{navigator.clipboard.writeText(autoLog.join("\n"))}catch(e){}}}>Copy details</button></details>`:null}</div>`:null}</div>`;
 }
 function SpecCopyBar(){
   var choices=copySpecChoices(),valid=!!copySource&&copySource!==adminEdit&&choices.some(function(o){return o.value===copySource});

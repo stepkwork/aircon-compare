@@ -299,9 +299,10 @@ async function fetchPageText(startUrl) {
 }
 
 class AutofillError extends Error {
-  constructor(message, status = 400) {
+  constructor(message, status = 400, detail = "") {
     super(message);
     this.status = status;
+    this.detail = detail;
   }
 }
 
@@ -458,20 +459,27 @@ async function callAutofillModel(env, input, retry) {
 
 async function runAutofill(env, input) {
   let parsed = null;
+  let lastText = "";
   try {
     for (let attempt = 0; attempt < 2 && !parsed; attempt++) {
-      const text = await callAutofillModel(env, input, attempt > 0);
-      parsed = parseModelJson(text);
-      if (!parsed) console.error("[aircon-compare] Autofill reply was not JSON:", text.slice(0, 500));
+      lastText = await callAutofillModel(env, input, attempt > 0);
+      parsed = parseModelJson(lastText);
+      if (!parsed) console.error("[aircon-compare] Autofill reply was not JSON:", lastText.slice(0, 500));
     }
   } catch (error) {
     console.error("[aircon-compare] Autofill model error:", error);
-    throw new AutofillError("The recognition service failed. Please try again.", 502);
+    throw new AutofillError("The recognition service failed. Please try again.", 502, `Service error: ${String(error?.message || error).slice(0, 300)}`);
   }
   if (!parsed) {
-    throw new AutofillError("The AI could not read specifications from that file. Try a clearer screenshot of the spec table, or fill the form in by hand.", 422);
+    throw new AutofillError(
+      "The AI could not read specifications from that file. Try a clearer screenshot of the spec table, or fill the form in by hand.",
+      422,
+      `The AI replied (not usable JSON): ${lastText ? JSON.stringify(lastText.slice(0, 400)) : "(empty reply)"}`,
+    );
   }
-  return mapAutofill(parsed);
+  const mapped = mapAutofill(parsed);
+  mapped.reply = JSON.stringify(parsed).slice(0, 400);
+  return mapped;
 }
 
 async function autofillSpecs(request, env) {
@@ -517,13 +525,16 @@ async function autofillSpecs(request, env) {
       content = { text, target };
     }
 
-    const { data, warnings } = await runAutofill(env, content);
+    const { data, warnings, reply } = await runAutofill(env, content);
     if (!Object.keys(data).length) {
-      return json({ error: "No specifications could be recognised, so nothing was filled." }, 422);
+      return json({
+        error: "No specifications could be recognised, so nothing was filled.",
+        detail: `The AI replied with no usable values: ${reply}`,
+      }, 422);
     }
     return json({ data, warnings });
   } catch (error) {
-    if (error instanceof AutofillError) return json({ error: error.message }, error.status);
+    if (error instanceof AutofillError) return json({ error: error.message, ...(error.detail ? { detail: error.detail } : {}) }, error.status);
     console.error("[aircon-compare] Autofill failed:", error);
     return json({ error: "Auto-fill failed. Please try again." }, 502);
   }
