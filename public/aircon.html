@@ -1930,10 +1930,10 @@ function applyAutofill(data){
   setSpecErrors({});
   return count;
 }
-async function runAutofillRequest(payload){
+async function runAutofillRequest(payload,progress){
   var targetModel=[String(adminForm.code||"").trim(),adminForm.hp?String(adminForm.hp)+"HP":""].filter(Boolean).join(" / ");
   if(targetModel)payload=Object.assign({},payload,{target:targetModel});
-  setAutoBusy(true);setAutoMsg(null);
+  setAutoBusy(true);setAutoMsg(progress?{ok:true,text:progress,warnings:[]}:null);
   try{
     var response=await fetch("/api/admin/autofill",{method:"POST",headers:{"content-type":"application/json"},credentials:"same-origin",body:JSON.stringify(payload)});
     var result=await response.json().catch(function(){return {}});
@@ -1990,17 +1990,36 @@ async function pdfToInput(file){
   }
   var text=chunks.join("\n\n").trim();
   var hasText=text.replace(/[\s|]/g,"").length>=80;
-  async function pageImage(){
-  var page=await pdf.getPage(1),base=page.getViewport({scale:1}),scale=Math.min(3,1800/Math.max(base.width,base.height));
-  var viewport=page.getViewport({scale:scale}),canvas=document.createElement("canvas");
-  canvas.width=Math.round(viewport.width);canvas.height=Math.round(viewport.height);
-  var ctx=canvas.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
-  await page.render({canvasContext:ctx,viewport:viewport}).promise;
-  var url=canvas.toDataURL("image/jpeg",0.85);
-  return {file:{mime:"image/jpeg",data:url.slice(url.indexOf(",")+1)}};
+  // Renders pages (top and bottom halves, so small print stays legible) for image reading.
+  function imageSlices(){
+    var slices=[];
+    for(var n=1;n<=Math.min(pdf.numPages,3);n++){(function(pageNo){
+      ["top","bottom"].forEach(function(part){
+        slices.push({label:"page "+pageNo+" ("+part+")",render:async function(){
+          var page=await pdf.getPage(pageNo),base=page.getViewport({scale:1}),scale=1700/base.width;
+          var viewport=page.getViewport({scale:scale}),full=document.createElement("canvas");
+          full.width=Math.round(viewport.width);full.height=Math.round(viewport.height);
+          var fctx=full.getContext("2d");fctx.fillStyle="#fff";fctx.fillRect(0,0,full.width,full.height);
+          await page.render({canvasContext:fctx,viewport:viewport}).promise;
+          var half=Math.round(full.height*0.55),y=part==="top"?0:full.height-half;
+          var out=document.createElement("canvas");out.width=full.width;out.height=half;
+          out.getContext("2d").drawImage(full,0,y,full.width,half,0,0,full.width,half);
+          var url=out.toDataURL("image/jpeg",0.88);
+          return {file:{mime:"image/jpeg",data:url.slice(url.indexOf(",")+1)}};
+        }});
+      });
+    })(n)}
+    return slices;
   }
-  if(hasText)return {text:text.slice(0,30000),image:pageImage};
-  return pageImage();
+  return {text:hasText?text.slice(0,30000):"",slices:imageSlices()};
+}
+async function runPdfSlices(slices){
+  for(var i=0;i<slices.length;i++){
+    var payload=await slices[i].render();
+    var out=await runAutofillRequest(payload,"Reading "+slices[i].label+" as an image ("+(i+1)+" of "+slices.length+")…");
+    if(out.ok)return;
+    if(out.status!==422)return;
+  }
 }
 function autofillFromFile(file){
   if(!file)return;
@@ -2011,8 +2030,8 @@ function autofillFromFile(file){
   if(isPdf){
     setAutoBusy(true);setAutoMsg({ok:true,text:"Reading the PDF…",warnings:[]});
     pdfToInput(file).then(async function(input){
-      if(input.text){var out=await runAutofillRequest({text:input.text});if(!out.ok&&out.status===422){setAutoMsg({ok:true,text:"The PDF text could not be used, trying page 1 as an image…",warnings:[]});await runAutofillRequest(await input.image())}}
-      else await runAutofillRequest(input);
+      if(input.text){var out=await runAutofillRequest({text:input.text});if(out.ok||out.status!==422)return}
+      await runPdfSlices(input.slices);
     }).catch(function(error){setAutoBusy(false);setAutoMsg({ok:false,text:(error&&error.message)||"The PDF could not be read.",warnings:[]})});
     return;
   }

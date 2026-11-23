@@ -209,6 +209,9 @@ If the content lists several models and no target model is given below, extract 
   "price": number|null
 }
 
+Reading tips: dimensions follow the order printed in the header (e.g. "W x H x D"), so map each number to w (width), d (depth) and h (height) by its letter.
+A row labelled "indoor, outdoor" with two numbers (e.g. "8.0 , 22.0") gives the indoor value first and the outdoor value second.
+When a value is shown as "848 (1,050)", use the first (rated) number. Fan-speed lists such as "50 / 48 / 45 / 38" go into noise_db as separate numbers.
 Rules: voltage as written (e.g. "220-240"); cooling capacity in BTU/hr; cooling input in kW; dimensions in mm (width, depth, height);
 cooling input must be converted to kW if the source gives watts (1090 W = 1.09);
 weights in kg: net_weight_kg and gross_weight_kg when the source labels them, otherwise only weight_kg;
