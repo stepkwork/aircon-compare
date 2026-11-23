@@ -143,6 +143,8 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0
 .spec-auto-msg{margin:0;padding:10px 12px;border-radius:10px;font-size:.82rem;line-height:1.45;background:var(--hdr)}
 .spec-auto-msg.ok{color:var(--fg)}
 .spec-auto-msg.bad{color:#ff0000;background:var(--accent-soft)}
+.spec-auto-group textarea{width:100%;min-height:96px;resize:vertical;font:inherit;font-size:.85rem;box-sizing:border-box;margin:0}
+.spec-auto-pick{display:flex;flex-wrap:wrap;gap:8px}
 .spec-auto-log summary{cursor:pointer;font-size:.8rem;color:var(--muted)}
 .spec-auto-log pre{margin:8px 0;padding:10px 12px;border-radius:10px;background:var(--hdr);font-size:.74rem;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;user-select:text}
 .spec-auto-msg.ok{color:var(--fg)}
@@ -1383,6 +1385,8 @@ var autoOpenState=useState(false),autoOpen=autoOpenState[0],setAutoOpen=autoOpen
 var autoUrlState=useState(""),autoUrl=autoUrlState[0],setAutoUrl=autoUrlState[1];
 var autoBusyState=useState(false),autoBusy=autoBusyState[0],setAutoBusy=autoBusyState[1];
 var autoMsgState=useState(null),autoMsg=autoMsgState[0],setAutoMsg=autoMsgState[1];
+var autoPasteState=useState(""),autoPaste=autoPasteState[0],setAutoPaste=autoPasteState[1];
+var autoPendingState=useState(null),autoPending=autoPendingState[0],setAutoPending=autoPendingState[1];
 var autoLogState=useState([]),autoLog=autoLogState[0],setAutoLog=autoLogState[1];
 function logAuto(line){setAutoLog(function(list){return list.concat(new Date().toLocaleTimeString()+"  "+line)})}
 var backTopState=useState(false),showBackTop=backTopState[0],setShowBackTop=backTopState[1];
@@ -1918,14 +1922,101 @@ function copySpecsFrom(srcCode){
   setCopyNote("Copied from "+srcCode+". Check the details, then press Save Model.");
   window.setTimeout(function(){setCopyNote("")},6000);
 }
+var AUTO_FEATURES=["Wi-Fi","Self-cleaning","Air purification","Inverter","Sleep mode","Eco mode","Voice control"];
+function parsePastedSpecs(text){
+  var lines=String(text||"").replace(/\r/g,"").split("\n"),rows=[];
+  lines.forEach(function(line){
+    if(!line.trim()||/^[\s|:\-]+$/.test(line))return;
+    var cells;
+    if(line.indexOf("\t")>=0)cells=line.split("\t");
+    else if(/\|/.test(line))cells=line.replace(/^\s*\|/,"").replace(/\|\s*$/,"").split("|");
+    else if(/\s{2,}/.test(line.trim()))cells=line.trim().split(/\s{2,}/);
+    else if(/^[^:]{2,40}:\s*\S/.test(line))cells=[line.slice(0,line.indexOf(":")),line.slice(line.indexOf(":")+1)];
+    else cells=[line];
+    rows.push(cells.map(function(c){return c.trim()}));
+  });
+  var BLANK=/^(blank|-+|—|–|n\/a|na|none|null|nil|unknown|not (stated|available|listed))?$/i;
+  var headerNames=null,start=0;
+  if(rows.length&&rows[0].length>=2&&/^(field|parameter|parameters|spec|specs|specification|specifications|item|model|models)$/i.test(rows[0][0])){headerNames=rows[0].slice(1);start=1}
+  var colCount=0;
+  rows.slice(start).forEach(function(r){if(r.length-1>colCount)colCount=r.length-1});
+  if(headerNames)colCount=Math.max(colCount,headerNames.length);
+  if(colCount<1)return {columns:[],recognized:0};
+  var columns=[];
+  for(var c=0;c<colCount;c++)columns.push({name:headerNames&&headerNames[c]?headerNames[c]:"Column "+(c+1),values:{},dims:{indoor:{},outdoor:{}}});
+  var section="";
+  rows.slice(start).forEach(function(r){
+    var label=r[0]||"",vals=r.slice(1);
+    if(vals.every(function(v){return v===""})&&r.length<=1+colCount){
+      if(/indoor/i.test(label))section="indoor";else if(/outdoor/i.test(label))section="outdoor";else section="";
+      return;
+    }
+    var hint=(label.match(/\(([^)]*)\)/)||[])[1]||"",name=label.replace(/\([^)]*\)/g," ").toLowerCase().replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+    var unit=/indoor/.test(name)?"indoor":/outdoor/.test(name)?"outdoor":section;
+    var key=null,extra=null;
+    if(/outdoor model/.test(name))key="outModel";
+    else if(/^(indoor )?model( code)?$/.test(name))key="code";
+    else if(/power supply/.test(name))key="power";
+    else if(/voltage/.test(name))key="voltage";
+    else if(/frequency/.test(name))key="frequency";
+    else if(/^ph$|phase/.test(name))key="phase";
+    else if(/(cooling|rated|power) input|input power|cooling power/.test(name))key="input";
+    else if(/current/.test(name))key="current";
+    else if(/capacity/.test(name))key="cap";
+    else if(/cspf/.test(name))key="cspf";
+    else if(/star|energy rating|energy efficiency rating/.test(name))key="stars";
+    else if(/air ?flow|air circulation|air volume/.test(name))key="airflow";
+    else if(/dimension|size|width|depth|height/.test(name)||/^(w|d|h)$/.test(name.split(" ").pop())&&/dim/.test(name)){
+      var last=name.split(" ").pop();
+      extra=/^(w|width)$/.test(last)?"w":/^(d|depth)$/.test(last)?"d":/^(h|height)$/.test(last)?"h":null;
+      if(extra&&unit)key="dim";
+    }
+    else if(/weight/.test(name)&&unit)key=unit==="indoor"?"iwt":"owt";
+    else if(/noise|sound/.test(name)&&unit)key=unit==="indoor"?"inoise":"onoise";
+    else if(/refrigerant/.test(name))key="ref";
+    else if(/warranty/.test(name))key="warranty";
+    else if(/price|msp/.test(name))key="price";
+    else if(/^features?$/.test(name))key="features";
+    else if(AUTO_FEATURES.some(function(f){return f.toLowerCase().replace(/[^a-z]/g,"")===name.replace(/[^a-z]/g,"")}))key="feature:"+AUTO_FEATURES.filter(function(f){return f.toLowerCase().replace(/[^a-z]/g,"")===name.replace(/[^a-z]/g,"")})[0];
+    if(!key)return;
+    columns.forEach(function(col,i){
+      var v=(vals[i]||"").trim();
+      if(BLANK.test(v))return;
+      if(key==="dim"){col.dims[unit][extra]=v.replace(/[^0-9.]/g,"");return}
+      if(/^feature:/.test(key)){if(/^(yes|y|true|✓|✔|✅|1|available|included)$/i.test(v)){col.values.features=(col.values.features||[]).concat(key.slice(8))}return}
+      if(key==="features"){var found=AUTO_FEATURES.filter(function(f){return v.toLowerCase().replace(/[^a-z]/g,"").indexOf(f.toLowerCase().replace(/[^a-z]/g,""))>=0});if(found.length)col.values.features=(col.values.features||[]).concat(found);return}
+      if(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(v))v=v.replace(/,/g,"");
+      if(key==="stars"){var m=v.match(/\d/);if(!m)return;v=m[0]}
+      if(key==="price"){v=v.replace(/[^0-9.]/g,"");if(!v)return}
+      if(key==="phase"&&/^\d\s*ph/i.test(v))v=v.match(/\d/)[0];
+      if(key==="ref"){var rr=v.toUpperCase().replace(/[\s-]/g,"");if(["R32","R410A","R22"].indexOf(rr)>=0)col.values.ref=rr;else{col.values.ref="Other";col.values.refOther=v}return}
+      col.values[key]=v;
+      if(key==="input")col.values.inputUnit=/\bw\b/i.test(hint)&&!/kw/i.test(hint)?"W":"kW";
+      if(key==="cap")col.values.capUnit=/kw/i.test(hint)?"kW":/btu/i.test(hint)||!hint?"BTU/hr":"BTU/hr";
+      if(key==="airflow")col.values.airflowUnit=/cfm/i.test(hint)?"CFM":"m³/h";
+    });
+  });
+  var recognized=0;
+  columns.forEach(function(col){
+    ["indoor","outdoor"].forEach(function(u){var d=col.dims[u];if(d.w&&d.d&&d.h){col.values[u==="indoor"?"idim":"odim"]=d.w+"x"+d.d+"x"+d.h;col.values[(u==="indoor"?"idim":"odim")+"Unit"]="mm"}});
+    col.fields=Object.keys(col.values).filter(function(k){return !/Unit$/.test(k)}).length;
+    if(col.fields>recognized)recognized=col.fields;
+  });
+  return {columns:columns,recognized:recognized};
+}
 function applyAutofill(data){
   var keep={code:1,hp:1},count=0;
+  Object.keys(data).forEach(function(key){
+    if(keep[key]||data[key]==null||data[key]===""||/Unit$/.test(key))return;
+    if(key==="features"&&!(data.features&&data.features.length))return;
+    count++;
+  });
   setAdminForm(function(current){
     var next=Object.assign({},current);
     Object.keys(data).forEach(function(key){
       if(keep[key]||data[key]==null||data[key]==="")return;
-      if(key==="features"){var merged=(Array.isArray(next.features)?next.features:[]).slice();data.features.forEach(function(f){if(merged.indexOf(f)<0)merged.push(f)});next.features=merged;count++;return}
-      next[key]=data[key];if(!/Unit$/.test(key))count++;
+      if(key==="features"){var merged=(Array.isArray(next.features)?next.features:[]).slice();data.features.forEach(function(f){if(merged.indexOf(f)<0)merged.push(f)});next.features=merged;return}
+      next[key]=data[key];
     });
     if(data.price!=null){next._displayPrice=data.price;next._priceNeedsParse=false;next.priceUnit=next.priceUnit||"RM"}
     return next;
@@ -2048,9 +2139,33 @@ function autofillFromFile(file){
   reader.onerror=function(){setAutoMsg({ok:false,text:"The file could not be read.",warnings:[]})};
   reader.readAsDataURL(file);
 }
+function useParsedColumn(col){
+  var count=applyAutofill(col.values);
+  setAutoPending(null);
+  setAutoMsg({ok:true,text:"Filled "+count+" field"+(count===1?"":"s")+" from the pasted text"+(col.name&&!/^Column \d+$/.test(col.name)?" (column "+col.name+")":"")+". Anything missing or blank was left as it was. Check every value, then press Save Model."+(specEditorMode==="simple"?" Switch to Detailed to see every filled field.":""),warnings:[]});
+  logAuto("Pasted text: filled "+count+" fields from column \""+col.name+"\": "+Object.keys(col.values).join(", "));
+}
+function fillFromPastedText(){
+  var text=autoPaste.trim();
+  if(!text)return;
+  setAutoLog([]);setAutoPending(null);logAuto("Pasted text: "+text.length+" characters");
+  var parsed=parsePastedSpecs(text);
+  logAuto("Table reader found "+parsed.columns.length+" column(s), up to "+parsed.recognized+" recognised fields");
+  if(parsed.recognized<2){
+    logAuto("Not enough recognised fields, asking the AI to read it instead");
+    runAutofillRequest({text:text},"Reading the pasted text with AI…");
+    return;
+  }
+  var usable=parsed.columns.filter(function(col){return col.fields>0});
+  var code=String(adminForm.code||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+  var match=code?usable.filter(function(col){var n=col.name.toLowerCase().replace(/[^a-z0-9]/g,"");return n&&(n===code||n.indexOf(code)>=0||code.indexOf(n)>=0)}):[];
+  if(match.length===1||usable.length===1){useParsedColumn(match[0]||usable[0]);return}
+  setAutoPending(usable);
+  setAutoMsg({ok:true,text:"Several models were found. Choose the one to fill into this form:",warnings:[]});
+}
 function SpecAutofill(){
   var url=autoUrl.trim();
-  return html`<div class="spec-auto"><button type="button" class="spec-auto-toggle" aria-expanded=${autoOpen} disabled=${!adminEdit} onClick=${function(){setAutoOpen(!autoOpen)}}>Auto-fill from link or image (optional)<span aria-hidden="true">${autoOpen?"▴":"▾"}</span></button>${!adminEdit?html`<p class="spec-copy-help">Select a model above first.</p>`:null}${autoOpen&&adminEdit?html`<div class="spec-auto-body"><div class="spec-auto-group"><label class="admin-field" for="spec-auto-url">Product page link</label><div class="spec-auto-row"><input id="spec-auto-url" type="url" placeholder="https://…" value=${autoUrl} disabled=${autoBusy} onInput=${function(e){setAutoUrl(e.target.value)}} onKeyDown=${function(e){if(e.key==="Enter"){e.preventDefault();if(url&&!autoBusy){setAutoLog([]);runAutofillRequest({url:url})}}}} /><button type="button" class="spec-copy-btn" disabled=${autoBusy||!url} onClick=${function(){setAutoLog([]);runAutofillRequest({url:url})}}>${autoBusy?"Reading…":"Read link"}</button></div></div><div class="spec-auto-or" aria-hidden="true"><span>or</span></div><div class="spec-auto-group"><label class="admin-field" for="spec-auto-file">Screenshot, photo or PDF brochure</label><input id="spec-auto-file" class="spec-auto-file-input" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled=${autoBusy} onChange=${function(e){var f=e.target.files&&e.target.files[0];e.target.value="";autofillFromFile(f)}} /></div><p class="spec-auto-note">Only details clearly shown in the source are filled; anything unclear is left blank. Nothing is saved until you press Save Model.</p>${autoMsg?html`<p class=${"spec-auto-msg "+(autoMsg.ok?"ok":"bad")} role="status">${autoMsg.text}${autoMsg.warnings.length?" "+autoMsg.warnings.join(" "):""}</p>`:null}${autoLog.length?html`<details class="spec-auto-log" open=${autoMsg&&!autoMsg.ok}><summary>Details for troubleshooting</summary><pre>${autoLog.join("\n")}</pre><button type="button" class="spec-copy-btn" onClick=${function(){try{navigator.clipboard.writeText(autoLog.join("\n"))}catch(e){}}}>Copy details</button></details>`:null}</div>`:null}</div>`;
+  return html`<div class="spec-auto"><button type="button" class="spec-auto-toggle" aria-expanded=${autoOpen} disabled=${!adminEdit} onClick=${function(){setAutoOpen(!autoOpen)}}>Auto-fill from link or image (optional)<span aria-hidden="true">${autoOpen?"▴":"▾"}</span></button>${!adminEdit?html`<p class="spec-copy-help">Select a model above first.</p>`:null}${autoOpen&&adminEdit?html`<div class="spec-auto-body"><div class="spec-auto-group"><label class="admin-field" for="spec-auto-url">Product page link</label><div class="spec-auto-row"><input id="spec-auto-url" type="url" placeholder="https://…" value=${autoUrl} disabled=${autoBusy} onInput=${function(e){setAutoUrl(e.target.value)}} onKeyDown=${function(e){if(e.key==="Enter"){e.preventDefault();if(url&&!autoBusy){setAutoLog([]);runAutofillRequest({url:url})}}}} /><button type="button" class="spec-copy-btn" disabled=${autoBusy||!url} onClick=${function(){setAutoLog([]);runAutofillRequest({url:url})}}>${autoBusy?"Reading…":"Read link"}</button></div></div><div class="spec-auto-or" aria-hidden="true"><span>or</span></div><div class="spec-auto-group"><label class="admin-field" for="spec-auto-file">Screenshot, photo or PDF brochure</label><input id="spec-auto-file" class="spec-auto-file-input" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled=${autoBusy} onChange=${function(e){var f=e.target.files&&e.target.files[0];e.target.value="";autofillFromFile(f)}} /></div><div class="spec-auto-or" aria-hidden="true"><span>or</span></div><div class="spec-auto-group"><label class="admin-field" for="spec-auto-paste">Paste text from Claude, ChatGPT or a spreadsheet</label><textarea id="spec-auto-paste" rows="5" placeholder="Field	Model A	Model B …" value=${autoPaste} onInput=${function(e){setAutoPaste(e.target.value)}}></textarea><div class="spec-auto-row"><button type="button" class="spec-copy-btn" disabled=${autoBusy||!autoPaste.trim()} onClick=${fillFromPastedText}>Fill from text</button></div></div>${autoPending?html`<div class="spec-auto-pick" role="group" aria-label="Choose model column">${autoPending.map(function(col){return html`<button type="button" class="spec-copy-btn" onClick=${function(){useParsedColumn(col)}}>${col.name}</button>`})}</div>`:null}<p class="spec-auto-note">Only details clearly shown in the source are filled; anything unclear is left blank. Nothing is saved until you press Save Model.</p>${autoMsg?html`<p class=${"spec-auto-msg "+(autoMsg.ok?"ok":"bad")} role="status">${autoMsg.text}${autoMsg.warnings.length?" "+autoMsg.warnings.join(" "):""}</p>`:null}${autoLog.length?html`<details class="spec-auto-log" open=${autoMsg&&!autoMsg.ok}><summary>Details for troubleshooting</summary><pre>${autoLog.join("\n")}</pre><button type="button" class="spec-copy-btn" onClick=${function(){try{navigator.clipboard.writeText(autoLog.join("\n"))}catch(e){}}}>Copy details</button></details>`:null}</div>`:null}</div>`;
 }
 function SpecCopyBar(){
   var choices=copySpecChoices(),valid=!!copySource&&copySource!==adminEdit&&choices.some(function(o){return o.value===copySource});
