@@ -1701,7 +1701,8 @@ function ModelPicker(props){
     }
     updatePosition();
     window.addEventListener("resize",updatePosition);
-    function onScroll(event){if(menuRef.current&&event.target instanceof Node&&menuRef.current.contains(event.target))return;setOpen(false)}
+    var openedAt=Date.now();
+    function onScroll(event){if(Date.now()-openedAt<350)return;if(menuRef.current&&event.target instanceof Node&&menuRef.current.contains(event.target))return;setOpen(false)}
     window.addEventListener("scroll",onScroll,true);
     document.addEventListener("pointerdown",onPointerDown);
     return function(){
@@ -1715,11 +1716,18 @@ function ModelPicker(props){
       var index=props.openAtTop?0:Math.max(0,Math.min(props.value,props.options.length-1));
       setActiveIndex(index);
       if(optionRefs.current[index]){
-        optionRefs.current[index].focus();
-        optionRefs.current[index].scrollIntoView({block:"nearest"});
+        optionRefs.current[index].focus({preventScroll:true});
+        revealOption(optionRefs.current[index]);
       }
     }
   },[open,portalTarget]);
+  function revealOption(el){
+    var list=el&&el.parentElement;
+    if(!list)return;
+    var box=el.getBoundingClientRect(),area=list.getBoundingClientRect();
+    if(box.top<area.top)list.scrollTop-=area.top-box.top;
+    else if(box.bottom>area.bottom)list.scrollTop+=box.bottom-area.bottom;
+  }
   function choose(index){
     props.onChange(props.options[index].value);
     setOpen(false);
@@ -1729,8 +1737,8 @@ function ModelPicker(props){
     var next=Math.max(0,Math.min(index,props.options.length-1));
     setActiveIndex(next);
     if(optionRefs.current[next]){
-      optionRefs.current[next].focus();
-      optionRefs.current[next].scrollIntoView({block:"nearest"});
+      optionRefs.current[next].focus({preventScroll:true});
+      revealOption(optionRefs.current[next]);
     }
   }
   function handleTriggerKeyDown(event){
@@ -2735,7 +2743,7 @@ ${(specEditorMode==="simple"?[{title:"Model",fields:[specField("code","Indoor mo
   SPECDATA=nextSpecs;
   setSpecData(nextSpecs);
   commitModels(nextModels);
-  setAdminForm({});setSpecErrors({});setAdminEdit("");
+  setAdminForm({});setSpecErrors({});setAdminEdit("");setCopySource("");setCopyNote("");
   scrollToModelsSection();
   persistAdminData(brandsData,nextModels,nextSpecs).then(function(){
     alert("Saved to Cloudflare: "+code);
@@ -2755,7 +2763,7 @@ ${adminEdit?html`<button type="button" onClick=${function(){
     setPriceInput("");setSpecErrors({});
     SPECDATA=nextSpecs;setSpecData(nextSpecs);
     commitModels(next);
-    setAdminForm({});setAdminEdit("");
+    setAdminForm({});setAdminEdit("");setCopySource("");setCopyNote("");
     scrollToModelsSection();
     persistAdminData(brandsData,next,nextSpecs).then(function(){
       alert("Deleted and saved to Cloudflare");
