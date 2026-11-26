@@ -134,7 +134,17 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0
 .spec-auto-group .admin-field{margin:0}
 .spec-auto-row{display:flex;gap:10px;align-items:stretch}
 .spec-auto-row input{flex:1 1 auto;min-width:0;margin:0}
-.admin-modal .spec-auto-row .spec-copy-btn{height:auto;min-height:40px;padding:0 18px}
+.admin-modal .spec-auto-row .spec-copy-btn{height:44px;min-height:44px;box-sizing:border-box;padding:0 18px;line-height:1;align-self:flex-start}
+.spec-auto-row input[type="url"]{height:44px;box-sizing:border-box}
+.spec-usage{display:grid;gap:6px;margin-top:4px;font-size:.78rem;color:var(--muted)}
+.spec-usage-top{display:flex;justify-content:space-between;gap:8px}
+.spec-usage-track{height:8px;border-radius:999px;background:var(--hdr);border:1px solid var(--line);overflow:hidden}
+.spec-usage-fill{display:block;height:100%;border-radius:999px;background:#2f7de1}
+.spec-usage-fill.mid{background:#e0a100}
+.spec-usage-fill.high{background:#ff0000}
+.spec-usage-note{margin:0}
+.spec-usage-list{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.spec-usage-list li{display:flex;justify-content:space-between;gap:8px}
 .spec-auto-or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.06em}
 .spec-auto-or::before,.spec-auto-or::after{content:"";flex:1;height:1px;background:var(--line)}
 .admin-modal .spec-auto-file-input{width:100%;margin:0;padding:6px;font-size:.85rem;color:var(--muted)}
@@ -1419,6 +1429,8 @@ var autoMsgState=useState(null),autoMsg=autoMsgState[0],setAutoMsg=autoMsgState[
 var trackFilterState=useState("all"),trackFilter=trackFilterState[0],setTrackFilter=trackFilterState[1];
 var autoPasteState=useState(""),autoPaste=autoPasteState[0],setAutoPaste=autoPasteState[1];
 var autoPendingState=useState(null),autoPending=autoPendingState[0],setAutoPending=autoPendingState[1];
+var autoUsageState=useState(null),autoUsage=autoUsageState[0],setAutoUsage=autoUsageState[1];
+function loadAutoUsage(){fetch("/api/admin/autofill-usage",{credentials:"same-origin"}).then(function(r){return r.ok?r.json():null}).then(function(d){if(d&&d.kinds)setAutoUsage(d)}).catch(function(){})}
 var autoLogState=useState([]),autoLog=autoLogState[0],setAutoLog=autoLogState[1];
 function logAuto(line){setAutoLog(function(list){return list.concat(new Date().toLocaleTimeString()+"  "+line)})}
 var backTopState=useState(false),showBackTop=backTopState[0],setShowBackTop=backTopState[1];
@@ -2103,7 +2115,7 @@ async function runAutofillRequest(payload,progress){
     setAutoMsg({ok:true,text:note,warnings:result.warnings||[]});
     return {ok:true};
   }catch(error){if(!error.status)logAuto("Request failed: "+(error.message||error));setAutoMsg({ok:false,text:error.message||"Auto-fill failed. Please try again.",warnings:[]});return {ok:false,status:error.status}}
-  finally{setAutoBusy(false)}
+  finally{setAutoBusy(false);loadAutoUsage()}
 }
 var PDFJS_BASE="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
 function loadPdfJs(){
@@ -2226,7 +2238,15 @@ function fillFromPastedText(){
 }
 function SpecAutofill(){
   var url=autoUrl.trim();
-  return html`<div class="spec-auto"><button type="button" class="spec-auto-toggle" aria-expanded=${autoOpen} disabled=${!adminEdit} onClick=${function(){setAutoOpen(!autoOpen)}}>Auto-fill from link or image (optional)<span aria-hidden="true">${autoOpen?"▴":"▾"}</span></button>${!adminEdit?html`<p class="spec-copy-help">Select a model above first.</p>`:null}${autoOpen&&adminEdit?html`<div class="spec-auto-body"><div class="spec-auto-group"><label class="admin-field" for="spec-auto-url">Product page link</label><div class="spec-auto-row"><input id="spec-auto-url" type="url" placeholder="https://…" value=${autoUrl} disabled=${autoBusy} onInput=${function(e){setAutoUrl(e.target.value)}} onKeyDown=${function(e){if(e.key==="Enter"){e.preventDefault();if(url&&!autoBusy){setAutoLog([]);runAutofillRequest({url:url})}}}} /><button type="button" class="spec-copy-btn" disabled=${autoBusy||!url} onClick=${function(){setAutoLog([]);runAutofillRequest({url:url})}}>${autoBusy?"Reading…":"Read link"}</button></div></div><div class="spec-auto-or" aria-hidden="true"><span>or</span></div><div class="spec-auto-group"><label class="admin-field" for="spec-auto-file">Screenshot, photo or PDF brochure</label><input id="spec-auto-file" class="spec-auto-file-input" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled=${autoBusy} onChange=${function(e){var f=e.target.files&&e.target.files[0];e.target.value="";autofillFromFile(f)}} /></div><div class="spec-auto-or" aria-hidden="true"><span>or</span></div><div class="spec-auto-group"><label class="admin-field" for="spec-auto-paste">Paste text from Claude, ChatGPT or a spreadsheet</label><textarea id="spec-auto-paste" rows="5" placeholder="Field	Model A	Model B …" value=${autoPaste} onInput=${function(e){setAutoPaste(e.target.value)}}></textarea><div class="spec-auto-row"><button type="button" class="spec-copy-btn" disabled=${autoBusy||!autoPaste.trim()} onClick=${fillFromPastedText}>Fill from text</button></div></div>${autoPending?html`<div class="spec-auto-pick" role="group" aria-label="Choose model column">${autoPending.map(function(col){return html`<button type="button" class="spec-copy-btn" onClick=${function(){useParsedColumn(col)}}>${col.name}</button>`})}</div>`:null}<p class="spec-auto-note">Only details clearly shown in the source are filled; anything unclear is left blank. Nothing is saved until you press Save Model.</p>${autoMsg?html`<p class=${"spec-auto-msg "+(autoMsg.ok?"ok":"bad")} role="status">${autoMsg.text}${autoMsg.warnings.length?" "+autoMsg.warnings.join(" "):""}</p>`:null}${autoLog.length?html`<details class="spec-auto-log" open=${autoMsg&&!autoMsg.ok}><summary>Details for troubleshooting</summary><pre>${autoLog.join("\n")}</pre><button type="button" class="spec-copy-btn" onClick=${function(){try{navigator.clipboard.writeText(autoLog.join("\n"))}catch(e){}}}>Copy details</button></details>`:null}</div>`:null}</div>`;
+  return html`<div class="spec-auto"><button type="button" class="spec-auto-toggle" aria-expanded=${autoOpen} disabled=${!adminEdit} onClick=${function(){if(!autoOpen)loadAutoUsage();setAutoOpen(!autoOpen)}}>Auto-fill from link or image (optional)<span aria-hidden="true">${autoOpen?"▴":"▾"}</span></button>${!adminEdit?html`<p class="spec-copy-help">Select a model above first.</p>`:null}${autoOpen&&adminEdit?html`<div class="spec-auto-body"><div class="spec-auto-group"><label class="admin-field" for="spec-auto-url">Product page link</label><div class="spec-auto-row"><input id="spec-auto-url" type="url" placeholder="https://…" value=${autoUrl} disabled=${autoBusy} onInput=${function(e){setAutoUrl(e.target.value)}} onKeyDown=${function(e){if(e.key==="Enter"){e.preventDefault();if(url&&!autoBusy){setAutoLog([]);runAutofillRequest({url:url})}}}} /><button type="button" class="spec-copy-btn" disabled=${autoBusy||!url} onClick=${function(){setAutoLog([]);runAutofillRequest({url:url})}}>${autoBusy?"Reading…":"Read link"}</button></div>${autoUsageBar()}</div><div class="spec-auto-or" aria-hidden="true"><span>or</span></div><div class="spec-auto-group"><label class="admin-field" for="spec-auto-file">Screenshot, photo or PDF brochure</label><input id="spec-auto-file" class="spec-auto-file-input" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled=${autoBusy} onChange=${function(e){var f=e.target.files&&e.target.files[0];e.target.value="";autofillFromFile(f)}} /></div><div class="spec-auto-or" aria-hidden="true"><span>or</span></div><div class="spec-auto-group"><label class="admin-field" for="spec-auto-paste">Paste text from Claude, ChatGPT or a spreadsheet</label><textarea id="spec-auto-paste" rows="5" placeholder="Field	Model A	Model B …" value=${autoPaste} onInput=${function(e){setAutoPaste(e.target.value)}}></textarea><div class="spec-auto-row"><button type="button" class="spec-copy-btn" disabled=${autoBusy||!autoPaste.trim()} onClick=${fillFromPastedText}>Fill from text</button><button type="button" class="spec-copy-btn spec-auto-clear" disabled=${autoBusy||!autoPaste} onClick=${function(){setAutoPaste("");setAutoPending(null);setAutoMsg(null)}}>Clear</button></div></div>${autoPending?html`<div class="spec-auto-pick" role="group" aria-label="Choose model column">${autoPending.map(function(col){return html`<button type="button" class="spec-copy-btn" onClick=${function(){useParsedColumn(col)}}>${col.name}</button>`})}</div>`:null}<p class="spec-auto-note">Only details clearly shown in the source are filled; anything unclear is left blank. Nothing is saved until you press Save Model.</p>${autoMsg?html`<p class=${"spec-auto-msg "+(autoMsg.ok?"ok":"bad")} role="status">${autoMsg.text}${autoMsg.warnings.length?" "+autoMsg.warnings.join(" "):""}</p>`:null}${autoLog.length?html`<details class="spec-auto-log" open=${autoMsg&&!autoMsg.ok}><summary>Details for troubleshooting</summary><pre>${autoLog.join("\n")}</pre><button type="button" class="spec-copy-btn" onClick=${function(){try{navigator.clipboard.writeText(autoLog.join("\n"))}catch(e){}}}>Copy details</button></details>`:null}</div>`:null}</div>`;
+}
+function autoUsageBar(){
+  if(!autoUsage)return null;
+  var limit=autoUsage.limit||10000,used=autoUsage.used||0,pct=Math.min(100,Math.round(used/limit*100)),k=autoUsage.kinds||{};
+  var names={link:"Link",image:"Image / PDF",text:"Pasted text"},top=null;
+  Object.keys(names).forEach(function(key){if(k[key]&&k[key].neurons>0&&(!top||k[key].neurons>k[top].neurons))top=key});
+  var level=pct>=90?"high":pct>=70?"mid":"low";
+  return html`<div class="spec-usage" role="group" aria-label="Estimated free AI usage today"><div class="spec-usage-top"><span>Free AI used today (estimate)</span><b>${pct}%</b></div><div class="spec-usage-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow=${pct}><span class=${"spec-usage-fill "+level} style=${{width:pct+"%"}}></span></div><p class="spec-usage-note">${used.toLocaleString()} of ${limit.toLocaleString()} units. ${top?"Most used: "+names[top]+". ":"No requests yet today. "}Resets 00:00 UTC.</p><ul class="spec-usage-list">${Object.keys(names).map(function(key){var n=k[key]||{calls:0,neurons:0};return html`<li><span>${names[key]}</span><span>${n.calls} request${n.calls===1?"":"s"} · ${n.neurons.toLocaleString()}</span></li>`})}</ul></div>`;
 }
 function SpecCopyBar(){
   var choices=copySpecChoices(),valid=!!copySource&&copySource!==adminEdit&&choices.some(function(o){return o.value===copySource});

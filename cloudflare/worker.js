@@ -6,6 +6,13 @@ const MAX_TRANSLATION_REQUEST_BYTES = 16_000;
 const MAX_AUTOFILL_REQUEST_BYTES = 8_000_000;
 const MAX_AUTOFILL_PAGE_BYTES = 1_500_000;
 const MAX_AUTOFILL_TEXT_CHARS = 30_000;
+const AI_DAILY_FREE_NEURONS = 10_000;
+// Neurons per million tokens (input, output) from Cloudflare's Workers AI pricing; used for estimates only.
+const AI_NEURON_RATES = {
+  "@cf/meta/llama-3.3-70b-instruct-fp8-fast": [26668, 204805],
+  "@cf/meta/llama-3.2-11b-vision-instruct": [4410, 61493],
+};
+const AUTOFILL_IMAGE_TOKEN_ESTIMATE = 1600;
 const AUTOFILL_TEXT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const AUTOFILL_VISION_MODEL = "@cf/meta/llama-3.2-11b-vision-instruct";
 const AUTOFILL_FEATURES = ["Wi-Fi", "Self-cleaning", "Air purification", "Inverter", "Sleep mode", "Eco mode", "Voice control"];
@@ -425,12 +432,60 @@ function closeJson(text) {
   return out + stack.reverse().join("");
 }
 
+function usageDay(now = Date.now()) {
+  return new Date(now).toISOString().slice(0, 10);
+}
+
+async function ensureUsageTable(env) {
+  await env.DB.prepare(
+    "CREATE TABLE IF NOT EXISTS ai_usage (day TEXT NOT NULL, kind TEXT NOT NULL, calls INTEGER NOT NULL DEFAULT 0, in_tokens INTEGER NOT NULL DEFAULT 0, out_tokens INTEGER NOT NULL DEFAULT 0, neurons REAL NOT NULL DEFAULT 0, PRIMARY KEY (day, kind))",
+  ).run();
+}
+
+async function recordAutofillUsage(env, kind, model, inTokens, outTokens) {
+  try {
+    const [rateIn, rateOut] = AI_NEURON_RATES[model] || [0, 0];
+    const neurons = (inTokens / 1e6) * rateIn + (outTokens / 1e6) * rateOut;
+    await ensureUsageTable(env);
+    await env.DB.prepare(
+      "INSERT INTO ai_usage (day, kind, calls, in_tokens, out_tokens, neurons) VALUES (?1, ?2, 1, ?3, ?4, ?5) ON CONFLICT(day, kind) DO UPDATE SET calls = calls + 1, in_tokens = in_tokens + ?3, out_tokens = out_tokens + ?4, neurons = neurons + ?5",
+    ).bind(usageDay(), kind, Math.round(inTokens), Math.round(outTokens), neurons).run();
+  } catch (error) {
+    console.error("[aircon-compare] Could not record AI usage:", error);
+  }
+}
+
+async function autofillUsage(request, env) {
+  if (!env.SESSION_SECRET || !(await hasAdminSession(request, env.SESSION_SECRET))) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+  const day = usageDay();
+  const kinds = { link: { calls: 0, neurons: 0 }, text: { calls: 0, neurons: 0 }, image: { calls: 0, neurons: 0 } };
+  try {
+    await ensureUsageTable(env);
+    const { results } = await env.DB.prepare("SELECT kind, calls, neurons FROM ai_usage WHERE day = ?1").bind(day).all();
+    for (const row of results || []) {
+      if (kinds[row.kind]) kinds[row.kind] = { calls: row.calls, neurons: Math.round(row.neurons) };
+    }
+  } catch (error) {
+    console.error("[aircon-compare] Could not read AI usage:", error);
+    return json({ error: "Usage is not available right now." }, 502);
+  }
+  const used = Object.values(kinds).reduce((sum, item) => sum + item.neurons, 0);
+  const next = new Date(`${day}T00:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  return json({ day, limit: AI_DAILY_FREE_NEURONS, used, kinds, resetsAt: next.toISOString() });
+}
+
 async function callAutofillModel(env, input, retry) {
   const prompt = AUTOFILL_PROMPT + targetHint(input.target) +
     (retry ? "\n\nYour previous reply was not valid JSON. Reply with ONLY the JSON object, nothing else." : "");
+  let model;
+  let result;
   if (input.image) {
+    model = AUTOFILL_VISION_MODEL;
     const run = () =>
-      env.AI.run(AUTOFILL_VISION_MODEL, {
+      env.AI.run(model, {
         messages: [{
           role: "user",
           content: [
@@ -442,19 +497,28 @@ async function callAutofillModel(env, input, retry) {
         temperature: 0,
       });
     try {
-      return aiText(await run());
+      result = await run();
     } catch (error) {
       // Meta's vision model needs its licence accepted once per account.
       if (!/agree|licen[cs]e|5016/i.test(String(error?.message || error))) throw error;
-      await env.AI.run(AUTOFILL_VISION_MODEL, { prompt: "agree" });
-      return aiText(await run());
+      await env.AI.run(model, { prompt: "agree" });
+      result = await run();
     }
+  } else {
+    model = AUTOFILL_TEXT_MODEL;
+    result = await env.AI.run(model, {
+      messages: [{ role: "user", content: `${prompt}\n\nPAGE CONTENT:\n${input.text}` }],
+      max_tokens: 2500,
+      temperature: 0,
+    });
   }
-  return aiText(await env.AI.run(AUTOFILL_TEXT_MODEL, {
-    messages: [{ role: "user", content: `${prompt}\n\nPAGE CONTENT:\n${input.text}` }],
-    max_tokens: 2500,
-    temperature: 0,
-  }));
+  const text = aiText(result);
+  const reported = result && typeof result === "object" ? result.usage : null;
+  const inTokens = Number(reported?.prompt_tokens) ||
+    Math.ceil((prompt.length + (input.text ? input.text.length : 0)) / 4) + (input.image ? AUTOFILL_IMAGE_TOKEN_ESTIMATE : 0);
+  const outTokens = Number(reported?.completion_tokens) || Math.ceil(text.length / 4);
+  await recordAutofillUsage(env, input.kind || (input.image ? "image" : "text"), model, inTokens, outTokens);
+  return text;
 }
 
 async function runAutofill(env, input) {
@@ -508,13 +572,13 @@ async function autofillSpecs(request, env) {
       if (!AUTOFILL_MIME_TYPES.includes(mime) || typeof data !== "string" || !/^[A-Za-z0-9+/=]+$/.test(data)) {
         return json({ error: "Upload a JPG, PNG or WebP image." }, 400);
       }
-      content = { image: { mime, data }, target };
+      content = { image: { mime, data }, target, kind: "image" };
     } else if (typeof body.text === "string") {
       const text = body.text.trim().slice(0, MAX_AUTOFILL_TEXT_CHARS);
       if (text.length < 60) {
         return json({ error: "That file has too little readable text. Upload a screenshot of the spec table instead." }, 422);
       }
-      content = { text, target };
+      content = { text, target, kind: "text" };
     } else {
       const url = parseAutofillUrl(body.url);
       if (!url) return json({ error: "Enter a valid public web address (https://…)." }, 400);
@@ -522,7 +586,7 @@ async function autofillSpecs(request, env) {
       if (text.length < 200) {
         return json({ error: "That page has too little readable text (it may load its details with JavaScript). Upload a screenshot instead." }, 422);
       }
-      content = { text, target };
+      content = { text, target, kind: "link" };
     }
 
     const { data, warnings, reply } = await runAutofill(env, content);
@@ -554,6 +618,10 @@ async function handleApi(request, env) {
 
   if (pathname === "/api/admin/translate" && request.method === "POST") {
     return translateSellingPoint(request, env);
+  }
+
+  if (pathname === "/api/admin/autofill-usage" && request.method === "GET") {
+    return autofillUsage(request, env);
   }
 
   if (pathname === "/api/admin/autofill" && request.method === "POST") {

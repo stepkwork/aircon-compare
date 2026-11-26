@@ -3,3 +3,13 @@ CREATE TABLE IF NOT EXISTS site_data (
   payload TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS ai_usage (
+  day TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  calls INTEGER NOT NULL DEFAULT 0,
+  in_tokens INTEGER NOT NULL DEFAULT 0,
+  out_tokens INTEGER NOT NULL DEFAULT 0,
+  neurons REAL NOT NULL DEFAULT 0,
+  PRIMARY KEY (day, kind)
+);
