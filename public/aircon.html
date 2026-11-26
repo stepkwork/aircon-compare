@@ -1731,6 +1731,13 @@ function ModelPicker(props){
       if(optionRefs.current[index]){
         optionRefs.current[index].focus({preventScroll:true});
         revealOption(optionRefs.current[index]);
+        if(props.openAtTop){
+          var topList=optionRefs.current[index].parentElement;
+          var toTop=function(){if(topList)topList.scrollTop=0};
+          toTop();
+          requestAnimationFrame(toTop);
+          setTimeout(toTop,120);
+        }
       }
     }
   },[open,portalTarget]);
