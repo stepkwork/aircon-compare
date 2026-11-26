@@ -1447,6 +1447,7 @@ useEffect(function(){
   return function(){window.removeEventListener("scroll",onScroll);document.removeEventListener("scroll",onScroll,true)};
 },[]);
 useEffect(function(){setShowBackTop(furthestScroll()>300)});
+useEffect(function(){setCopySource("");setCopyNote("")},[adminEdit,adminBrand,adminSeries]);
 function scrollToModelsSection(){
   window.requestAnimationFrame(function(){
     var modalEl=document.querySelector(".admin-modal"),sec=document.getElementById("admin-models-section");
